@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description>run https://github.com/SUSE-Cloud/automation/blob/master/scripts/mkcloud&#13;
+  <description>!!! This job is automatically pushed from GIT to ci.suse.de !!!&#13;
+REMEMBER: changes to this job will be overwritten after a few hours - make sure to create a PR for your changes&#13;
+&#13;
+This job runs https://github.com/SUSE-Cloud/automation/blob/master/scripts/mkcloud&#13;
 &#13;
 results are analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/mkcloudresultcheck.pl on mkcloudresultcheck@mkcloudresultcheck.cloud.suse.de every 15 minutes</description>
   <keepDependencies>false</keepDependencies>
@@ -112,7 +115,7 @@ Note: SHA1 must be latest commit in PR, $context is optional (only use if multip
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>nodenumber</name>
-          <description>number of nodes excl. admin-node 
+          <description>number of nodes excl. admin-node
 minimum 2=controller+compute</description>
           <defaultValue>2</defaultValue>
         </hudson.model.StringParameterDefinition>
@@ -234,11 +237,6 @@ Currently only the 'batch' step uses such a file.</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>want_ceph</name>
-          <description>DEPRECATED - DO NOT USE THIS VARIABLE!!! Install Ceph storage</description>
-          <defaultValue/>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
           <name>want_magnum</name>
           <description>Deploy with Magnum</description>
           <defaultValue/>
@@ -280,7 +278,7 @@ Currently only the 'batch' step uses such a file.</description>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <hudson.plugins.heavy__job.HeavyJobProperty plugin="heavy-job@1.1">
+    <hudson.plugins.heavy__job.HeavyJobProperty plugin="heavy-job@">
       <weight>1</weight>
     </hudson.plugins.heavy__job.HeavyJobProperty>
     <jenkins.model.BuildDiscarderProperty>
@@ -342,7 +340,7 @@ case $cloudsource in
         [[ $nodenumber == 2 &amp;&amp; -z "$scenario" ]] &amp;&amp; export want_ldap=1
         ;;
 esac
-   
+
 
 if [[ $cinder_backend = " " ]] ; then
   cinder_backend=""
@@ -355,7 +353,7 @@ if [[ $hacloud == 1 ]] ; then
   if [[ $nodenumber &lt; 4 ]] ; then
     export nodenumber=4
   fi
-  
+
   # for now disable ceph deployment in HA mode explicitly
   # it would need 5 nodes (2 for the cluster + 3 nodes for compute and ceph)
   #### temorarily allow ceph in HA (test if it works)
@@ -363,17 +361,6 @@ if [[ $hacloud == 1 ]] ; then
   #export cephvolumenumber=0
 fi
 
-if [[ $want_ceph || $want_swift ]] ; then
-  echo "storage_method WARNING  ========================================"
-  echo
-  echo "Do NOT set want_{ceph,swift} for this job, the parameter was added back by accident"
-  echo
-  echo "Please use the parameter 'storage_method' and set it to ceph, swift, none or default"
-  echo "  'none' will hard disable swift and ceph"
-  echo "  'default' will let mkcloud decide what to use"
-  echo
-  echo "storage_method WARNING  ========================================"
-fi
 
 #storage
 case "$storage_method" in
@@ -383,7 +370,7 @@ case "$storage_method" in
     ;;
   swift)
     want_ceph=0
-    want_swift=1  
+    want_swift=1
     ;;
   ceph)
     want_ceph=1
@@ -433,7 +420,7 @@ if [[ $github_pr ]] ; then
     if [[ $github_pr_context ]] ; then
       ghs_context=$ghs_context/$github_pr_context
     fi
-    
+
     echo "testing PR: https://github.com/$github_pr_repo/pull/$github_pr_id"
     ghs=${automationrepo}/scripts/github-status/github-status.rb
     zypper -n install "rubygem(netrc)" "rubygem(octokit)"
@@ -469,7 +456,7 @@ if [[ $github_pr ]] ; then
     fi
 
     $ghs -a set-status -s "pending" -r $github_pr_repo -t $BUILD_URL -c $github_pr_sha --context $ghs_context
-    
+
 fi
 
 echo "########################################################################"
@@ -536,7 +523,7 @@ fi
     </hudson.tasks.Mailer>
   </publishers>
   <buildWrappers>
-    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.17.1">
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@">
       <strategy class="hudson.plugins.build_timeout.impl.NoActivityTimeOutStrategy">
         <timeoutSecondsString>3600</timeoutSecondsString>
       </strategy>
