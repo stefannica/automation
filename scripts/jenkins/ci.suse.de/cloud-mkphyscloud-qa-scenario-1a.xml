@@ -90,7 +90,7 @@ It will wipe all machines in the selected cloud!
         <hudson.model.StringParameterDefinition>
           <name>commands</name>
           <description>All the steps that needs to be completed to have cloud installed</description>
-          <defaultValue>prepareinstallcrowbar installcrowbar allocate waitcloud setup_aliases batch</defaultValue>
+          <defaultValue>prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases batch</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.TextParameterDefinition>
           <name>UPDATEREPOS</name>
@@ -133,7 +133,7 @@ rm -rf $artifacts_dir
 mkdir -p $artifacts_dir
 touch $artifacts_dir/.ignore
 
-freshadminvm_cloud6 $admin qcow2
+freshadminvm $admin
 sleep 100 # time for the admin VM to boot
 
 # wipe out shared NFS that should be used by this deployment
@@ -163,8 +163,8 @@ export commands=\"$commands\" "'
 wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
 wget --no-check-certificate -Oscenario.yml "$scenario_url"
 
-sed -i -e "s,##shared_nfs_for_database##,10.162.24.1:/var/$cloud/ha-database," scenario.yml
-sed -i -e "s,##shared_nfs_for_rabbitmq##,10.162.24.1:/var/$cloud/ha-rabbitmq," scenario.yml
+sed -i -e "s,##shared_nfs_for_database##,10.162.66.1:/var/$cloud/ha-database," scenario.yml
+sed -i -e "s,##shared_nfs_for_rabbitmq##,10.162.66.1:/var/$cloud/ha-rabbitmq," scenario.yml
 
 [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export updatesteps="addupdaterepo runupdate"
 
@@ -234,7 +234,17 @@ scenario_build_number=$BUILD_NUMBER
       </configs>
     </hudson.plugins.parameterizedtrigger.TriggerBuilder>
   </builders>
-  <publishers/>
+  <publishers>
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>.artifacts/**</artifacts>
+      <latestOnly>false</latestOnly>
+      <allowEmptyArchive>true</allowEmptyArchive>
+      <onlyIfSuccessful>false</onlyIfSuccessful>
+      <fingerprint>false</fingerprint>
+      <defaultExcludes>true</defaultExcludes>
+      <caseSensitive>true</caseSensitive>
+    </hudson.tasks.ArtifactArchiver>
+  </publishers>
   <buildWrappers>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@">
       <template>#${BUILD_NUMBER}: ${ENV,var="cloudsource"}</template>

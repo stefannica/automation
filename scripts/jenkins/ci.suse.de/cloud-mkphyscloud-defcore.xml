@@ -23,6 +23,12 @@ It will wipe all QA3 machines!</description>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty plugin="gitlab-plugin@">
+      <gitLabConnection>https://gitlab.suse.de</gitLabConnection>
+    </com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty>
+    <org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty plugin="gitlab-logo@">
+      <repositoryName/>
+    </org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@">
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
@@ -47,12 +53,12 @@ It will wipe all QA3 machines!</description>
         <hudson.model.StringParameterDefinition>
           <name>cloudsource</name>
           <description/>
-          <defaultValue>develcloud6</defaultValue>
+          <defaultValue>susecloud7</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>TESTHEAD</name>
           <description>if non-empty, test latest version from Devel:Cloud Staging</description>
-          <defaultValue>1</defaultValue>
+          <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>want_swift</name>
@@ -137,7 +143,7 @@ rm -rf $artifacts_dir
 mkdir -p $artifacts_dir
 touch $artifacts_dir/.ignore
 cd /home/jenkins
-freshadminvm_cloud6 $admin qcow2
+freshadminvm_cloud7 $admin qcow2
 sleep 100 # time for the admin VM to boot
 
 
@@ -157,6 +163,7 @@ export hacloud=$hacloud ;
 export want_ceph=$want_ceph ;
 export want_swift=$want_swift ;
 export cephvolumenumber=$cephvolumenumber ;
+export want_sles12sp2=1
 export want_tempest=$want_tempest ;
 export tempestoptions=\"$tempestoptions\" ;
 export clusterconfig=$clusterconfig ; 
@@ -197,6 +204,8 @@ exit $ret
     <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@"/>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@">
       <template>#${BUILD_NUMBER}: ${ENV,var="cloudsource"} (${ENV,var="nodenumber"}/${ENV,var="tempestoptions"}/${ENV,var="mkcloudtarget"} ${ENV,var="hacloud"})</template>
+      <runAtStart>true</runAtStart>
+      <runAtEnd>true</runAtEnd>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
   </buildWrappers>
 </project>

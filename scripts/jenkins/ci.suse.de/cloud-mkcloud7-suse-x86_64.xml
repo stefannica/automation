@@ -21,15 +21,12 @@
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers>
-    <hudson.triggers.TimerTrigger>
-      <spec>H H */2 * *</spec>
-    </hudson.triggers.TimerTrigger>
     <org.jenkinsci.plugins.urltrigger.URLTrigger plugin="urltrigger@">
       <spec>H/5 * * * *</spec>
       <triggerLabel>cloud-trigger</triggerLabel>
       <entries>
         <org.jenkinsci.plugins.urltrigger.URLTriggerEntry>
-          <url>http://clouddata.cloud.suse.de/cgi-bin/grep/download.suse.de/ibs/Devel:/Cloud:/7:/Staging/images/iso/?regexp=x86_64</url>
+          <url>http://clouddata.cloud.suse.de/cgi-bin/grep/download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update:/Products:/Cloud7/images/iso/?regexp=x86_64</url>
           <proxyActivated>false</proxyActivated>
           <checkStatus>false</checkStatus>
           <statusCode>200</statusCode>
@@ -47,10 +44,6 @@
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders>
-    <hudson.tasks.Shell>
-      <command>echo starttime=$(date +%s) &gt; build_start_time
-</command>
-    </hudson.tasks.Shell>
     <com.tikal.jenkins.plugins.multijob.MultiJobBuilder>
       <phaseName>Standard Gate Checks (non-HA/OVS+Linuxbridge)</phaseName>
       <phaseJobs>
@@ -65,12 +58,14 @@
           <abortAllJob>false</abortAllJob>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters plugin="parameterized-trigger@">
-              <properties>cloudsource=develcloud7
-TESTHEAD=1
+              <properties>cloudsource=susecloud7
+TESTHEAD=
+want_test_updates=1
 nodenumber=2
 mkcloudtarget=all_batch
 scenario=cloud7-2nodes-default.yml
 want_node_aliases=controller=1,compute-kvm=1
+label=openstack-mkcloud-SLE12-x86_64
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
@@ -88,19 +83,28 @@ want_node_aliases=controller=1,compute-kvm=1
           <abortAllJob>false</abortAllJob>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters plugin="parameterized-trigger@">
-              <properties>TESTHEAD=1
-cloudsource=develcloud7
+              <properties>cloudsource=susecloud7
+TESTHEAD=
+want_test_updates=1
 nodenumber=4
+want_ceph=1
 networkingplugin=linuxbridge
 mkcloudtarget=all
+label=openstack-mkcloud-SLE12-x86_64
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <buildOnlyIfSCMChanges>false</buildOnlyIfSCMChanges>
           <applyConditionOnlyIfNoSCMChanges>false</applyConditionOnlyIfNoSCMChanges>
         </com.tikal.jenkins.plugins.multijob.PhaseJobsConfig>
+      </phaseJobs>
+      <continuationCondition>SUCCESSFUL</continuationCondition>
+    </com.tikal.jenkins.plugins.multijob.MultiJobBuilder>
+    <com.tikal.jenkins.plugins.multijob.MultiJobBuilder>
+      <phaseName>Extra Gate Checks (HA)</phaseName>
+      <phaseJobs>
         <com.tikal.jenkins.plugins.multijob.PhaseJobsConfig>
-          <jobName>cloud-mkcloud7-job-ha-x86_64</jobName>
+          <jobName>openstack-mkcloud</jobName>
           <currParams>false</currParams>
           <exposedSCM>false</exposedSCM>
           <disableJob>false</disableJob>
@@ -108,7 +112,18 @@ mkcloudtarget=all
           <enableRetryStrategy>false</enableRetryStrategy>
           <enableCondition>false</enableCondition>
           <abortAllJob>false</abortAllJob>
-          <configs/>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters plugin="parameterized-trigger@">
+              <properties>TESTHEAD=
+cloudsource=susecloud7
+nodenumber=5
+networkingmode=vxlan
+hacloud=1
+mkcloudtarget=all_noreboot
+label=openstack-mkcloud-SLE12-x86_64
+</properties>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+          </configs>
           <buildOnlyIfSCMChanges>false</buildOnlyIfSCMChanges>
           <applyConditionOnlyIfNoSCMChanges>false</applyConditionOnlyIfNoSCMChanges>
         </com.tikal.jenkins.plugins.multijob.PhaseJobsConfig>
@@ -116,31 +131,7 @@ mkcloudtarget=all
       <continuationCondition>SUCCESSFUL</continuationCondition>
     </com.tikal.jenkins.plugins.multijob.MultiJobBuilder>
   </builders>
-  <publishers>
-    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@">
-      <configs>
-        <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
-          <configs>
-            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>project=Devel:Cloud:7
-subproject=Staging
-packagefilter=crowbar python openstack patterns release-notes-suse-openstack-cloud suse-cloud-upgrade
-</properties>
-            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-            <hudson.plugins.parameterizedtrigger.FileBuildParameters>
-              <propertiesFile>build_start_time</propertiesFile>
-              <failTriggerOnMissing>true</failTriggerOnMissing>
-              <useMatrixChild>false</useMatrixChild>
-              <onlyExactRuns>false</onlyExactRuns>
-            </hudson.plugins.parameterizedtrigger.FileBuildParameters>
-          </configs>
-          <projects>openstack-submit-project</projects>
-          <condition>SUCCESS</condition>
-          <triggerWithNoParameters>false</triggerWithNoParameters>
-        </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
-      </configs>
-    </hudson.plugins.parameterizedtrigger.BuildTrigger>
-  </publishers>
+  <publishers/>
   <buildWrappers/>
   <pollSubjobs>false</pollSubjobs>
 </com.tikal.jenkins.plugins.multijob.MultiJobProject>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<matrix-project plugin="matrix-project@1.6">
+<matrix-project plugin="matrix-project@1.7.1">
   <actions/>
   <description>update OBS/IBS packages from git or tarballs via OBS _service feature</description>
   <keepDependencies>false</keepDependencies>
@@ -22,6 +22,22 @@
       <permission>hudson.model.Run.Update:cloud</permission>
       <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty plugin="gitlab-plugin@">
+      <gitLabConnection>https://gitlab.suse.de</gitLabConnection>
+    </com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty>
+    <org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty plugin="gitlab-logo@">
+      <repositoryName/>
+    </org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.plugins.heavy__job.HeavyJobProperty plugin="heavy-job@1.1">
+      <weight>1</weight>
+    </hudson.plugins.heavy__job.HeavyJobProperty>
     <jenkins.model.BuildDiscarderProperty>
       <strategy class="hudson.tasks.LogRotator">
         <daysToKeep>30</daysToKeep>
@@ -30,13 +46,6 @@
         <artifactNumToKeep>-1</artifactNumToKeep>
       </strategy>
     </jenkins.model.BuildDiscarderProperty>
-    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
-      <doNotScan>false</doNotScan>
-    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
-    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@">
-      <autoRebuild>false</autoRebuild>
-      <rebuildDisabled>false</rebuildDisabled>
-    </com.sonyericsson.rebuild.RebuildSettings>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <canRoam>true</canRoam>
@@ -53,13 +62,14 @@
     <hudson.matrix.TextAxis>
       <name>component</name>
       <values>
-        <string>suse-cloud-upgrade</string>
         <string>crowbar</string>
+        <string>crowbar-ui</string>
         <string>crowbar-core</string>
         <string>crowbar-openstack</string>
         <string>crowbar-ceph</string>
         <string>crowbar-ha</string>
         <string>crowbar-hyperv</string>
+        <string>crowbar-init</string>
         <string>openstack-dashboard-theme-SUSE</string>
         <string>release-notes-suse-openstack-cloud</string>
         <string>crowbar-barclamp-bios</string>
@@ -107,14 +117,13 @@
     <hudson.matrix.TextAxis>
       <name>project</name>
       <values>
-        <string>Devel:Cloud:4:Staging</string>
         <string>Devel:Cloud:5:Staging</string>
         <string>Devel:Cloud:6:Staging</string>
         <string>Devel:Cloud:7:Staging</string>
       </values>
     </hudson.matrix.TextAxis>
   </axes>
-  <combinationFilter>!(       ( ["Devel:Cloud:4:Staging"].contains(project)  &amp;&amp;       ["crowbar-barclamp-manila"].contains(component)     )   ||      (       ["Devel:Cloud:4:Staging", "Devel:Cloud:5:Staging"].contains(project)  &amp;&amp;       ["openstack-dashboard-theme-SUSE", "crowbar-core", "crowbar-openstack", "crowbar-ha", "crowbar-hyperv", "crowbar-ceph", "release-notes-suse-openstack-cloud"].contains(component)      )   ||     (        ( ! ["Devel:Cloud:4:Staging", "Devel:Cloud:5:Staging"].contains(project) ) &amp;&amp;       component.startsWith('crowbar-barclamp-')  || ["suse-cloud-upgrade"].contains(component)    ) || ((["Devel:Cloud:7:Staging"].contains(project)) &amp;&amp; ["openstack-dashboard-theme-SUSE"].contains(component)))</combinationFilter>
+  <combinationFilter>!(     ( ["Devel:Cloud:5:Staging"].contains(project)  &amp;&amp;       ["openstack-dashboard-theme-SUSE", "crowbar-core", "crowbar-openstack", "crowbar-ha", "crowbar-hyperv", "crowbar-ceph", "release-notes-suse-openstack-cloud"].contains(component)      )   ||          ( ( ! ["Devel:Cloud:5:Staging"].contains(project) ) &amp;&amp;       component.startsWith('crowbar-barclamp-')  ||        ["suse-cloud-upgrade"].contains(component)    ) ||           ( (["Devel:Cloud:7:Staging"].contains(project) ) &amp;&amp;       ["openstack-dashboard-theme-SUSE"].contains(component)) ||           ( ["Devel:Cloud:5:Staging", "Devel:Cloud:6:Staging"].contains(project)  &amp;&amp; ["crowbar-init", "crowbar-ui"].contains(component)) )</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=IBS/${project}

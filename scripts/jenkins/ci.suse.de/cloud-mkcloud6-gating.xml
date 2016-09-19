@@ -91,7 +91,6 @@ want_node_aliases=controller=1,compute-kvm=1
               <properties>TESTHEAD=1
 cloudsource=develcloud6
 nodenumber=4
-want_ldap=1
 networkingplugin=linuxbridge
 mkcloudtarget=all
 </properties>
@@ -100,14 +99,8 @@ mkcloudtarget=all
           <buildOnlyIfSCMChanges>false</buildOnlyIfSCMChanges>
           <applyConditionOnlyIfNoSCMChanges>false</applyConditionOnlyIfNoSCMChanges>
         </com.tikal.jenkins.plugins.multijob.PhaseJobsConfig>
-      </phaseJobs>
-      <continuationCondition>SUCCESSFUL</continuationCondition>
-    </com.tikal.jenkins.plugins.multijob.MultiJobBuilder>
-    <com.tikal.jenkins.plugins.multijob.MultiJobBuilder>
-      <phaseName>Extra Gate Checks (HA)</phaseName>
-      <phaseJobs>
         <com.tikal.jenkins.plugins.multijob.PhaseJobsConfig>
-          <jobName>cloud-mkcloud6-job-ha</jobName>
+          <jobName>cloud-mkcloud6-job-ha-x86_64</jobName>
           <currParams>false</currParams>
           <exposedSCM>false</exposedSCM>
           <disableJob>false</disableJob>

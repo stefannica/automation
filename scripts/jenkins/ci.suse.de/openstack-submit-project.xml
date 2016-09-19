@@ -79,9 +79,6 @@ submitcmd="$OSC copypac -K -e"
 OSCBUILDDIST=SLE_12_SP1
 
 case $project in
-Devel:Cloud:4)
-    OSCBUILDDIST=SLE_11_SP3
-;;
 Devel:Cloud:5)
     OSCBUILDDIST=SLE_11_SP3
 ;;

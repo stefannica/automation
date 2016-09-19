@@ -60,8 +60,8 @@ export automationrepo=~/github.com/SUSE-Cloud/automation
 
 # automation bootstrapping
 if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
-rm -rf ${automationrepo}
-curl https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation | bash
+    rm -rf ${automationrepo}
+    curl https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation | bash
 fi
 # fetch the latest automation updates
 ${automationrepo}/scripts/jenkins/update_automation
@@ -70,12 +70,12 @@ ghs=${automationrepo}/scripts/github-status/github-status.rb
 
 action=list-unseen-prs
 case $mode in
-rebuild) action=list-rebuild-prs
-;;
-forcerebuild) action=list-forcerebuild-prs
-;;
-forceall) action=list-open-prs
-;;
+  rebuild) action=list-rebuild-prs
+  ;;
+  forcerebuild) action=list-forcerebuild-prs
+  ;;
+  forceall) action=list-open-prs
+  ;;
 esac
 
 
@@ -86,6 +86,7 @@ declare -a crowbar_repos=(
     crowbar-core
     crowbar-ha
     crowbar-hyperv
+    crowbar-init
     crowbar-openstack
     barclamp-ceilometer
     barclamp-ceph
@@ -123,7 +124,6 @@ declare -a crowbar_repos=(
 
 declare -a master_branches_old=(
     release/tex/master
-    release/stoney/master
 )
 
 declare -a master_branches=(
