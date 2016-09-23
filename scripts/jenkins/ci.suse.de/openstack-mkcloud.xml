@@ -257,8 +257,8 @@ Currently only the 'batch' step uses such a file.</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>want_btrfs</name>
-          <description>set to 1 to deploy with btrfs</description>
+          <name>want_rootfs</name>
+          <description>set to btrfs to deploy with btrfs</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -329,8 +329,8 @@ case $cloudsource in
         ;;
     develcloud6)
         if [[ $mkcloudtarget =~ upgrade ]]; then
-            echo "Setting want_ldap=0 for upgrade jobs until hybrid backend is ported to Mitaka"
-            export want_ldap=0
+            echo "Unsetting want_ldap for upgrade jobs until hybrid backend is ported to Mitaka"
+            unset want_ldap
         fi
         ;;
     M*|develcloud7|susecloud7)
