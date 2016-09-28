@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description>Runs tempest full on a specified QA hardware.
+  <description>Runs tempest smoke tests
 Useful only for cloud that was built by mkcloud.
 Mandatory parameter: hw_number
 &lt;!-- Managed by Jenkins Job Builder --&gt;</description>
@@ -41,9 +41,9 @@ Mandatory parameter: hw_number
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
-          <name>testsetup</name>
-          <description>Run tempest with testsetup() in qa_crowbarsetup.sh script</description>
-          <defaultValue>false</defaultValue>
+          <name>integrationtests</name>
+          <description>Will setup env and run horizon integration tests.</description>
+          <defaultValue>true</defaultValue>
         </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
@@ -56,20 +56,14 @@ admin=crowbar$hw_number;
 cloud=qa$hw_number;
 
 ssh root@$admin "
-export tempestoptions=\"-t\";
   export cloud=$cloud;
-  export testsetup=$testsetup;
+  export want_horizon_integration_test=$integrationtests;
 " '
   hostname -f;
   source mkcloud.config;
   source qa_crowbarsetup.sh;
 
-  if [ "$testsetup" == true ] ; then
-     onadmin_testsetup;
-  else
-     get_novacontroller;
-     oncontroller oncontroller_run_tempest;
-  fi
+  oncontroller oncontroller_run_integration_test;
 '
 </command>
     </hudson.tasks.Shell>
@@ -84,7 +78,7 @@ export tempestoptions=\"-t\";
   </publishers>
   <buildWrappers>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
-      <template>#${BUILD_NUMBER} - ${scenario_name} - qa$hw_number - full</template>
+      <template>#${BUILD_NUMBER} - ${scenario_name} - qa$hw_number - smoke</template>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
     <hudson.plugins.timestamper.TimestamperBuildWrapper/>
   </buildWrappers>
