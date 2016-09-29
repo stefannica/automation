@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description>&lt;!-- Managed by Jenkins Job Builder --&gt;</description>
+  <description>&lt;!-- Managed by Jenkins Job Builder --&gt;&#13;
+Disabled by gosipyan</description>
   <logRotator class="hudson.tasks.LogRotator">
     <daysToKeep>-1</daysToKeep>
     <numToKeep>7</numToKeep>
@@ -17,7 +18,7 @@
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>cloud-trigger</assignedNode>
   <canRoam>false</canRoam>
-  <disabled>false</disabled>
+  <disabled>true</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers>

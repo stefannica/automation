@@ -75,6 +75,12 @@ Mandatory parameter: hw_number&#13;
 admin=crowbar$hw_number;
 cloud=qa$hw_number;
 
+export artifacts_dir=$WORKSPACE/.artifacts
+rm -rf $artifacts_dir
+mkdir -p $artifacts_dir
+touch $artifacts_dir/.ignore
+
+
 ssh root@$admin "
   export cloud=$cloud;
   export want_horizon_integration_test=$integrationtests;
@@ -85,8 +91,10 @@ ssh root@$admin "
      
   get_novacontroller;
   oncontroller oncontroller_run_integration_test ;
-
+  oncontroller scp -r /srv/www/openstack-dashboard/openstack_dashboard/test/integration_tests/integration_tests_screenshots/ root@$admin:
 '
+  scp -r root@$admin:/root/integration_tests_screenshots $artifacts_dir/
+
 </command>
     </hudson.tasks.Shell>
   </builders>
