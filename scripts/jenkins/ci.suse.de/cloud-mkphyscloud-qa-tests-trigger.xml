@@ -53,6 +53,11 @@ Has multiple optional attributes:&#13;
           <description>Optional; scenario build number that triggered this job</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>integration</name>
+          <description>Optional; Run horizon integration test</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
