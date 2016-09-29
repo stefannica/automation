@@ -87,7 +87,7 @@ It will wipe all machines in the selected cloud!&#13;
         <hudson.model.StringParameterDefinition>
           <name>runner_url</name>
           <description>The runner must be qa_crowbarsetup.sh file</description>
-          <defaultValue>https://raw.githubusercontent.com/aplanas/automation/21f6934874645b96a7006b391fca8638a58cebd9/scripts/qa_crowbarsetup.sh</defaultValue>
+          <defaultValue>https://raw.githubusercontent.com/aplanas/automation/a2b621283dfd20f0aa2e590f2919419cc6c36b9d/scripts/qa_crowbarsetup.sh</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>commands</name>
