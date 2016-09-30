@@ -18,7 +18,7 @@
   <scm class="hudson.scm.NullSCM"/>
   <triggers class="vector">
     <hudson.triggers.TimerTrigger>
-      <spec>H 6 * * *</spec>
+      <spec>H 2 * * *</spec>
     </hudson.triggers.TimerTrigger>
   </triggers>
   <builders>
@@ -29,11 +29,12 @@
             <hudson.plugins.parameterizedtrigger.CurrentBuildParameters/>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>TESTHEAD=1
-cloudsource=develcloud6
+cloudsource=develcloud7
 nodenumber=2
-libvirt_type=xen
-mkcloudtarget=all
+mkcloudtarget=all_batch
 label=openstack-mkcloud-SLE12-x86_64
+scenario=cloud7-2nodes-default.yml
+want_node_aliases=controller=1,compute-kvm=1
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
