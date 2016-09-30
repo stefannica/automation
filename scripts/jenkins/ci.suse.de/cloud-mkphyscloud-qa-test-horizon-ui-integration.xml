@@ -85,14 +85,14 @@ ssh root@$admin "
   export cloud=$cloud;
   export want_horizon_integration_test=$integrationtests;
   export hacloud=0
-  unset hacloud
+  
 " '
   hostname -f;
   source mkcloud.config;
   source qa_crowbarsetup.sh;
   
   get_novacontroller;
-  oncontroller unset hacloud
+  oncontroller export hacloud=0
   oncontroller oncontroller_run_integration_test ;
   oncontroller scp -r /srv/www/openstack-dashboard/openstack_dashboard/test/integration_tests/integration_tests_screenshots/ root@$admin:/root/
 
