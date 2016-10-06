@@ -488,9 +488,12 @@ if [ $WITHCROWBARREGISTER == "true" ] ; then
   MKCLOUDTARGET+=" setuplonelynodes crowbar_register"
 fi
 
-if [ -e mkcloud.pid ] ; then
-    kill -KILL -`mkcloud.pid` ||: # make sure that the previous mkcloud (and subprocesses) are dead
-fi
+pushd ~/pool/
+    # free up a pool if more than one is reserved
+    # policy allows only one reservation per host at the moment
+    ls -1 | grep -v "^[0-9]\+$" | sort -R | head -n -1 | while read p ; do mv $p ${p%%.*} ; done
+popd
+
 starttime=`date +%s`
 
 mkcloudwrapper="${automationrepo}/scripts/mkcloudhost/allocpool ${automationrepo}/scripts/mkcloudhost/mkcloude"
