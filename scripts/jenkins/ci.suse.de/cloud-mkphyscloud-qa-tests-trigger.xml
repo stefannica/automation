@@ -36,11 +36,11 @@ Has multiple optional attributes:
           <description>Optional; triggers cct tests. If the value is left empty, no cct tests will be run. The tests must be separated by + sign, e.g. feature:admin+feature:controller</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>integration</name>
+        <hudson.model.BooleanParameterDefinition>
+          <name>horizon-tests</name>
           <description>Optional, Run horizon integration test.</description>
-          <defaultValue>horizon-ui-integration</defaultValue>
-        </hudson.model.StringParameterDefinition>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>scenario_name</name>
           <description>Optional; scenario name which typically is an integer with a single letter</description>
@@ -192,9 +192,8 @@ scenario_build_number=$scenario_build_number
       <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
     </org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
     <org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder plugin="conditional-buildstep@">
-      <condition class="org.jenkins_ci.plugins.run_condition.core.ExpressionCondition" plugin="run-condition@1.0">
-        <expression>${ENV,var="integration"}</expression>
-        <label>horizon-ui-integration</label>
+      <condition class="org.jenkins_ci.plugins.run_condition.core.BooleanCondition" plugin="run-condition@1.0">
+        <token>${ENV,var="horizon-tests"}</token>
       </condition>
       <buildStep class="hudson.plugins.parameterizedtrigger.TriggerBuilder" plugin="parameterized-trigger@2.32">
         <configs>
@@ -208,7 +207,7 @@ scenario_build_number=$scenario_build_number
 </properties>
               </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
             </configs>
-            <projects>cloud-mkphyscloud-qa-test-horizon-ui-integration</projects>
+            <projects>cloud-mkphyscloud-qa-test-horizon-tests</projects>
             <condition>ALWAYS</condition>
             <triggerWithNoParameters>false</triggerWithNoParameters>
             <block/>

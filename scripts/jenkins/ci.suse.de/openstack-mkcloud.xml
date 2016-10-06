@@ -276,6 +276,13 @@ Currently only the 'batch' step uses such a file.</description>
           <description>This holds shell code and will be executed before calling mkcloud. This should not be used by default or regularly. It is meant to test PRs with special configurations.</description>
           <defaultValue/>
         </hudson.model.TextParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>want_horizon_integration_test</name>
+          <description>Execute selenium integration tests for Horizon after Tempest. This test is in beta, and
+a fail will not be considered for now.
+</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
