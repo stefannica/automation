@@ -80,12 +80,11 @@ ssh root@$admin "
   export cloud=$cloud;
   export testsetup=$testsetup;
   export want_magnum=1;
-  export ostestroptions=" --regex '^magnum.tests.functional.api'";
+  export ostestroptions=--regex '^magnum.tests.functional.api'
 " '
   hostname -f;
   source qa_crowbarsetup.sh;
   source mkcloud.config;
-  cat mkcloud.config;
 
   if [ "$testsetup" == true ] ; then
      onadmin_testsetup;
