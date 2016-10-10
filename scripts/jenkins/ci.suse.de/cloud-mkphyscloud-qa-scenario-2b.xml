@@ -83,8 +83,8 @@ Warning: It will wipe all machines!
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>nodenumber</name>
-          <description>Number of nodes to use. Depends on hw_number</description>
-          <defaultValue>7</defaultValue>
+          <description>Number of nodes to use; is scenario specific</description>
+          <defaultValue>6</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>want_ipmi</name>
@@ -165,8 +165,8 @@ export commands=\"$commands\" "'
 wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
 wget --no-check-certificate -Oscenario.yml "$scenario_url"
 
-sed -i -e "s,##shared_nfs_for_database##,10.162.24.1:/var/$cloud/ha-database," scenario.yml
-sed -i -e "s,##shared_nfs_for_rabbitmq##,10.162.24.1:/var/$cloud/ha-rabbitmq," scenario.yml
+sed -i -e "s,##shared_nfs_for_database##,10.162.66.1:/var/$cloud/ha-database," scenario.yml
+sed -i -e "s,##shared_nfs_for_rabbitmq##,10.162.66.1:/var/$cloud/ha-rabbitmq," scenario.yml
 
 [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export updatesteps="addupdaterepo runupdate"
 
