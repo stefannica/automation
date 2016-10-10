@@ -146,7 +146,8 @@ ssh root@localhost "wipe_nfs_shares qa$hw_number"
 
 # rest of code runs on admin node:
 env | grep -e networking -e libvirt -e cloud &gt; mkcloud.config
-echo "ostestroptions= --regex '^magnum.tests.functional.api'" &gt;&gt; mkcloud.config
+echo "ostestroptions=\" --regex '^magnum.tests.functional.api'\" " &gt;&gt; mkcloud.config
+echo "want_magnum=1" &gt;&gt; mkcloud.config
 
 scp mkcloud.config root@$admin:
 ret=0
