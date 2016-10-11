@@ -79,8 +79,6 @@ ssh root@$admin "
   export tempestoptions=\"-t -s\";
   export cloud=$cloud;
   export testsetup=$testsetup;
-  export want_magnum=1;
-  export ostestroptions=--regex '^magnum.tests.functional.api'
 " '
   hostname -f;
   source qa_crowbarsetup.sh;
@@ -88,10 +86,10 @@ ssh root@$admin "
 
   if [ "$testsetup" == true ] ; then
      onadmin_testsetup;
-  fi
+  else
      get_novacontroller;
      oncontroller oncontroller_run_tempest;
-  #fi
+  fi
 '
 </command>
     </hudson.tasks.Shell>
