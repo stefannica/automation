@@ -172,7 +172,9 @@ ssh root@$admin &lt;&lt;EOF
     export scenario=/root/scenario.yml;
     export commands="$commands"
 
-    wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
+    wget -O master.tar.gz $runner_url
+    tar xzf master.tar.gz
+
     wget --no-check-certificate -Oscenario.yml "$scenario_url"
 
     sed -i -e "s,##shared_nfs_for_database##,10.162.24.1:/var/$cloud/ha-database," scenario.yml
@@ -183,7 +185,7 @@ ssh root@$admin &lt;&lt;EOF
 
     [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export updatesteps="addupdaterepo runupdate" ;
 
-    timeout --signal=ALRM 240m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist $commands"
+    timeout --signal=ALRM 240m bash -x -c ". automation-master/scripts/qa_crowbarsetup.sh ; onadmin_runlist $commands"
 EOF
 ret=$?
 
