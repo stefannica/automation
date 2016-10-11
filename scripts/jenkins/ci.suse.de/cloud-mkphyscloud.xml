@@ -113,13 +113,12 @@ env | grep -e networking -e libvirt -e cloud &gt; mkcloud.config
 scp mkcloud.config root@$admin:
 ret=0
 ssh root@$admin "export cloud=$cloud; export UPDATEREPOS=$UPDATEREPOS ; export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL; export WITHREBOOT=$WITHREBOOT ; export TESTHEAD=$TESTHEAD ; export cloudsource=$cloudsource ; export libvirt_type=$libvirt_type ; export nodenumber=$nodenumber ; "'
-  wget -Omaster.tar.gz https://github.com/SUSE-Cloud/automation/archive/master.tar.gz
-  tar xzf master.tar.gz
+  curl https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation | bash -x
   export debug_qa_crowbarsetup=1
   
   [ $WITHREBOOT == "true" ] &amp;&amp; export rebootsteps="rebootcloud"
   [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export updatesteps="runupdate"
-  timeout --signal=ALRM 150m bash -x -c ". automation-master/scripts/qa_crowbarsetup.sh ; onadmin_runlist addupdaterepo $updatesteps prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate waitcloud proposal testsetup $rebootsteps"
+  timeout --signal=ALRM 150m bash -x -c ". ~/github.com/SUSE-Cloud/automation/scripts/qa_crowbarsetup.sh ; onadmin_runlist addupdaterepo $updatesteps prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate waitcloud proposal testsetup $rebootsteps"
 ' || ret=$?
 echo "mkphyscloud ret=$ret"
 exit $ret
