@@ -2,7 +2,7 @@
 <project>
   <actions/>
   <description>&lt;b&gt;This job is managed by JJB! Changes must be done in
-&lt;a href='https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/qa/'&gt;git&lt;/a&gt;
+&lt;a href='https://github.com/SUSE-Cloud/automation/tree/master/jenkins/ci.suse.de/'&gt;git&lt;/a&gt;
 &lt;/b&gt;
 
 This job will redeploy scenario-6a:
@@ -154,9 +154,9 @@ ssh root@$admin &lt;&lt;EOF
     wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
     wget --no-check-certificate -Oscenario.yml "$scenario_url"
 
-    sed -i -e "s,##shared_nfs_for_database##,10.162.66.1:/var/$cloud/ha-database," scenario.yml
-    sed -i -e "s,##shared_nfs_for_rabbitmq##,10.162.66.1:/var/$cloud/ha-rabbitmq," scenario.yml
-    sed -i -e "s,##shared_nfs_for_glance##,10.162.66.1:/var/$cloud/ha-glance," scenario.yml
+    sed -i -e "s,##shared_nfs_for_database##,10.162.24.1:/var/$cloud/ha-database," scenario.yml
+    sed -i -e "s,##shared_nfs_for_rabbitmq##,10.162.24.1:/var/$cloud/ha-rabbitmq," scenario.yml
+    sed -i -e "s,##shared_nfs_for_glance##,10.162.24.1:/var/$cloud/ha-glance," scenario.yml
     sed -i -e "s,##nfs_server##,10.162.24.1," scenario.yml
     sed -i -e "s,##nfs_export##,/var/$cloud/ha-glance," scenario.yml
 

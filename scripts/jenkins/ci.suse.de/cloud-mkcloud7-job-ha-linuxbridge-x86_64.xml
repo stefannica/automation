@@ -57,7 +57,7 @@ hacloud=1
 mkcloudtarget=all_noreboot
 networkingplugin=linuxbridge
 networkingmode=vxlan
-want_horizon_integration_test=1
+want_horizon_integration_test=0
 want_node_aliases=controller=2,compute=2
 label=openstack-mkcloud-SLE12-x86_64
 </properties>

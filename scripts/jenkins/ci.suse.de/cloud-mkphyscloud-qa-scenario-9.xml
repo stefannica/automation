@@ -2,7 +2,7 @@
 <project>
   <actions/>
   <description>&lt;b&gt;This job is managed by JJB! Changes must be done in
-&lt;a href='https://github.com/SUSE-Cloud/automation/tree/master/scripts/jenkins/qa/'&gt;git&lt;/a&gt;
+&lt;a href='https://github.com/SUSE-Cloud/automation/tree/master/jenkins/ci.suse.de/'&gt;git&lt;/a&gt;
 &lt;/b&gt;
 
 This job will redeploy scenario-9:
@@ -85,7 +85,7 @@ It will wipe all QA2 machines!
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>nodenumber</name>
-          <description>Number of nodes to use. Depends on hw_number</description>
+          <description>Number of nodes to use; is scenario specific</description>
           <defaultValue>7</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
