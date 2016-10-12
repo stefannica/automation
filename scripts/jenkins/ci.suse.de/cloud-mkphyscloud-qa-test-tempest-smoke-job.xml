@@ -83,7 +83,7 @@ ssh root@$admin "
   hostname -f;
   cat mkcloud.config;
   source mkcloud.config;
-  source qa_crowbarsetup.sh;
+  source automation-master/scripts/qa_crowbarsetup.sh;
 
   if [ "$testsetup" == true ] ; then
      onadmin_testsetup;
