@@ -84,8 +84,9 @@ ssh root@$admin "
   cat mkcloud.config;
   source mkcloud.config;
   source automation-master/scripts/qa_crowbarsetup.sh;
+  export want_magnum=1;
 
-  if [ "$testsetup" == true ] ; then
+  if [ "$testsetup" = true ] ; then
      onadmin_testsetup;
   else
      get_novacontroller;
