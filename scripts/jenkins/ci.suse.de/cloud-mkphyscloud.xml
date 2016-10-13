@@ -60,6 +60,11 @@ Default: openvswitch</description>
           <description>gre|vlan|vxlan</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>automation_branch</name>
+          <description>automation git repo branch to run from</description>
+          <defaultValue>master</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
@@ -112,7 +117,10 @@ freshadminvm "$admin" "$cloudsource"
 env | grep -e networking -e libvirt -e cloud &gt; mkcloud.config
 scp mkcloud.config root@$admin:
 ret=0
-ssh root@$admin "export cloud=$cloud; export UPDATEREPOS=$UPDATEREPOS ; export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL; export WITHREBOOT=$WITHREBOOT ; export TESTHEAD=$TESTHEAD ; export cloudsource=$cloudsource ; export libvirt_type=$libvirt_type ; export nodenumber=$nodenumber ; "'
+ssh root@$admin "export cloud=$cloud; export UPDATEREPOS=$UPDATEREPOS ; export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL;
+  export WITHREBOOT=$WITHREBOOT ; export TESTHEAD=$TESTHEAD ; export cloudsource=$cloudsource ; 
+  export libvirt_type=$libvirt_type ; export nodenumber=$nodenumber ; 
+  export automation_branch=$automation_branch ;"'
   curl https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation | bash -x
   export debug_qa_crowbarsetup=1
   
