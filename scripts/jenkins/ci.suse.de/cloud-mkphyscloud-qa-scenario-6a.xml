@@ -166,13 +166,13 @@ ssh root@$admin &lt;&lt;EOF
     export want_ceph=0
     export runner_url=$runner_url ;
     export scenario_url=$scenario_url ;
-    export want_node_aliases=controller=3,kvm=4
-    export want_node_roles=controller=3,compute=4
+    export want_node_aliases=controller=3,kvm=3
+    export want_node_roles=controller=3,compute=3
     export scenario=/root/scenario.yml;
     export commands="$commands"
 
     wget "$runner_url"
-    tar xvfz master.tar.gz
+    tar xvfz magnum-ovs.tar.gz
     
     wget --no-check-certificate -O scenario.yml "$scenario_url"
 
@@ -184,7 +184,7 @@ ssh root@$admin &lt;&lt;EOF
 
     [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export updatesteps="addupdaterepo runupdate" ;
 
-    timeout --signal=ALRM 240m bash -x -c ". automation-master/scripts/qa_crowbarsetup.sh ; onadmin_runlist $commands"
+    timeout --signal=ALRM 240m bash -x -c ". automation-magnum-ovs/scripts/qa_crowbarsetup.sh ; onadmin_runlist $commands"
 EOF
 ret=$?
 
