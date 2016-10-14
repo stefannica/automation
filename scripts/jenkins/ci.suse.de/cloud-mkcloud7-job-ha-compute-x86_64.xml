@@ -36,6 +36,7 @@ mkcloudtarget=all_batch
 scenario=cloud7-4nodes-compute-ha.yml
 want_node_aliases=controller=2,compute=2
 label=openstack-mkcloud-SLE12-x86_64
+storage_method=swift
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
