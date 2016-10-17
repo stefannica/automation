@@ -1,22 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description>!!! This job is automatically pushed from GIT to ci.suse.de !!!&#13;
-REMEMBER: changes to this job will be overwritten after a few hours - make sure to create a PR for your changes&#13;
-&#13;
-This job runs https://github.com/SUSE-Cloud/automation/blob/master/scripts/mkcloud&#13;
-&#13;
-results are analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/mkcloudresultcheck.pl on mkcloudresultcheck@mkcloudresultcheck.cloud.suse.de every 15 minutes</description>
+  <description>&lt;!-- Managed by Jenkins Job Builder --&gt;
+REMEMBER: changes to this job will be overwritten after a few hours - make sure to create a PR for your changes
+This job runs https://github.com/SUSE-Cloud/automation/blob/master/scripts/mkcloud results are 
+analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/mkcloudresultcheck.pl
+on mkcloudresultcheck@mkcloudresultcheck.cloud.suse.de every 15 minutes"
+&lt;!-- Managed by Jenkins Job Builder --&gt;</description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>300</daysToKeep>
+    <numToKeep>1000</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <jenkins.model.BuildDiscarderProperty>
-      <strategy class="hudson.tasks.LogRotator">
-        <daysToKeep>300</daysToKeep>
-        <numToKeep>1000</numToKeep>
-        <artifactDaysToKeep>-1</artifactDaysToKeep>
-        <artifactNumToKeep>-1</artifactNumToKeep>
-      </strategy>
-    </jenkins.model.BuildDiscarderProperty>
     <hudson.security.AuthorizationMatrixProperty>
       <permission>hudson.scm.SCM.Tag:cloud</permission>
       <permission>hudson.model.Run.Delete:cloud</permission>
@@ -34,8 +32,9 @@ results are analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scr
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
           <name>cloudsource</name>
-          <description>Can be something like "develcloud3" (uses Devel:Cloud:*, see TESTHEAD parameter for Staging), "susecloud3" (uses SUSE:*), "GM3" (uses the GM ISO)</description>
-          <defaultValue>develcloud5</defaultValue>
+          <description>Can be something like develcloud6 (uses Devel:Cloud:*, see TESTHEAD parameter for Staging),  susecloud6 (uses SUSE:*), GM3 (uses the GM ISO)
+</description>
+          <defaultValue>develcloud7</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>mkcloudtarget</name>
@@ -76,7 +75,8 @@ results are analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scr
         </hudson.model.ChoiceParameterDefinition>
         <hudson.model.ChoiceParameterDefinition>
           <name>storage_method</name>
-          <description>Select storage method: default (let mkcloud decide), none (enforce none)</description>
+          <description>Select storage method: default (let mkcloud decide), none (enforce none)
+</description>
           <choices class="java.util.Arrays$ArrayList">
             <a class="string-array">
               <string>default</string>
@@ -88,14 +88,15 @@ results are analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scr
         </hudson.model.ChoiceParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>github_pr</name>
-          <description>String is a ':' separated list of these vaules: $ORG/$repo:$PR_ID:$SHA1:$BRANCH:$context
-Note: SHA1 must be latest commit in PR, $context is optional (only use if multiple gating runs needed per PR)
+          <description>String is a ':' separated list of these vaules: $ORG/$repo:$PR_ID:$SHA1:$BRANCH:$context Note: 
+SHA1 must be latest commit in PR, $context is optional  (only use if multiple gating runs needed per PR)
 </description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.TextParameterDefinition>
           <name>UPDATEREPOS</name>
-          <description>Update repositories (one URL per line)</description>
+          <description>Update repositories (one URL per line)
+</description>
           <defaultValue/>
         </hudson.model.TextParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
@@ -105,18 +106,18 @@ Note: SHA1 must be latest commit in PR, $context is optional (only use if multip
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>TESTHEAD</name>
-          <description>if non-empty, test latest version from Devel:Cloud (:1.0)</description>
+          <description>if non-empty, test latest version from Devel:Cloud (:1.0)
+</description>
           <defaultValue>1</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>nodenumber</name>
-          <description>number of nodes excl. admin-node
-minimum 2=controller+compute</description>
+          <description>number of nodes excl. admin-node minimum 2=controller+compute</description>
           <defaultValue>2</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>nodenumbercompute</name>
-          <description>Number of compute  nodes</description>
+          <description>Number of compute nodes</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -127,14 +128,22 @@ minimum 2=controller+compute</description>
         <hudson.model.StringParameterDefinition>
           <name>tempestoptions</name>
           <description>Additional options to pass to the "run_tempest.sh -N " step.
-Use just "-t" for a full tempest run.
-Default: -t -s.</description>
+Use just \"-t\" for a full tempest run.
+</description>
           <defaultValue>-t -s</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>ostestroptions</name>
           <description>If given, a extra ostestr run is executed (after the default tempest run).
-Use i.e. " --regex '^magnum.tests.functional.api'"</description>
+Use i.e. " --regex '^magnum.tests.functional.api'"
+</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>want_horizon_integration_test</name>
+          <description>Execute selenium integration tests for Horizon after Tempest. This test is in beta, and
+a fail will not be considered for now.
+</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -149,8 +158,7 @@ Use i.e. " --regex '^magnum.tests.functional.api'"</description>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>upgrade_cloudsource</name>
-          <description>In case of using upgrade, upgrade to that cloudsource version
-</description>
+          <description>In case of using upgrade, upgrade to that cloudsource version</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -173,11 +181,11 @@ Use i.e. " --regex '^magnum.tests.functional.api'"</description>
           <description/>
           <choices class="java.util.Arrays$ArrayList">
             <a class="string-array">
-              <string> </string>
               <string>local</string>
               <string>raw</string>
-              <string>rbd</string>
+              <string>rdb</string>
               <string>netapp</string>
+              <string/>
             </a>
           </choices>
         </hudson.model.ChoiceParameterDefinition>
@@ -188,7 +196,7 @@ Use i.e. " --regex '^magnum.tests.functional.api'"</description>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>cinder_netapp_login</name>
-          <description>this is currently the user "openstack" as configured on the netapp server</description>
+          <description>the password for the user "openstack" as configured on the netapp server</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -198,27 +206,30 @@ Use i.e. " --regex '^magnum.tests.functional.api'"</description>
         </hudson.model.StringParameterDefinition>
         <org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition plugin="nodelabelparameter@">
           <name>label</name>
-          <description>Default: openstack-mkcloud | Possible values:  openstack-mkcloud-SLE11 (SLE11 host) | openstack-mkcloud-SLE12 (SLE12 host) | openstack-mkcloud-SLE12-aarch64 (SLE12 aarch64 host)</description>
+          <description>Default: openstack-mkcloud | Possible values:
+openstack-mkcloud-SLE11 (SLE11 host) | 
+openstack-mkcloud-SLE12 (SLE12 host) | openstack-mkcloud-SLE12-aarch64 (SLE12 aarch64 host)
+</description>
           <defaultValue>openstack-mkcloud</defaultValue>
           <allNodesMatchingLabel>false</allNodesMatchingLabel>
-          <triggerIfResult>allCases</triggerIfResult>
-          <nodeEligibility class="org.jvnet.jenkins.plugins.nodelabelparameter.node.AllNodeEligibility"/>
         </org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>want_node_aliases</name>
-          <description>List of aliases to assign to nodes. Takes all provided aliases and assign them to available nodes successively.
-
-        Examples:
-            want_node_aliases='controller=1,ceph=2,compute=1'
-              assigns the aliases to 4 nodes as controller, ceph1, ceph2, compute
-            want_node_aliases='data=1,services=2,storage=2'
-              assigns the aliases to 5 nodes as data, service1, service2, storage1, storage2</description>
+          <description>List of aliases to assign to nodes. 
+Takes all provided aliases and assign them to available nodes successively.
+Examples want_node_aliases='controller=1,ceph=2,compute=1'
+assigns the aliases to 4 nodes as controller, ceph1, ceph2, compute
+ want_node_aliases='data=1,services=2,storage=2'
+ assigns the aliases to 5 nodes as data, service1, service2,
+ storage1, storage2
+</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>scenario</name>
           <description>Defines which scenario file should be used. Only works with cloud5 or newer.
-Currently only the 'batch' step uses such a file.</description>
+Currently only the 'batch' step uses such a file.
+</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -273,34 +284,15 @@ Currently only the 'batch' step uses such a file.</description>
         </hudson.model.StringParameterDefinition>
         <hudson.model.TextParameterDefinition>
           <name>custom_settings</name>
-          <description>This holds shell code and will be executed before calling mkcloud. This should not be used by default or regularly. It is meant to test PRs with special configurations.</description>
-          <defaultValue/>
-        </hudson.model.TextParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>want_horizon_integration_test</name>
-          <description>Execute selenium integration tests for Horizon after Tempest. This test is in beta, and
-a fail will not be considered for now.
+          <description>This holds shell code and will be executed before calling mkcloud. This should not be used by default or regularly. It is meant to test PRs with special configurations.
 </description>
           <defaultValue/>
-        </hudson.model.StringParameterDefinition>
+        </hudson.model.TextParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
-    <com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty plugin="gitlab-plugin@">
-      <gitLabConnection>https://gitlab.suse.de</gitLabConnection>
-    </com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty>
-    <org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty plugin="gitlab-logo@">
-      <repositoryName/>
-    </org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty>
-    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@">
-      <autoRebuild>false</autoRebuild>
-      <rebuildDisabled>false</rebuildDisabled>
-    </com.sonyericsson.rebuild.RebuildSettings>
-    <hudson.plugins.heavy__job.HeavyJobProperty plugin="heavy-job@1.1">
-      <weight>1</weight>
-    </hudson.plugins.heavy__job.HeavyJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>openstack-mkcloud</assignedNode>
@@ -309,7 +301,7 @@ a fail will not be considered for now.
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers/>
-  <concurrentBuild>true</concurrentBuild>
+  <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
       <command>set -x
@@ -520,13 +512,13 @@ if [[ $github_pr_sha ]] ; then
   $ghs -r $github_pr_repo -a set-status -s "success" -t $BUILD_URL -c $github_pr_sha --context $ghs_context
   trap "-" ERR
 fi
-
 </command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
     <hudson.tasks.ArtifactArchiver>
       <artifacts>.artifacts/**</artifacts>
+      <latestOnly>false</latestOnly>
       <allowEmptyArchive>false</allowEmptyArchive>
       <onlyIfSuccessful>false</onlyIfSuccessful>
       <fingerprint>false</fingerprint>
@@ -535,24 +527,27 @@ fi
     </hudson.tasks.ArtifactArchiver>
     <hudson.tasks.Mailer plugin="mailer@">
       <recipients/>
-      <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
+      <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>false</sendToIndividuals>
     </hudson.tasks.Mailer>
   </publishers>
   <buildWrappers>
-    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.17.1">
-      <strategy class="hudson.plugins.build_timeout.impl.NoActivityTimeOutStrategy">
-        <timeoutSecondsString>3600</timeoutSecondsString>
-      </strategy>
-      <operationList>
-        <hudson.plugins.build__timeout.operations.FailOperation/>
-      </operationList>
-    </hudson.plugins.build__timeout.BuildTimeoutWrapper>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@"/>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@">
-      <template>#${BUILD_NUMBER}: ${ENV,var="cloudsource"} (${ENV,var="nodenumber"}/${ENV,var="networkingplugin"}/${ENV,var="tempestoptions"}/${ENV,var="mkcloudtarget"}/${ENV,var="github_pr"} ${ENV,var="hacloud"})</template>
+      <template>#${BUILD_NUMBER}: ${ENV,var="cloudsource"} (${ENV,var="nodenumber"}/${ENV,var="networkingplugin"}/${ENV,var="tempestoptions"}/${ENV,var="mkcloudtarget"}/${ENV,var="github_pr"}${ENV,var="hacloud"})</template>
       <runAtStart>true</runAtStart>
       <runAtEnd>true</runAtEnd>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@"/>
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.17.1">
+      <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
+        <timeoutMinutes>3600</timeoutMinutes>
+      </strategy>
+      <timeoutEnvVar>BUILD_TIMEOUT</timeoutEnvVar>
+      <operationList class="java.util.Arrays$ArrayList">
+        <a class="hudson.plugins.build_timeout.BuildTimeOutOperation-array">
+          <hudson.plugins.build__timeout.operations.FailOperation/>
+        </a>
+      </operationList>
+    </hudson.plugins.build__timeout.BuildTimeoutWrapper>
   </buildWrappers>
 </project>
