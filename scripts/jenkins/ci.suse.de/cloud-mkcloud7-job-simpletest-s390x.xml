@@ -4,7 +4,7 @@
   <description>&lt;!-- Managed by Jenkins Job Builder --&gt;</description>
   <logRotator class="hudson.tasks.LogRotator">
     <daysToKeep>-1</daysToKeep>
-    <numToKeep>7</numToKeep>
+    <numToKeep>21</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
     <artifactNumToKeep>-1</artifactNumToKeep>
   </logRotator>
@@ -34,7 +34,7 @@
             <hudson.plugins.parameterizedtrigger.CurrentBuildParameters/>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>TESTHEAD=1
-cloudsource=develcloud{version}
+cloudsource=develcloud7
 nodenumber=0
 lonelynodenumber=2
 mkcloudtarget=plain crowbarbackup crowbarrestore testsetup

@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description>&lt;!-- Managed by Jenkins Job Builder --&gt;&#13;
-REMEMBER: changes to this job will be overwritten after a few hours - make sure to create a PR for your changes&#13;
-This job runs https://github.com/SUSE-Cloud/automation/blob/master/scripts/mkcloud results are &#13;
-analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/mkcloudresultcheck.pl&#13;
-on mkcloudresultcheck@mkcloudresultcheck.cloud.suse.de every 15 minutes"&#13;
+  <description>&lt;!-- Managed by Jenkins Job Builder --&gt;
+This job runs https://github.com/SUSE-Cloud/automation/blob/master/scripts/mkcloud results are
+analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/mkcloudresultcheck.pl
+on mkcloudresultcheck@mkcloudresultcheck.cloud.suse.de every 15 minutes
 &lt;!-- Managed by Jenkins Job Builder --&gt;</description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>300</daysToKeep>
+    <numToKeep>1000</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
@@ -22,27 +27,6 @@ on mkcloudresultcheck@mkcloudresultcheck.cloud.suse.de every 15 minutes"&#13;
       <permission>hudson.model.Item.Configure:cloud</permission>
       <permission>hudson.model.Run.Update:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
-    <jenkins.model.BuildDiscarderProperty>
-      <strategy class="hudson.tasks.LogRotator">
-        <daysToKeep>300</daysToKeep>
-        <numToKeep>1000</numToKeep>
-        <artifactDaysToKeep>-1</artifactDaysToKeep>
-        <artifactNumToKeep>-1</artifactNumToKeep>
-      </strategy>
-    </jenkins.model.BuildDiscarderProperty>
-    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
-      <doNotScan>false</doNotScan>
-    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
-    <com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty plugin="gitlab-plugin@">
-      <gitLabConnection>https://gitlab.suse.de</gitLabConnection>
-    </com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty>
-    <org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty plugin="gitlab-logo@">
-      <repositoryName/>
-    </org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty>
-    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@">
-      <autoRebuild>false</autoRebuild>
-      <rebuildDisabled>false</rebuildDisabled>
-    </com.sonyericsson.rebuild.RebuildSettings>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
@@ -103,7 +87,7 @@ on mkcloudresultcheck@mkcloudresultcheck.cloud.suse.de every 15 minutes"&#13;
         </hudson.model.ChoiceParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>github_pr</name>
-          <description>String is a ':' separated list of these vaules: $ORG/$repo:$PR_ID:$SHA1:$BRANCH:$context Note: 
+          <description>String is a ':' separated list of these vaules: $ORG/$repo:$PR_ID:$SHA1:$BRANCH:$context Note:
 SHA1 must be latest commit in PR, $context is optional  (only use if multiple gating runs needed per PR)
 </description>
           <defaultValue/>
@@ -196,9 +180,10 @@ a fail will not be considered for now.
           <description/>
           <choices class="java.util.Arrays$ArrayList">
             <a class="string-array">
+              <string> </string>
               <string>local</string>
               <string>raw</string>
-              <string>rdb</string>
+              <string>rbd</string>
               <string>netapp</string>
             </a>
           </choices>
@@ -221,17 +206,15 @@ a fail will not be considered for now.
         <org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition plugin="nodelabelparameter@">
           <name>label</name>
           <description>Default: openstack-mkcloud | Possible values:
-openstack-mkcloud-SLE11 (SLE11 host) | 
+openstack-mkcloud-SLE11 (SLE11 host) |
 openstack-mkcloud-SLE12 (SLE12 host) | openstack-mkcloud-SLE12-aarch64 (SLE12 aarch64 host)
 </description>
           <defaultValue>openstack-mkcloud</defaultValue>
           <allNodesMatchingLabel>false</allNodesMatchingLabel>
-          <triggerIfResult>allCases</triggerIfResult>
-          <nodeEligibility class="org.jvnet.jenkins.plugins.nodelabelparameter.node.AllNodeEligibility"/>
         </org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>want_node_aliases</name>
-          <description>List of aliases to assign to nodes. 
+          <description>List of aliases to assign to nodes.
 Takes all provided aliases and assign them to available nodes successively.
 Examples want_node_aliases='controller=1,ceph=2,compute=1'
 assigns the aliases to 4 nodes as controller, ceph1, ceph2, compute
@@ -306,18 +289,18 @@ Currently only the 'batch' step uses such a file.
         </hudson.model.TextParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <hudson.plugins.heavy__job.HeavyJobProperty plugin="heavy-job@1.1">
-      <weight>1</weight>
-    </hudson.plugins.heavy__job.HeavyJobProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>openstack-mkcloud</assignedNode>
   <canRoam>false</canRoam>
-  <disabled>true</disabled>
+  <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers/>
-  <concurrentBuild>false</concurrentBuild>
+  <concurrentBuild>true</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
       <command>set -x
@@ -327,7 +310,6 @@ mkdir -p empty
 rsync -r --delete empty/ ./
 
 export artifacts_dir=$WORKSPACE/.artifacts
-[[ -d $WORKSPACE ]] || exit 1
 rm -rf $artifacts_dir
 mkdir -p $artifacts_dir
 touch $artifacts_dir/.ignore
@@ -516,7 +498,7 @@ fi
 
 $custom_settings
 
-perl -e "alarm 4*60*60 ; exec '${mkcloudwrapper} bash -x ${automationrepo}/scripts/mkcloud setuphost $(echo -n $MKCLOUDTARGET) ' " | tee $artifacts_dir/mkcloud_short_stdout.log
+perl -e "alarm 4*60*60 ; exec '${mkcloudwrapper} bash -x ${automationrepo}/scripts/mkcloud setuphost $(echo -n $MKCLOUDTARGET) ' ; print qq{$!\n} ; exit 127 " | tee $artifacts_dir/mkcloud_short_stdout.log
 ret=${PIPESTATUS[0]}
 if [[ $ret != 0 ]] ; then
     [[ $github_pr_sha ]] &amp;&amp; mkcloudgating_trap
@@ -535,6 +517,7 @@ fi
   <publishers>
     <hudson.tasks.ArtifactArchiver>
       <artifacts>.artifacts/**</artifacts>
+      <latestOnly>false</latestOnly>
       <allowEmptyArchive>false</allowEmptyArchive>
       <onlyIfSuccessful>false</onlyIfSuccessful>
       <fingerprint>false</fingerprint>
@@ -548,20 +531,22 @@ fi
     </hudson.tasks.Mailer>
   </publishers>
   <buildWrappers>
-    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.17.1">
-      <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
-        <timeoutMinutes>3600</timeoutMinutes>
-      </strategy>
-      <timeoutEnvVar>BUILD_TIMEOUT</timeoutEnvVar>
-      <operationList>
-        <hudson.plugins.build__timeout.operations.FailOperation/>
-      </operationList>
-    </hudson.plugins.build__timeout.BuildTimeoutWrapper>
     <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@"/>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@">
       <template>#${BUILD_NUMBER}: ${ENV,var="cloudsource"} (${ENV,var="nodenumber"}/${ENV,var="networkingplugin"}/${ENV,var="tempestoptions"}/${ENV,var="mkcloudtarget"}/${ENV,var="github_pr"}${ENV,var="hacloud"})</template>
       <runAtStart>true</runAtStart>
       <runAtEnd>true</runAtEnd>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.17.1">
+      <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
+        <timeoutMinutes>60</timeoutMinutes>
+      </strategy>
+      <timeoutEnvVar>BUILD_TIMEOUT</timeoutEnvVar>
+      <operationList class="java.util.Arrays$ArrayList">
+        <a class="hudson.plugins.build_timeout.BuildTimeOutOperation-array">
+          <hudson.plugins.build__timeout.operations.FailOperation/>
+        </a>
+      </operationList>
+    </hudson.plugins.build__timeout.BuildTimeoutWrapper>
   </buildWrappers>
 </project>
