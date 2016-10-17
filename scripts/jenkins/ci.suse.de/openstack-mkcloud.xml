@@ -541,10 +541,9 @@ fi
       <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
         <timeoutMinutes>60</timeoutMinutes>
       </strategy>
-      <timeoutEnvVar>BUILD_TIMEOUT</timeoutEnvVar>
       <operationList class="java.util.Arrays$ArrayList">
         <a class="hudson.plugins.build_timeout.BuildTimeOutOperation-array">
-          <hudson.plugins.build__timeout.operations.FailOperation/>
+          <hudson.plugins.build__timeout.operations.AbortOperation/>
         </a>
       </operationList>
     </hudson.plugins.build__timeout.BuildTimeoutWrapper>
