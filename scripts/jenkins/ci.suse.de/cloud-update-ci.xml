@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <actions/>
+  <description>&lt;!-- Managed by Jenkins Job Builder --&gt;</description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>-1</daysToKeep>
+    <numToKeep>300</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>instance</name>
+          <description>ci.suse.de: deploys all CI jobs on ci.suse.de
+ci.opensuse.org: deploys all CI jobs on ci.opensuse.org
+</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>ci.suse.de</string>
+              <string>ci.opensuse.org</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <com.synopsys.arc.jenkins.plugins.ownership.jobs.JobOwnerJobProperty plugin="ownership@"/>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>cloud-trigger</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>## THIS IS A TRIGGER JOB ONLY - NO WORKER CODE IN HERE - DO NOT DARE TO ADD SOME
+## TRIGGER JOBS ARE MOVED TO A DEDICATED TRIGGER NODE
+## THIS JOB IS ABOUT PRs FOR THE AUTOMATION REPO
+[[ $NODE_NAME != 'cloud-trigger' ]] &amp;&amp; exit 99
+##
+
+set -x
+
+export automationrepo=~/github.com/SUSE-Cloud/automation
+
+# automation bootstrapping
+if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
+  rm -rf ${automationrepo}
+  curl https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation | bash
+fi
+# fetch the latest automation updates
+${automationrepo}/scripts/jenkins/update_automation
+
+mtarget=test
+case $instance in
+    ci.suse.de) mtarget=cisd_deploy ;;
+    ci.opensuse.org) mtarget=cioo_deploy ;;
+esac
+
+cd ${automationrepo}
+make jjb_test
+make $mtarget
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>
