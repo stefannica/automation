@@ -37,7 +37,7 @@
 cloudsource=develcloud7
 nodenumber=0
 lonelynodenumber=2
-mkcloudtarget=cleanup prepare setupadmin prepareinstcrowbar bootstrapcrowbar instcrowbar setuplonelynodes crowbar_register proposal crowbar_backup crowbar_restore testsetup
+mkcloudtarget=cleanup prepare setupadmin prepareinstcrowbar bootstrapcrowbar instcrowbar setuplonelynodes crowbar_register proposal crowbarbackup crowbarrestore
 label=openstack-mkcloud-SLE12-s390x
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
