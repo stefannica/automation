@@ -469,8 +469,7 @@ echo "########################################################################"
 MKCLOUDTARGET=$mkcloudtarget
 [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; MKCLOUDTARGET='cleanup prepare setupadmin addupdaterepo instcrowbar setupcompute instcompute proposal testsetup'
 
-
-if [ $WITHCROWBARREGISTER == "true" ] ; then
+if [ $(uname -m) = s390x ]  || [ $WITHCROWBARREGISTER == "true" ] ; then
   export nodenumberlonelynode=1
   [ $(uname -m) = s390x ] &amp;&amp; {
       export nodenumberlonelynode=$nodenumber
