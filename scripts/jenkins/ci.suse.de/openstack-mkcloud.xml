@@ -92,6 +92,12 @@ SHA1 must be latest commit in PR, $context is optional  (only use if multiple ga
 </description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>job_name</name>
+          <description>This name will become the build name of the job. It will appear in the list of builds (webUI, RSS feed).
+</description>
+          <defaultValue>-no-name-</defaultValue>
+        </hudson.model.StringParameterDefinition>
         <hudson.model.TextParameterDefinition>
           <name>UPDATEREPOS</name>
           <description>Update repositories (one URL per line)
@@ -538,13 +544,14 @@ fi
       <runAtEnd>true</runAtEnd>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
     <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.17.1">
-      <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
-        <timeoutMinutes>60</timeoutMinutes>
+      <strategy class="hudson.plugins.build_timeout.impl.NoActivityTimeOutStrategy">
+        <timeoutSecondsString>3600</timeoutSecondsString>
       </strategy>
-      <operationList class="java.util.Arrays$ArrayList">
-        <a class="hudson.plugins.build_timeout.BuildTimeOutOperation-array">
-          <hudson.plugins.build__timeout.operations.AbortOperation/>
-        </a>
+      <operationList>
+        <hudson.plugins.build__timeout.operations.AbortOperation/>
+        <hudson.plugins.build__timeout.operations.WriteDescriptionOperation>
+          <description>Job aborted due to 60 minutes of inactivity.</description>
+        </hudson.plugins.build__timeout.operations.WriteDescriptionOperation>
       </operationList>
     </hudson.plugins.build__timeout.BuildTimeoutWrapper>
   </buildWrappers>
