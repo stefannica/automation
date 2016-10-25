@@ -10,6 +10,7 @@
   </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
+    <com.synopsys.arc.jenkins.plugins.ownership.jobs.JobOwnerJobProperty plugin="ownership@"/>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
@@ -22,7 +23,7 @@
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers>
     <hudson.triggers.TimerTrigger>
-      <spec>H H * * *</spec>
+      <spec>H 2 * * *</spec>
     </hudson.triggers.TimerTrigger>
   </triggers>
   <concurrentBuild>false</concurrentBuild>
@@ -34,11 +35,12 @@
             <hudson.plugins.parameterizedtrigger.CurrentBuildParameters/>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>TESTHEAD=1
-cloudsource=develcloud7
+cloudsource=newtoncloud7
 nodenumber=2
-want_docker=1
-mkcloudtarget=all
-label=openstack-mkcloud-SLE12-aarch64
+mkcloudtarget=all_batch
+label=openstack-mkcloud-SLE12-x86_64
+scenario=cloud7-2nodes-default.yml
+want_node_aliases=controller=1,compute-kvm=1
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
