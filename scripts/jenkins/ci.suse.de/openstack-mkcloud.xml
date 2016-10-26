@@ -92,6 +92,12 @@ SHA1 must be latest commit in PR, $context is optional  (only use if multiple ga
 </description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>job_name</name>
+          <description>This name will become the build name of the job. It will appear in the list of builds (webUI, RSS feed).
+</description>
+          <defaultValue>-no-name-</defaultValue>
+        </hudson.model.StringParameterDefinition>
         <hudson.model.TextParameterDefinition>
           <name>UPDATEREPOS</name>
           <description>Update repositories (one URL per line)
@@ -533,7 +539,7 @@ fi
   <buildWrappers>
     <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@"/>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@">
-      <template>#${BUILD_NUMBER}: ${ENV,var="cloudsource"} (${ENV,var="nodenumber"}/${ENV,var="networkingplugin"}/${ENV,var="tempestoptions"}/${ENV,var="mkcloudtarget"}/${ENV,var="github_pr"}${ENV,var="hacloud"})</template>
+      <template>#${BUILD_NUMBER}: ${ENV,var="job_name"}</template>
       <runAtStart>true</runAtStart>
       <runAtEnd>true</runAtEnd>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>

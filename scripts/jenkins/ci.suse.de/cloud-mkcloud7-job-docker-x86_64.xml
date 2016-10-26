@@ -34,6 +34,7 @@ nodenumber=2
 want_docker=1
 mkcloudtarget=all
 label=openstack-mkcloud-SLE12-x86_64
+job_name='cloud-mkcloud7-job-docker-x86_64'
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>

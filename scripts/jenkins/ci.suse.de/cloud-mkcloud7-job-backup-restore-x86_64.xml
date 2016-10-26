@@ -33,6 +33,7 @@ cloudsource=develcloud7
 nodenumber=2
 mkcloudtarget=plain crowbarbackup crowbarrestore testsetup
 label=openstack-mkcloud-SLE12-x86_64
+job_name='cloud-mkcloud7-job-backup-restore-x86_64'
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>

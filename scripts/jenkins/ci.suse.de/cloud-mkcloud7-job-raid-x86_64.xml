@@ -35,6 +35,7 @@ controller_raid_volumes=2
 want_raidtype=raid1
 mkcloudtarget=all
 label=openstack-mkcloud-SLE12-x86_64
+job_name='cloud-mkcloud7-job-raid-x86_64'
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>

@@ -33,6 +33,7 @@ cloudsource=develcloud7
 nodenumber=2
 mkcloudtarget=instonly devsetup
 label=openstack-mkcloud-SLE12-x86_64
+job_name='cloud-mkcloud7-job-crowbar-devsetup-x86_64'
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>

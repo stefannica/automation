@@ -38,6 +38,7 @@ networkingmode=vxlan
 hacloud=1
 mkcloudtarget=all_noreboot
 label=openstack-mkcloud-SLE12-aarch64
+job_name='cloud-mkcloud7-job-btrfs-aarch64'
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>

@@ -36,6 +36,7 @@ want_nondisruptiveupgrade=1
 mkcloudtarget=plain_with_upgrade testsetup rebootcloud
 label=openstack-mkcloud-SLE12-x86_64
 want_postgresql=1
+job_name='cloud-mkcloud7-job-upgrade-nondisruptive-x86_64'
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>

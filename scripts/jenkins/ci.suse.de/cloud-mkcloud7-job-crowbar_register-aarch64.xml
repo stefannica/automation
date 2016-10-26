@@ -34,6 +34,7 @@ nodenumber=2
 WITHCROWBARREGISTER=true
 mkcloudtarget=instonly
 label=openstack-mkcloud-SLE12-aarch64
+job_name='cloud-mkcloud7-job-crowbar_register-aarch64'
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>

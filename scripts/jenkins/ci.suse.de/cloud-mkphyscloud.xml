@@ -80,7 +80,7 @@ Default: openvswitch</description>
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
-    <hudson.plugins.heavy__job.HeavyJobProperty plugin="heavy-job@1.1">
+    <hudson.plugins.heavy__job.HeavyJobProperty plugin="heavy-job@">
       <weight>1</weight>
     </hudson.plugins.heavy__job.HeavyJobProperty>
   </properties>

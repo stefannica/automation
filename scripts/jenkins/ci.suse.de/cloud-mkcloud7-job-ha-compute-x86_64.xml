@@ -37,6 +37,7 @@ scenario=cloud7-4nodes-compute-ha.yml
 want_node_aliases=controller=2,compute=2
 label=openstack-mkcloud-SLE12-x86_64
 storage_method=swift
+job_name='cloud-mkcloud7-job-ha-compute-x86_64'
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
