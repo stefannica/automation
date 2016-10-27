@@ -55,7 +55,7 @@ want_sles12sp2=1
 mkcloudtarget=plain crowbarbackup crowbarrestore testsetup
 label=openstack-mkcloud-SLE12-aarch64
 UPDATEREPOS=http://clouddata.cloud.suse.de/mkcloud/crowbar-openstack:572:b909c5c97a3a419c29d2ee391a8c50fb3eac8277:master/
-</properties>
+job_name=WHO_SETUP_THIS_JOB_cloud-mkcloud7-job-backup-restore-aarch64</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
             <hudson.plugins.parameterizedtrigger.NodeParameters/>
           </configs>
