@@ -502,7 +502,7 @@ fi
 # Shut down the cloud to save resources
 ##MKCLOUDTARGET+=" cleanup"
 
-export clouddescription="Jenkins Build: $BUILD_NUMBER / $job_name"
+export clouddescription="Jenkins Build: $BUILD_NUMBER / $JOB_NAME"
 
 $custom_settings
 
