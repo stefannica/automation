@@ -37,7 +37,7 @@ storage_method=none
 ostestroptions= --regex '^magnum.tests.functional.api'
 mkcloudtarget=all
 label=openstack-mkcloud-SLE12-aarch64
-job_name='cloud-mkcloud7-job-magnum-aarch64'
+job_name=cloud-mkcloud7-job-magnum-aarch64
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>

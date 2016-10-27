@@ -56,7 +56,7 @@ mkcloudtarget=all_batch
 scenario=cloud7-2nodes-default.yml
 want_node_aliases=controller=1,compute-kvm=1
 label=openstack-mkcloud-SLE12-x86_64
-job_name="cloud7 gating: OVS"
+job_name=cloud7 gating: OVS
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
@@ -75,7 +75,7 @@ storage_method=ceph
 networkingplugin=linuxbridge
 mkcloudtarget=all
 label=openstack-mkcloud-SLE12-x86_64
-job_name="cloud7 gating: linuxbridge"
+job_name=cloud7 gating: linuxbridge
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
@@ -99,7 +99,7 @@ networkingmode=vxlan
 hacloud=1
 mkcloudtarget=all_noreboot
 label=openstack-mkcloud-SLE12-x86_64
-job_name="cloud7 gating: HA vxlan
+job_name=cloud7 gating: HA vxlan
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>

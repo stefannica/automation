@@ -34,7 +34,7 @@ nodenumber=2
 want_all_ssl=1
 mkcloudtarget=all
 label=openstack-mkcloud-SLE12-x86_64
-job_name='cloud-mkcloud6-job-ssl-x86_64'
+job_name=cloud-mkcloud6-job-ssl-x86_64
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>

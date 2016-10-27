@@ -35,7 +35,7 @@ nodenumber=2
 mkcloudtarget=plain_with_upgrade testsetup rebootcloud
 label=openstack-mkcloud-SLE12-x86_64
 want_postgresql=0
-job_name='cloud-mkcloud6-job-upgrade-x86_64'
+job_name=cloud-mkcloud6-job-upgrade-x86_64
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>

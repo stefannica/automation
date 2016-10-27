@@ -54,7 +54,7 @@
               <properties>cloudsource=develcloud5
 nodenumber=2
 mkcloudtarget=plain crowbarbackup crowbarrestore testsetup
-job_name="cloud5 gating: SLE11 openvswitch"
+job_name=cloud5 gating: SLE11 openvswitch
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
@@ -90,7 +90,7 @@ job_name="cloud5 gating: SLE11 openvswitch"
 want_sles12=1
 nodenumber=3
 networkingplugin=linuxbridge
-job_name="cloud5 gating: SLE12 linuxbridge"
+job_name=cloud5 gating: SLE12 linuxbridge
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>

@@ -2,13 +2,18 @@
 <project>
   <actions/>
   <description>&lt;!-- Managed by Jenkins Job Builder --&gt;</description>
-  <logRotator class="hudson.tasks.LogRotator">
+  <keepDependencies>false</keepDependencies>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <concurrentBuild>false</concurrentBuild>
+  <assignedNode>cloud-trigger</assignedNode>
+  <canRoam>false</canRoam>
+  <logRotator>
     <daysToKeep>-1</daysToKeep>
     <numToKeep>48</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
     <artifactNumToKeep>-1</artifactNumToKeep>
   </logRotator>
-  <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
@@ -30,22 +35,13 @@ forceall: trigger rebuild for all open PRs
         </hudson.model.ChoiceParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
-      <doNotScan>false</doNotScan>
-    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>cloud-trigger</assignedNode>
-  <canRoam>false</canRoam>
-  <disabled>false</disabled>
-  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
-  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers>
+  <triggers class="vector">
     <hudson.triggers.TimerTrigger>
       <spec>H/30 * * * *</spec>
     </hudson.triggers.TimerTrigger>
   </triggers>
-  <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
       <command>## THIS IS A TRIGGER JOB ONLY - NO WORKER CODE IN HERE - DO NOT DARE TO ADD SOME
@@ -148,13 +144,15 @@ for repo in ${crowbar_repos[@]}; do
     for branch in ${branches[@]} ; do
         for github_pr in $(timeout 4m $ghs -r crowbar/$repo -a $action -b $branch) ; do
             github_pr_opts=(${github_pr//:/ })
+            github_pr_id=${github_pr_opts[0]}
             github_pr_sha=${github_pr_opts[1]}
-
+            github_pr_sha_short=${github_pr_sha:0:8}
             # set status to pending (do it first to prevent race condition with github status)
             $ghs -r crowbar/$repo -a set-status -s "pending" -t $BUILD_URL -c $github_pr_sha -m "Queued build of crowbar-testbuild-pr"
             # trigger testbuild job
+            job_name="$repo testbuild PR $github_pr_id $github_pr_sha_short"
             ${automationrepo}/scripts/jenkins/jenkins-job-trigger \
-                cloud-crowbar-testbuild-pr -p crowbar_repo=$repo crowbar_github_pr=$github_pr
+                cloud-crowbar-testbuild-pr -p crowbar_repo=$repo crowbar_github_pr=$github_pr job_name="$job_name"
         done
     done
 done

@@ -36,7 +36,7 @@ networkingmode=vlan
 want_dvr=1
 mkcloudtarget=all
 label=openstack-mkcloud-SLE12-x86_64
-job_name='cloud-mkcloud7-job-dvr-x86_64'
+job_name=cloud-mkcloud7-job-dvr-x86_64
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>

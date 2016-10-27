@@ -39,7 +39,7 @@ networkingplugin=linuxbridge
 networkingmode=vxlan
 want_node_aliases=controller=2,compute=2
 label=openstack-mkcloud-SLE12-x86_64
-job_name='cloud-mkcloud7-job-ha-linuxbridge-x86_64'
+job_name=cloud-mkcloud7-job-ha-linuxbridge-x86_64
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>

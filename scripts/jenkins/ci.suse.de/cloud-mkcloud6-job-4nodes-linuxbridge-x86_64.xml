@@ -34,7 +34,7 @@ nodenumber=4
 networkingplugin=linuxbridge
 mkcloudtarget=all
 label=openstack-mkcloud-SLE12-x86_64
-job_name='cloud-mkcloud6-job-4nodes-linuxbridge-x86_64'
+job_name=cloud-mkcloud6-job-4nodes-linuxbridge-x86_64
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
