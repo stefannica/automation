@@ -52,9 +52,9 @@
 cloudsource=develcloud7
 nodenumber=2
 want_sles12sp2=1
-mkcloudtarget=plain crowbarbackup crowbarrestore testsetup
+mkcloudtarget=plain_with_upgrade crowbarbackup crowbarrestore addupdaterepo testsetup 
 label=openstack-mkcloud-SLE12-aarch64
-job_name=cloud-mkcloud7-job-backup-restore-aarch64
+job_name=gosipyan-job-cloud-mkcloud7-job-backup-restore-aarch64
 UPDATEREPOS=http://clouddata.cloud.suse.de/mkcloud/crowbar-openstack:572:b909c5c97a3a419c29d2ee391a8c50fb3eac8277:master/</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
             <hudson.plugins.parameterizedtrigger.NodeParameters/>
