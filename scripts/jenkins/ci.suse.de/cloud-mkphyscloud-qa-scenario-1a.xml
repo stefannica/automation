@@ -158,19 +158,29 @@ rm -rf $artifacts_dir
 mkdir -p $artifacts_dir
 touch $artifacts_dir/.ignore
 
+# destroy the old admin VM if any and spawn a clean new admin VM afterwards
+# /usr/local/sbin/freshadminvm
 freshadminvm $admin $admin_os
 sleep 100 # time for the admin VM to boot
 
-# wipe out shared NFS that should be used by this deployment
+# wipe out shared NFS that are being used by this deployment:
+# /usr/local/sbin/wipe_nfs_shares
 ssh root@localhost "wipe_nfs_shares qa$hw_number"
 
-# get and configure the automation repo
+# clone, fetch and update the automation repo
+# /usr/local/sbin/update_automation
 update_automation
 
-# rest of code runs on admin node:
+# put variables needed during the build process into mkcloud.config file
 env | grep -e networking -e libvirt -e cloud &gt; mkcloud.config
+
+# copy scripts/ dir onto the admin node in /root/scripts
 scp -r ~/github.com/$repo_owner/automation/scripts mkcloud.config root@$admin:
-scp    ~/github.com/$repo_owner/automation/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/$scenario_file root@$admin:scenario.yml
+
+# copy scenario file onto the admin node in /root/scenario.yml
+scp ~/github.com/$repo_owner/automation/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/$scenario_file \
+    root@$admin:scenario.yml
+
 ret=0
 
 ssh root@$admin "
