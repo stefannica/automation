@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description>&lt;!-- Managed by Jenkins Job Builder --&gt;
-This job runs https://github.com/SUSE-Cloud/automation/blob/master/scripts/mkcloud results are
-analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/mkcloudresultcheck.pl
-on mkcloudresultcheck@mkcloudresultcheck.cloud.suse.de every 15 minutes
-&lt;!-- Managed by Jenkins Job Builder --&gt;</description>
+  <description>&lt;!-- Managed by Jenkins Job Builder --&gt;&#13;
+This job runs https://github.com/SUSE-Cloud/automation/blob/master/scripts/mkcloud results are&#13;
+analyzed by https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/mkcloudresultcheck.pl&#13;
+on mkcloudresultcheck@mkcloudresultcheck.cloud.suse.de every 15 minutes&#13;
+&lt;!-- Managed by Jenkins Job Builder --&gt;&#13;
+&#13;
+TEMPORARILY DISABLED BY JDSN - BECAUSE OF THE NEED FOR AN ORCHESTRATED UPGRADE OF crowbar-init (which would break all CI runs)</description>
   <logRotator class="hudson.tasks.LogRotator">
     <daysToKeep>300</daysToKeep>
     <numToKeep>1000</numToKeep>
@@ -302,7 +304,7 @@ Currently only the 'batch' step uses such a file.
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>openstack-mkcloud</assignedNode>
   <canRoam>false</canRoam>
-  <disabled>false</disabled>
+  <disabled>true</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers/>
