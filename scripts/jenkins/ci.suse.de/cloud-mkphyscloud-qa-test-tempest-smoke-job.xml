@@ -62,7 +62,7 @@ ssh root@$admin "
 " '
   hostname -f;
   source mkcloud.config;
-  source qa_crowbarsetup.sh;
+  source scripts/qa_crowbarsetup.sh;
 
   if [ "$testsetup" == true ] ; then
      onadmin_testsetup;
@@ -79,7 +79,6 @@ ssh root@$admin "
       <artifacts>.artifacts/**</artifacts>
       <latestOnly>false</latestOnly>
       <allowEmptyArchive>true</allowEmptyArchive>
-      <defaultExcludes>true</defaultExcludes>
     </hudson.tasks.ArtifactArchiver>
   </publishers>
   <buildWrappers>
