@@ -37,31 +37,6 @@ Warning: It will wipe all machines!
           <defaultValue>2</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>admin_os</name>
-          <description>Mandatory, admin node operating system version</description>
-          <defaultValue>sles12sp2</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>shared_storage_ip</name>
-          <description>Mandatory, shared storage server IP</description>
-          <defaultValue>10.162.66.1</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>repo_owner</name>
-          <description>Mandatory, automation repo owner/organization</description>
-          <defaultValue>SUSE-Cloud</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>automation_repo</name>
-          <description>Mandatory, automation repo URL</description>
-          <defaultValue>git://github.com/$repo_owner/automation.git</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>branch</name>
-          <description>Mandatory, automation repo branch</description>
-          <defaultValue>master</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
           <name>tempest</name>
           <description>Optional, specify what tempest test(s) to run, e.g. smoke, smoke|full or smoke|defcore</description>
           <defaultValue>smoke</defaultValue>
@@ -82,9 +57,9 @@ Warning: It will wipe all machines!
           <defaultValue>7</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>scenario_file</name>
-          <description>Scenario YAML file name</description>
-          <defaultValue>qa-scenario-2b.yaml</defaultValue>
+          <name>scenario_url</name>
+          <description>Location of scenario yaml file</description>
+          <defaultValue>https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/qa-scenario-2b.yaml</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>cloudsource</name>
@@ -113,8 +88,13 @@ Warning: It will wipe all machines!
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>want_ipmi</name>
-          <description>Boolean. If 'true' nodes will be rebooted via IPMI</description>
+          <description/>
           <defaultValue>true</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>runner_url</name>
+          <description>The runner must be qa_crowbarsetup.sh file</description>
+          <defaultValue>https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>commands</name>
@@ -154,28 +134,15 @@ rm -rf $artifacts_dir
 mkdir -p $artifacts_dir
 touch $artifacts_dir/.ignore
 
-freshadminvm $admin $admin_os
+freshadminvm $admin
 sleep 100 # time for the admin VM to boot
 
-# wipe out shared NFS that being used by this deployment:
-# /usr/local/sbin/wipe_nfs_shares
+# wipe out shared NFS that should be used by this deployment
 ssh root@localhost "wipe_nfs_shares qa$hw_number"
 
 # rest of code runs on admin node:
-# clone, fetch and update the automation repo
-# /usr/local/sbin/update_automation
-update_automation
-
-# put variables needed during the build process into mkcloud.config file
 env | grep -e networking -e libvirt -e cloud &gt; mkcloud.config
-
-# copy scripts/ dir onto the admin node in /root/scripts
-scp -r ~/github.com/$repo_owner/automation/scripts mkcloud.config root@$admin:
-
-# copy scenario file onto the admin node in /root/scenario.yml
-scp ~/github.com/$repo_owner/automation/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/$scenario_file \
-    root@$admin:scenario.yml
-
+scp mkcloud.config root@$admin:
 ret=0
 
 ssh root@$admin "
@@ -188,18 +155,22 @@ export cloudsource=$cloudsource ;
 export nodenumber=$nodenumber ;
 export hacloud=$hacloud ;
 export clusterconfig=$clusterconfig ;
-export shared_storage_ip=$shared_storage_ip
+export runner_url=$runner_url ;
+export scenario_url=$scenario_url ;
 export want_node_aliases=controller=3,computekvm=2,computevmw=1 ;
 export want_node_roles=controller=3,compute=4 ;
-export scenario=\"/root/scenario.yml\" ;
+export scenario=\"scenario.yml\" ;
 export commands=\"$commands\" "'
 
-sed -i -e "s,##shared_nfs_for_database##,$shared_storage_ip:/var/$cloud/ha-database," scenario.yml
-sed -i -e "s,##shared_nfs_for_rabbitmq##,$shared_storage_ip:/var/$cloud/ha-rabbitmq," scenario.yml
+wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
+wget --no-check-certificate -Oscenario.yml "$scenario_url"
+
+sed -i -e "s,##shared_nfs_for_database##,10.162.24.1:/var/$cloud/ha-database," scenario.yml
+sed -i -e "s,##shared_nfs_for_rabbitmq##,10.162.24.1:/var/$cloud/ha-rabbitmq," scenario.yml
 
 [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export updatesteps="addupdaterepo runupdate"
 
-timeout --signal=ALRM 240m bash -x -c ". scripts/qa_crowbarsetup.sh ; onadmin_runlist $commands"
+timeout --signal=ALRM 240m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist $commands"
 ' || ret=$?
 
 echo "mkphyscloud ret=$ret (before scenario)"
