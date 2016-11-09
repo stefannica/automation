@@ -220,17 +220,15 @@ if [ $ret == "0" ]; then
     # preparation of iSCSI
     zypper --gpg-auto-import-keys -p http://download.opensuse.org/repositories/devel:/languages:/python/SLE_12_SP2/ --non-interactive install python-sh
 
-    wget --no-check-certificate https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/iscsictl.py
+    chmod +x scripts/iscsictl.py
 
-    chmod +x iscsictl.py
-
-    ./iscsictl.py --service target --host \$(hostname) --no-key
-    ./iscsictl.py --service initiator --target_host \$(hostname) --host controller1 --no-key
-    ./iscsictl.py --service initiator --target_host \$(hostname) --host controller2 --no-key
-    ./iscsictl.py --service initiator --target_host \$(hostname) --host data1 --no-key
-    ./iscsictl.py --service initiator --target_host \$(hostname) --host data2 --no-key
-    ./iscsictl.py --service initiator --target_host \$(hostname) --host network1 --no-key
-    ./iscsictl.py --service initiator --target_host \$(hostname) --host network2 --no-key
+    . scripts/iscsictl.py --service target --host \$(hostname) --no-key
+    . scripts/iscsictl.py --service initiator --target_host \$(hostname) --host controller1 --no-key
+    . scripts/iscsictl.py --service initiator --target_host \$(hostname) --host controller2 --no-key
+    . scripts/iscsictl.py --service initiator --target_host \$(hostname) --host data1 --no-key
+    . scrtips/iscsictl.py --service initiator --target_host \$(hostname) --host data2 --no-key
+    . scripts/iscsictl.py --service initiator --target_host \$(hostname) --host network1 --no-key
+    . scriprs/iscsictl.py --service initiator --target_host \$(hostname) --host network2 --no-key
 
     # preparation of SBD for services nodes
     SBD_DEV_SERVICES=\$(ssh controller1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
