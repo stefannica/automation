@@ -280,7 +280,7 @@ EOSCRIPT
   export scenario=scenario.yml "'
 
   source scripts/qa_crowbarsetup.sh
-  source scripts/sbd_prepare
+  source ./sbd_prepare
 
   timeout --signal=ALRM 60m bash -x -c "source scripts/qa_crowbarsetup.sh ; onadmin_runlist batch;"
   ' || ret=$?
