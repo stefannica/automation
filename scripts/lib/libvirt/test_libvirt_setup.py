@@ -189,5 +189,6 @@ class TestLibvirtComputeConfig(unittest.TestCase):
         is_config = libvirt_setup.compute_config(args, cpu_flags)
         self.assertEqual(is_config, should_config)
 
+
 if __name__ == '__main__':
     unittest.main()
