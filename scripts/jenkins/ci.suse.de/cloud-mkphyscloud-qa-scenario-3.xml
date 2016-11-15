@@ -8,9 +8,7 @@
 Scenario details:
    - 7 nodes
    - HA with IPMI (3 controllers)
-   - shared device for DB and rabbit
-   - swift
-   - 2 kvm and 2 xen compute nodes
+   - 1 kvm compute node cluster of 3 nodes
 
 It will wipe all machines in the selected cloud!
 &lt;!-- Managed by Jenkins Job Builder --&gt;</description>
@@ -77,7 +75,7 @@ It will wipe all machines in the selected cloud!
         <hudson.model.StringParameterDefinition>
           <name>scenario_file</name>
           <description>Scenario yaml file name</description>
-          <defaultValue>qa-scenario-1b.yaml</defaultValue>
+          <defaultValue>qa-scenario-3.yaml</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>cloudsource</name>
@@ -126,9 +124,7 @@ It will wipe all machines in the selected cloud!
         </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
-      <doNotScan>false</doNotScan>
-    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.synopsys.arc.jenkins.plugins.ownership.jobs.JobOwnerJobProperty plugin="ownership@"/>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>cloud-mkphyscloud-gate-qa</assignedNode>
@@ -233,7 +229,7 @@ exit $ret
               <properties>hw_number=$hw_number
 tempest=$tempest
 cct_tests=$cct
-scenario_name=1b
+scenario_name=3
 scenario_job_name=$JOB_NAME
 scenario_build_number=$BUILD_NUMBER
 </properties>
