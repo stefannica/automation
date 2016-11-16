@@ -63,7 +63,7 @@ Has multiple optional attributes:
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>TESTHEAD</name>
-          <description>if non-empty, test latest version from Devel:Cloud Stagin</description>
+          <description>if non-empty, test latest version from Devel:Cloud Staging</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
@@ -91,7 +91,7 @@ TESTHEAD=$TESTHEAD
 </properties>
               </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
             </configs>
-            <projects>cloud-mkphyscloud-qa-test-tempest-smoke-job</projects>
+            <projects>cloud-mkphyscloud-qa-test-tempest-smoke</projects>
             <condition>ALWAYS</condition>
             <triggerWithNoParameters>false</triggerWithNoParameters>
             <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
@@ -138,7 +138,7 @@ TESTHEAD=$TESTHEAD
 </properties>
               </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
             </configs>
-            <projects>cloud-mkphyscloud-qa-test-tempest-defcore-job</projects>
+            <projects>cloud-mkphyscloud-qa-test-tempest-defcore</projects>
             <condition>ALWAYS</condition>
             <triggerWithNoParameters>false</triggerWithNoParameters>
             <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
@@ -185,7 +185,7 @@ TESTHEAD=$TESTHEAD
 </properties>
               </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
             </configs>
-            <projects>cloud-mkphyscloud-qa-test-tempest-full-job</projects>
+            <projects>cloud-mkphyscloud-qa-test-tempest-full</projects>
             <condition>ALWAYS</condition>
             <triggerWithNoParameters>false</triggerWithNoParameters>
             <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
