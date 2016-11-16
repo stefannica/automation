@@ -35,6 +35,16 @@ Mandatory parameter: hw_number
           <description>Optional; scenario build number that triggered this job</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>scenario_build_number</name>
+          <description>Optional; scenario build number that triggered this job</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>TESTHEAD</name>
+          <description>if non-empty, test latest version from Devel:Cloud Staging</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>testsetup</name>
           <description>Run tempest with testsetup() in qa_crowbarsetup.sh script</description>
@@ -42,7 +52,6 @@ Mandatory parameter: hw_number
         </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <com.synopsys.arc.jenkins.plugins.ownership.jobs.JobOwnerJobProperty plugin="ownership@"/>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
@@ -65,6 +74,7 @@ ssh root@$admin "
   export tempestoptions=\"-t -s\";
   export cloud=$cloud;
   export testsetup=$testsetup;
+  export TESTHEAD=$TESTHEAD;
 " '
   hostname -f;
   source mkcloud.config;

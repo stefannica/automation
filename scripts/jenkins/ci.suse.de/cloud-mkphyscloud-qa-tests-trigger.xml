@@ -61,6 +61,11 @@ Has multiple optional attributes:
           <description>Optional; scenario build number that triggered this job</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>TESTHEAD</name>
+          <description>if non-empty, test latest version from Devel:Cloud Stagin</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>
@@ -82,6 +87,7 @@ testsetup=true
 scenario_name=$scenario_name
 scenario_job_name=$scenario_job_name
 scenario_build_number=$scenario_build_number
+TESTHEAD=$TESTHEAD
 </properties>
               </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
             </configs>
@@ -128,6 +134,7 @@ scenario_build_number=$scenario_build_number
 scenario_name=$scenario_name
 scenario_job_name=$scenario_job_name
 scenario_build_number=$scenario_build_number
+TESTHEAD=$TESTHEAD
 </properties>
               </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
             </configs>
@@ -174,6 +181,7 @@ scenario_build_number=$scenario_build_number
 scenario_name=$scenario_name
 scenario_job_name=$scenario_job_name
 scenario_build_number=$scenario_build_number
+TESTHEAD=$TESTHEAD
 </properties>
               </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
             </configs>
@@ -200,6 +208,7 @@ scenario_build_number=$scenario_build_number
 scenario_name=$scenario_name
 scenario_job_name=$scenario_job_name
 scenario_build_number=$scenario_build_number
+TESTHEAD=$TESTHEAD
 </properties>
               </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
             </configs>
