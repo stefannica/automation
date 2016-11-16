@@ -42,6 +42,7 @@ Mandatory parameter: hw_number
         </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
+    <com.synopsys.arc.jenkins.plugins.ownership.jobs.JobOwnerJobProperty plugin="ownership@"/>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
@@ -67,7 +68,7 @@ ssh root@$admin "
 " '
   hostname -f;
   source mkcloud.config;
-  source qa_crowbarsetup.sh;
+  source scripts/qa_crowbarsetup.sh;
 
   if [ "$testsetup" == true ] ; then
      onadmin_testsetup;
