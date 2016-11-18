@@ -61,6 +61,11 @@ Has multiple optional attributes:
           <description>Optional; scenario build number that triggered this job</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>TESTHEAD</name>
+          <description>if non-empty, test latest version from Devel:Cloud Staging</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>
@@ -82,10 +87,11 @@ testsetup=true
 scenario_name=$scenario_name
 scenario_job_name=$scenario_job_name
 scenario_build_number=$scenario_build_number
+TESTHEAD=$TESTHEAD
 </properties>
               </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
             </configs>
-            <projects>cloud-mkphyscloud-qa-test-tempest-smoke-job</projects>
+            <projects>cloud-mkphyscloud-qa-test-tempest-smoke</projects>
             <condition>ALWAYS</condition>
             <triggerWithNoParameters>false</triggerWithNoParameters>
             <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
@@ -128,10 +134,11 @@ scenario_build_number=$scenario_build_number
 scenario_name=$scenario_name
 scenario_job_name=$scenario_job_name
 scenario_build_number=$scenario_build_number
+TESTHEAD=$TESTHEAD
 </properties>
               </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
             </configs>
-            <projects>cloud-mkphyscloud-qa-test-tempest-defcore-job</projects>
+            <projects>cloud-mkphyscloud-qa-test-tempest-defcore</projects>
             <condition>ALWAYS</condition>
             <triggerWithNoParameters>false</triggerWithNoParameters>
             <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
@@ -174,10 +181,11 @@ scenario_build_number=$scenario_build_number
 scenario_name=$scenario_name
 scenario_job_name=$scenario_job_name
 scenario_build_number=$scenario_build_number
+TESTHEAD=$TESTHEAD
 </properties>
               </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
             </configs>
-            <projects>cloud-mkphyscloud-qa-test-tempest-full-job</projects>
+            <projects>cloud-mkphyscloud-qa-test-tempest-full</projects>
             <condition>ALWAYS</condition>
             <triggerWithNoParameters>false</triggerWithNoParameters>
             <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
@@ -200,6 +208,7 @@ scenario_build_number=$scenario_build_number
 scenario_name=$scenario_name
 scenario_job_name=$scenario_job_name
 scenario_build_number=$scenario_build_number
+TESTHEAD=$TESTHEAD
 </properties>
               </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
             </configs>
