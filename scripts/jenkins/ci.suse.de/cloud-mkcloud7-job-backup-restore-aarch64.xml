@@ -30,7 +30,7 @@
     </hudson.plugins.heavy__job.HeavyJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>test-cloud-mkcloud-mustang1-aarch64</assignedNode>
+  <assignedNode>cloud-trigger</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -56,7 +56,6 @@ mkcloudtarget=plain crowbarbackup crowbarrestore addupdaterepo testsetup
 label=openstack-mkcloud-SLE12-aarch64
 job_name=cloud-mkcloud7-job-backup-restore-aarch64</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-            <hudson.plugins.parameterizedtrigger.NodeParameters/>
           </configs>
           <projects>openstack-mkcloud</projects>
           <condition>ALWAYS</condition>
