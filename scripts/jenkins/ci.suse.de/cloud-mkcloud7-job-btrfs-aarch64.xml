@@ -30,10 +30,8 @@
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>TESTHEAD=1
 cloudsource=develcloud7
-nodenumber=5
+nodenumber=2
 want_rootfs=btrfs
-networkingmode=vxlan
-hacloud=1
 mkcloudtarget=all_noreboot
 label=openstack-mkcloud-SLE12-aarch64
 job_name=cloud-mkcloud7-job-btrfs-aarch64
