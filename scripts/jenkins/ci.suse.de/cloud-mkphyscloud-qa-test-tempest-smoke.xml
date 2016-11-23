@@ -90,7 +90,6 @@ ssh root@$admin "
   export cloud=$cloud;
   export testsetup=$testsetup;
   export TESTHEAD=$TESTHEAD;
-  export wantxenpv=1;
 " '
   hostname -f;
   source mkcloud.config;
