@@ -53,7 +53,7 @@ Mandatory parameter: hw_number&#13;
         <hudson.model.BooleanParameterDefinition>
           <name>testsetup</name>
           <description>Run tempest with testsetup() in qa_crowbarsetup.sh script</description>
-          <defaultValue>false</defaultValue>
+          <defaultValue>true</defaultValue>
         </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
