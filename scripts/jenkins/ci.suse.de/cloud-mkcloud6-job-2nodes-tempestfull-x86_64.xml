@@ -18,7 +18,7 @@
   <scm class="hudson.scm.NullSCM"/>
   <triggers class="vector">
     <hudson.triggers.TimerTrigger>
-      <spec>H 2 * * *</spec>
+      <spec>H 3 * * *</spec>
     </hudson.triggers.TimerTrigger>
   </triggers>
   <builders>
@@ -30,11 +30,11 @@
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>TESTHEAD=1
 cloudsource=develcloud6
-nodenumber=4
-networkingplugin=linuxbridge
-mkcloudtarget=all
+nodenumber=2
+tempestoptions=-t
+mkcloudtarget=all_noreboot
 label=openstack-mkcloud-SLE12-x86_64
-job_name=cloud-mkcloud6-job-4nodes-linuxbridge-x86_64
+job_name=cloud-mkcloud6-job-tempestfull-x86_64
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
