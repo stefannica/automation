@@ -16,13 +16,18 @@ This job will redeploy the scenario-2b:
 
 Warning: It will wipe all machines!
 &lt;!-- Managed by Jenkins Job Builder --&gt;</description>
-  <logRotator class="hudson.tasks.LogRotator">
+  <keepDependencies>false</keepDependencies>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <concurrentBuild>false</concurrentBuild>
+  <assignedNode>cloud-mkphyscloud-gate-qa</assignedNode>
+  <canRoam>false</canRoam>
+  <logRotator>
     <daysToKeep>-1</daysToKeep>
     <numToKeep>7</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
     <artifactNumToKeep>-1</artifactNumToKeep>
   </logRotator>
-  <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
@@ -30,6 +35,31 @@ Warning: It will wipe all machines!
           <name>hw_number</name>
           <description>Mandatory, name of the QA cloud server as integer</description>
           <defaultValue>2</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>admin_os</name>
+          <description>Mandatory, admin node operating system version</description>
+          <defaultValue>sles12sp2</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>shared_storage_ip</name>
+          <description>Mandatory, shared storage server IP</description>
+          <defaultValue>10.162.66.1</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>repo_owner</name>
+          <description>Mandatory, automation repo owner/organization</description>
+          <defaultValue>SUSE-Cloud</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>automation_repo</name>
+          <description>Mandatory, automation repo URL</description>
+          <defaultValue>git://github.com/$repo_owner/automation.git</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>branch</name>
+          <description>Mandatory, automation repo branch</description>
+          <defaultValue>master</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>tempest</name>
@@ -52,9 +82,9 @@ Warning: It will wipe all machines!
           <defaultValue>7</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>scenario_url</name>
-          <description>Location of scenario yaml file</description>
-          <defaultValue>https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/qa-scenario-2b.yaml</defaultValue>
+          <name>scenario_file</name>
+          <description>Scenario YAML file name</description>
+          <defaultValue>qa-scenario-2b.yaml</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>cloudsource</name>
@@ -83,13 +113,8 @@ Warning: It will wipe all machines!
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>want_ipmi</name>
-          <description/>
+          <description>Boolean. If 'true' nodes will be rebooted via IPMI</description>
           <defaultValue>true</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>runner_url</name>
-          <description>The runner must be qa_crowbarsetup.sh file</description>
-          <defaultValue>https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/qa_crowbarsetup.sh</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>commands</name>
@@ -110,13 +135,6 @@ Warning: It will wipe all machines!
     </hudson.model.ParametersDefinitionProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>cloud-mkphyscloud-gate-qa</assignedNode>
-  <canRoam>false</canRoam>
-  <disabled>false</disabled>
-  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
-  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers/>
-  <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
@@ -136,15 +154,28 @@ rm -rf $artifacts_dir
 mkdir -p $artifacts_dir
 touch $artifacts_dir/.ignore
 
-freshadminvm $admin
+freshadminvm $admin $admin_os
 sleep 100 # time for the admin VM to boot
 
-# wipe out shared NFS that should be used by this deployment
+# wipe out shared NFS that being used by this deployment:
+# /usr/local/sbin/wipe_nfs_shares
 ssh root@localhost "wipe_nfs_shares qa$hw_number"
 
 # rest of code runs on admin node:
+# clone, fetch and update the automation repo
+# /usr/local/sbin/update_automation
+update_automation
+
+# put variables needed during the build process into mkcloud.config file
 env | grep -e networking -e libvirt -e cloud &gt; mkcloud.config
-scp mkcloud.config root@$admin:
+
+# copy scripts/ dir onto the admin node in /root/scripts
+scp -r ~/github.com/$repo_owner/automation/scripts mkcloud.config root@$admin:
+
+# copy scenario file onto the admin node in /root/scenario.yml
+scp ~/github.com/$repo_owner/automation/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/$scenario_file \
+    root@$admin:scenario.yml
+
 ret=0
 
 ssh root@$admin "
@@ -157,22 +188,18 @@ export cloudsource=$cloudsource ;
 export nodenumber=$nodenumber ;
 export hacloud=$hacloud ;
 export clusterconfig=$clusterconfig ;
-export runner_url=$runner_url ;
-export scenario_url=$scenario_url ;
+export shared_storage_ip=$shared_storage_ip
 export want_node_aliases=controller=3,computekvm=2,computevmw=1 ;
 export want_node_roles=controller=3,compute=4 ;
-export scenario=\"scenario.yml\" ;
+export scenario=\"/root/scenario.yml\" ;
 export commands=\"$commands\" "'
 
-wget --no-check-certificate -Oqa_crowbarsetup.sh "$runner_url"
-wget --no-check-certificate -Oscenario.yml "$scenario_url"
-
-sed -i -e "s,##shared_nfs_for_database##,10.162.24.1:/var/$cloud/ha-database," scenario.yml
-sed -i -e "s,##shared_nfs_for_rabbitmq##,10.162.24.1:/var/$cloud/ha-rabbitmq," scenario.yml
+sed -i -e "s,##shared_nfs_for_database##,$shared_storage_ip:/var/$cloud/ha-database," scenario.yml
+sed -i -e "s,##shared_nfs_for_rabbitmq##,$shared_storage_ip:/var/$cloud/ha-rabbitmq," scenario.yml
 
 [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export updatesteps="addupdaterepo runupdate"
 
-timeout --signal=ALRM 240m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist $commands"
+timeout --signal=ALRM 240m bash -x -c "source scripts/qa_crowbarsetup.sh ; onadmin_runlist $commands"
 ' || ret=$?
 
 echo "mkphyscloud ret=$ret (before scenario)"
@@ -220,7 +247,7 @@ if [ "$ret" = "0" ]; then
   export cephvolumenumber=2;
   export scenario=scenario.yml "'
 
-  timeout --signal=ALRM 240m bash -x -c ". qa_crowbarsetup.sh ; onadmin_runlist batch;"
+  timeout --signal=ALRM 240m bash -x -c "source scripts/qa_crowbarsetup.sh ; onadmin_runlist batch;"
   ' || ret=$?
 
 
@@ -245,7 +272,7 @@ fi
 exit $ret
 </command>
     </hudson.tasks.Shell>
-    <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@">
+    <hudson.plugins.parameterizedtrigger.TriggerBuilder>
       <configs>
         <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
           <configs>
@@ -262,6 +289,7 @@ scenario_build_number=$BUILD_NUMBER
           <projects>cloud-mkphyscloud-qa-tests-trigger</projects>
           <condition>ALWAYS</condition>
           <triggerWithNoParameters>false</triggerWithNoParameters>
+          <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
           <block>
             <buildStepFailureThreshold>
               <name>FAILURE</name>
@@ -282,7 +310,6 @@ scenario_build_number=$BUILD_NUMBER
               <completeBuild>true</completeBuild>
             </failureThreshold>
           </block>
-          <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
         </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
       </configs>
     </hudson.plugins.parameterizedtrigger.TriggerBuilder>
@@ -290,19 +317,15 @@ scenario_build_number=$BUILD_NUMBER
   <publishers>
     <hudson.tasks.ArtifactArchiver>
       <artifacts>.artifacts/**</artifacts>
+      <latestOnly>false</latestOnly>
       <allowEmptyArchive>true</allowEmptyArchive>
-      <onlyIfSuccessful>false</onlyIfSuccessful>
-      <fingerprint>false</fingerprint>
       <defaultExcludes>true</defaultExcludes>
-      <caseSensitive>true</caseSensitive>
     </hudson.tasks.ArtifactArchiver>
   </publishers>
   <buildWrappers>
-    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@">
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
       <template>#${BUILD_NUMBER}: ${ENV,var="cloudsource"}</template>
-      <runAtStart>true</runAtStart>
-      <runAtEnd>true</runAtEnd>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@"/>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper/>
   </buildWrappers>
 </project>
