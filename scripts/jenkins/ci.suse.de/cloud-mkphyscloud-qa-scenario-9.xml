@@ -106,7 +106,7 @@ It will wipe all QA2 machines!
         <hudson.model.StringParameterDefinition>
           <name>commands</name>
           <description>All the steps that needs to be completed to have cloud installed</description>
-          <defaultValue>prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate setup_aliases waitcloud</defaultValue>
+          <defaultValue>prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.TextParameterDefinition>
           <name>UPDATEREPOS</name>
@@ -205,9 +205,9 @@ if [ "$ret" = "0" ]; then
     
     chmod +x scripts/iscsictl.py
 
-    ./iscsictl.py --service target --host \$(hostname) --no-key
-    ./iscsictl.py --service initiator --target_host \$(hostname) --host controller1 --no-key
-    ./iscsictl.py --service initiator --target_host \$(hostname) --host controller2 --no-key
+    ./scripts/iscsictl.py --service target --host \$(hostname) --no-key
+    ./scripts/iscsictl.py --service initiator --target_host \$(hostname) --host controller1 --no-key
+    ./scripts/iscsictl.py --service initiator --target_host \$(hostname) --host controller2 --no-key
     
     # preparation of SBD
     SBD_DEV1=\$(ssh controller1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
