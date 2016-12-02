@@ -165,7 +165,7 @@ env | grep -e networking -e libvirt -e cloud &gt; mkcloud.config
 scp -r ~/github.com/$repo_owner/automation/scripts mkcloud.config root@$admin:
 
 # copy scenario file onto the admin node in /root/scenario.yml
-scp ~/github.com/$repo_owner/automation/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/$scenario_file \
+scp ~/github.com/$repo_owner/testbranch/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/$scenario_file \
     root@$admin:scenario.yml
 
 ret=0
