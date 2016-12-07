@@ -16,7 +16,7 @@
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>cloud-trackupstream</assignedNode>
-  <canRoam>false</canRoam>
+  <canRoam>true</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
@@ -49,9 +49,9 @@
       </values>
     </hudson.matrix.TextAxis>
     <hudson.matrix.LabelAxis>
-      <name>nodes</name>
+      <name>labels</name>
       <values>
-        <string>cloud-trackupstream-sle12</string>
+        <string>cloud-mediacheck</string>
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
