@@ -88,7 +88,7 @@ Warning: It will wipe all machines!&#13;
         <hudson.model.StringParameterDefinition>
           <name>scenario_file</name>
           <description>Scenario YAML file name</description>
-          <defaultValue>qa-scenario-2a.yaml</defaultValue>
+          <defaultValue>qa-scenario-hybridkernel.yaml</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>cloudsource</name>
