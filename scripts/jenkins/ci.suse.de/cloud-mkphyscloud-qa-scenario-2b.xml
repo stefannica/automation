@@ -119,7 +119,7 @@ Warning: It will wipe all machines!
         <hudson.model.StringParameterDefinition>
           <name>commands</name>
           <description>All the steps that needs to be completed to have cloud installed</description>
-          <defaultValue>prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate setup_aliases waitcloud</defaultValue>
+          <defaultValue>prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.TextParameterDefinition>
           <name>UPDATEREPOS</name>
