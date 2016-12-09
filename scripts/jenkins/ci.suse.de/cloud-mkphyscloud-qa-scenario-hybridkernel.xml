@@ -93,7 +93,7 @@ Warning: It will wipe all machines!&#13;
         <hudson.model.StringParameterDefinition>
           <name>cloudsource</name>
           <description/>
-          <defaultValue>GM6</defaultValue>
+          <defaultValue>GM6+up</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>TESTHEAD</name>
