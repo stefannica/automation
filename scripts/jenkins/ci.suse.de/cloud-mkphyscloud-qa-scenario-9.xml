@@ -175,8 +175,8 @@ update_automation
 
 # rest of code runs on admin node:
 env | grep -e networking -e libvirt -e cloud &gt; mkcloud.config
-echo "want_dvr=1" &gt;&gt; mkcloud.config
-echo "want_ceph=1" &gt;&gt; mkcloud.config
+#echo "want_dvr=1" &gt;&gt; mkcloud.config
+#echo "want_ceph=1" &gt;&gt; mkcloud.config
 # copy scripts/ directory onto the admin  node in /root/scripts
 scp -r ~/github.com/$repo_owner/automation/scripts mkcloud.config root@$admin:
 
