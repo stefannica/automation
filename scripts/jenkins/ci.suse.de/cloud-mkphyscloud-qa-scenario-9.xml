@@ -227,15 +227,14 @@ if [ "$ret" = "0" ]; then
     
     # preparation of SBD
     SBD_DEV1=\$(ssh controller1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
-    SBD_DEV2=\$(ssh controller2 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
     ssh controller1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV1 create"
-    ssh controller2 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV2 create"
+    ssh controller2 "zypper --non-interactive install sbd"
      # watchdog configuration
     ssh controller1 modprobe softdog; echo softdog &gt; /etc/modules-load.d/watchdog.conf
     ssh controller2 modprobe softdog; echo softdog &gt; /etc/modules-load.d/watchdog.conf
     # take scenario yaml file and replace /dev/sda with the right thing:
     sed -i "s|@@sbd_device_1@@|\${SBD_DEV1}|g" scenario.yml
-    sed -i "s|@@sbd_device_2@@|\${SBD_DEV2}|g" scenario.yml
+    sed -i "s|@@sbd_device_2@@|\${SBD_DEV1}|g" scenario.yml
     # ----- End of SBD
 EOSCRIPT
 
