@@ -175,7 +175,7 @@ update_automation
 
 # rest of code runs on admin node:
 env | grep -e networking -e libvirt -e cloud &gt; mkcloud.config
-#echo "want_dvr=1" &gt;&gt; mkcloud.config
+echo "want_dvr=1" &gt;&gt; mkcloud.config
 #echo "want_ceph=1" &gt;&gt; mkcloud.config
 # copy scripts/ directory onto the admin  node in /root/scripts
 scp -r ~/github.com/$repo_owner/automation/scripts mkcloud.config root@$admin:
@@ -199,8 +199,6 @@ export want_node_aliases=controller=2,compute=2,ceph=3 ;
 export want_node_roles=controller=2,compute=2,storage=3 ;
 export want_ceph=1 ;
 export want_dvr=1 ;
-export networkingplugin=openvswitch ;
-export networkingmode=vlan ;
 export cephvolumenumber=1 ;
 export scenario=\"/root/scenario.yml\" ;
 export commands=\"$commands\" "'
@@ -255,8 +253,6 @@ if [ "$ret" = "0" ]; then
   export clusterconfig=$clusterconfig ;
   export want_ceph=1 ;
   export want_dvr=1 ;
-  export networkingplugin=openvswitch ;
-  export networkingmode=vlan ;
   export cephvolumenumber=1;
   export scenario=scenario.yml "'
 
