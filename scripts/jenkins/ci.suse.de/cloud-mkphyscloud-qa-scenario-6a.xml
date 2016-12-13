@@ -105,12 +105,13 @@ It will wipe all machines!
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>networkingplugin</name>
-          <description>networking plugin to be used by neutron, avaible option is openvswitch</description>
+          <description>networking plugin to be used by neutron, available option is openvswitch:gre,vlan,vxlan / linuxbridge:vlan
+</description>
           <defaultValue>linuxbridge</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>networkingmode</name>
-          <description>networking mode to be used by neutron , avaible option is gre,vxlan</description>
+          <description>networking mode to be used by neutron , available option is gre,vlan,vxlan</description>
           <defaultValue>vlan</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -284,11 +285,7 @@ scenario_build_number=$BUILD_NUMBER
   </publishers>
   <buildWrappers>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
-      <template>#${BUILD_NUMBER}:${ENV,var="cloudsource"}:{ENV,var="networkingplugin"}:{ENV,var="networkingmode"}</template>
+      <template>#${BUILD_NUMBER}:${ENV,var="cloudsource"}:${ENV,var="networkingplugin"}:${ENV,var="networkingmode"}</template>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
-    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
-      <template>#${BUILD_NUMBER}: ${ENV,var="cloudsource"}</template>
-    </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper/>
   </buildWrappers>
 </project>

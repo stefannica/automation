@@ -229,7 +229,7 @@ a fail will not be considered for now.
 openstack-mkcloud-SLE11 (SLE11 host) |
 openstack-mkcloud-SLE12 (SLE12 host) | openstack-mkcloud-SLE12-aarch64 (SLE12 aarch64 host)
 </description>
-          <defaultValue>cloud-mkcloud-mkchc</defaultValue>
+          <defaultValue>cloud-trigger</defaultValue>
           <allNodesMatchingLabel>false</allNodesMatchingLabel>
           <triggerIfResult>allCases</triggerIfResult>
           <nodeEligibility class="org.jvnet.jenkins.plugins.nodelabelparameter.node.AllNodeEligibility"/>
@@ -327,9 +327,15 @@ Currently only the 'batch' step uses such a file.
     <hudson.tasks.Shell>
       <command>mkdir -p $WORKSPACE
 pwd
-cat &lt;&lt;EOF &gt; log-parser-plugin-rules.txt
+cat &lt;&lt;'EOF' &gt; log-parser-plugin-rules.txt
+start /MKCLOUD STEP START: /
 start /Starting proposal/
-start /(?&lt;=^============&gt; )(MKCLOUD STEP START: [^&lt;]+?)(?= &lt;========)/
+
+info /^\+ onadmin /
+info /^Waiting for /
+
+error /Error/
+error /$h1!!/
 EOF
 
 cat &lt;&lt;'EOF'
