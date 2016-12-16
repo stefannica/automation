@@ -224,6 +224,8 @@ timeout --signal=ALRM 240m bash -x -c "source scripts/qa_crowbarsetup.sh ; onadm
 
 echo "mkphyscloud ret=$ret (before scenario)"
 
+sleep 720
+
 if [ "$ret" = "0" ]; then
   # ----- Prepare the SBD setup:
   cat &gt; /tmp/sbd_prepare_$admin &lt;&lt;EOSCRIPT
