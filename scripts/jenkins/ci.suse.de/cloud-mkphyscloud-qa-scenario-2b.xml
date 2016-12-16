@@ -160,7 +160,8 @@ Warning: It will wipe all machines!&#13;
       <command>#!/bin/bash
 admin=crowbar$hw_number
 cloud=qa$hw_number
-vcenter_user="Administrator@vsphere.qa.suse.de"
+#vcenter_user="Administrator@vsphere.qa.suse.de"
+vcenter_user="cloud@vsphere.qa.suse.de"
 vcenter_password=`cat /home/jenkins/passwords/Administrator\@vsphere.qa.suse.de`
 
 if [ ! -z "$UPDATEREPOS" ] ; then
