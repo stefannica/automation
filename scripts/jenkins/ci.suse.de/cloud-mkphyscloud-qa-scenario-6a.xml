@@ -214,7 +214,11 @@ ssh root@$admin &lt;&lt;EOF
 
     [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export updatesteps="addupdaterepo runupdate" ;
 
-    timeout --signal=ALRM 240m bash -x -c "source scripts/qa_crowbarsetup.sh ; onadmin_runlist $commands; safely oncontroller magnum_service_setup"
+    timeout --signal=ALRM 240m bash -x -c "\
+    source scripts/qa_crowbarsetup.sh ;    \
+    onadmin_runlist $commands;             \
+    get_novacontroller;                    \
+    oncontroller magnum_service_setup     "
 EOF
 ret=$?
 
