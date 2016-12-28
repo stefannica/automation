@@ -83,6 +83,7 @@ Mandatory parameter: hw_number
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
+set -x -c
 admin=crowbar$hw_number;
 cloud=qa$hw_number;
 cct_path="/root/github.com/$repo_owner/cct";
@@ -102,13 +103,13 @@ ssh root@$admin "
 " '
   hostname -f;
   source scripts/qa_crowbarsetup.sh
-  echo "want_tempest=0" &gt;&gt; mkcloud.config
+  echo "want_tempest=0" &gt;&gt; mkcloud.config | grep -q want_tempest mkcloud.config
   source mkcloud.config
 
   if [ "$testsetup" == true ] ; then
-     onadmin_testsetup;
+    onadmin_testsetup
   else
-    timeout --signal=ALRM 90m bash -x -c "onadmin_run_cct"
+    onadmin_run_cct
   fi
 
 '|| result=$?
