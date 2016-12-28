@@ -22,7 +22,7 @@ Mandatory parameter: hw_number
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>cct_tests</name>
-          <description>List of tests separated by plus sign, e.g. features:base+feature:scale:cirros</description>
+          <description>List of tests separated by plus sign, e.g. features:base+test:func:novaclient</description>
           <defaultValue>features:base</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -61,6 +61,11 @@ Mandatory parameter: hw_number
           <description>Optional; scenario build number that triggered this job</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>testsetup</name>
+          <description>Run tempest with testsetup() in qa_crowbarsetup.sh script</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
@@ -88,13 +93,23 @@ mkdir -p $artifacts_dir
 result=0
 
 ssh root@$admin "
+  export cloud=$cloud;
   export cct_tests=$cct_tests;
   export cct_git_url=$cct_repo;
   export cct_checkout_branch=$branch;
   export cct_skip_func_tests=$cct_skip_func_tests;
+  export testsetup=$testsetup;
 " '
   hostname -f;
-  timeout --signal=ALRM 90m bash -x -c "source scripts/qa_crowbarsetup.sh; source mkcloud.config; onadmin_run_cct"
+  source scripts/qa_crowbarsetup.sh
+  echo "want_tempest=0" &gt;&gt; mkcloud.config
+  source mkcloud.config
+
+  if [ "$testsetup" == true ] ; then
+     onadmin_testsetup;
+  else
+    timeout --signal=ALRM 90m bash -x -c "onadmin_run_cct"
+  fi
 
 '|| result=$?
 

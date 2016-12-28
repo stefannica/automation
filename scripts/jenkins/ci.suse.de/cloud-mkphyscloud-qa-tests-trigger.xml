@@ -61,6 +61,11 @@ Has multiple optional attributes:
           <description>if non-empty, test latest version from Devel:Cloud Staging</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>testsetup</name>
+          <description>Run tempest with testsetup() in qa_crowbarsetup.sh script</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
@@ -87,7 +92,7 @@ Has multiple optional attributes:
             <configs>
               <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
                 <properties>hw_number=$hw_number
-testsetup=true
+testsetup=$testsetup
 scenario_name=$scenario_name
 scenario_job_name=$scenario_job_name
 scenario_build_number=$scenario_build_number
@@ -138,6 +143,7 @@ TESTHEAD=$TESTHEAD
 scenario_name=$scenario_name
 scenario_job_name=$scenario_job_name
 scenario_build_number=$scenario_build_number
+testsetup=$testsetup
 TESTHEAD=$TESTHEAD
 </properties>
               </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
@@ -185,6 +191,7 @@ TESTHEAD=$TESTHEAD
 scenario_name=$scenario_name
 scenario_job_name=$scenario_job_name
 scenario_build_number=$scenario_build_number
+testsetup=$testsetup
 TESTHEAD=$TESTHEAD
 </properties>
               </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
@@ -201,7 +208,7 @@ TESTHEAD=$TESTHEAD
     </org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
     <org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder plugin="conditional-buildstep@">
       <condition class="org.jenkins_ci.plugins.run_condition.core.ExpressionCondition" plugin="run-condition@1.0">
-        <expression>(?is).(feature|test):.</expression>
+        <expression>(feature|test).*</expression>
         <label>${ENV,var="cct_tests"}</label>
       </condition>
       <buildStep class="hudson.plugins.parameterizedtrigger.TriggerBuilder" plugin="parameterized-trigger@2.32">
@@ -213,6 +220,8 @@ TESTHEAD=$TESTHEAD
 scenario_name=$scenario_name
 scenario_job_name=$scenario_job_name
 scenario_build_number=$scenario_build_number
+cct_tests=$cct_tests
+testsetup=$testsetup
 </properties>
               </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
             </configs>
