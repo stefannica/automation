@@ -167,7 +167,7 @@ update_automation
 env | grep -e networking -e libvirt -e cloud &gt; mkcloud.config
 
 echo "want_magnum=1" &gt;&gt; mkcloud.config
-echo "ostestroptions=\"--regex '^magnum.tests.functional.api'\"" &gt;&gt; mkcloud.config
+echo "ostestroptions=--regex\ '^magnum.tests.functional.api'" &gt;&gt; mkcloud.config
 
 # copy scripts/ dir onto the admin node in /root/scripts
 scp -r ~/github.com/$repo_owner/automation/scripts mkcloud.config root@$admin:
@@ -209,7 +209,11 @@ ssh root@$admin &lt;&lt;EOF
 
     [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export updatesteps="addupdaterepo runupdate" ;
 
-    timeout --signal=ALRM 240m bash -x -c "source scripts/qa_crowbarsetup.sh ; onadmin_runlist $commands"
+    timeout --signal=ALRM 240m bash -x -c "\
+    source scripts/qa_crowbarsetup.sh ;    \
+    onadmin_runlist $commands;             \
+    get_novacontroller;                    \
+    oncontroller magnum_service_setup     "
 EOF
 ret=$?
 
@@ -280,12 +284,11 @@ scenario_build_number=$BUILD_NUMBER
       <artifacts>.artifacts/**</artifacts>
       <latestOnly>false</latestOnly>
       <allowEmptyArchive>true</allowEmptyArchive>
-      <defaultExcludes>true</defaultExcludes>
     </hudson.tasks.ArtifactArchiver>
   </publishers>
   <buildWrappers>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
-      <template>#${BUILD_NUMBER}:${ENV,var="cloudsource"}:${ENV,var="networkingplugin"}:${ENV,var="networkingmode"}</template>
+      <template>#${BUILD_NUMBER} ${ENV,var="cloudsource"} qa${ENV,var="hw_number"} ${ENV,var="networkingplugin"} ${ENV,var="networkingmode"}</template>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
   </buildWrappers>
 </project>
