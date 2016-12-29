@@ -7,7 +7,7 @@ Mandatory parameter: hw_number
 &lt;!-- Managed by Jenkins Job Builder --&gt;</description>
   <logRotator class="hudson.tasks.LogRotator">
     <daysToKeep>-1</daysToKeep>
-    <numToKeep>7</numToKeep>
+    <numToKeep>30</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
     <artifactNumToKeep>-1</artifactNumToKeep>
   </logRotator>
@@ -64,7 +64,7 @@ Mandatory parameter: hw_number
         <hudson.model.BooleanParameterDefinition>
           <name>testsetup</name>
           <description>Run tempest with testsetup() in qa_crowbarsetup.sh script</description>
-          <defaultValue>true</defaultValue>
+          <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
@@ -103,14 +103,14 @@ ssh root@$admin "
 " '
   hostname -f;
   source scripts/qa_crowbarsetup.sh
-  echo "want_tempest=0" &gt;&gt; mkcloud.config | grep -q want_tempest mkcloud.config
   source mkcloud.config
+  want_tempest=0
 
   if [ "$testsetup" == true ] ; then
     onadmin_testsetup
-  else
-    onadmin_run_cct
   fi
+
+  onadmin_run_cct
 
 '|| result=$?
 
@@ -133,7 +133,7 @@ exit $result;
   </publishers>
   <buildWrappers>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@">
-      <template>#${BUILD_NUMBER} - ${scenario_name} - cloud${hw_number} - ${cct_tests}</template>
+      <template>#${BUILD_NUMBER} - ${scenario_name} - qa${hw_number} - ${cct_tests}</template>
       <runAtStart>true</runAtStart>
       <runAtEnd>true</runAtEnd>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
