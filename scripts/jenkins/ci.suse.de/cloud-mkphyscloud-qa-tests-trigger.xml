@@ -11,13 +11,18 @@ Has multiple optional attributes:
 * tempest -&gt; tempest test type(s);combinations of smoke, full and defcore, e.g. smoke|full; smoke is run always as first, then defcore and eventually full testsuite
 * cct -&gt; test name, e.g. features:base
 &lt;!-- Managed by Jenkins Job Builder --&gt;</description>
-  <logRotator class="hudson.tasks.LogRotator">
+  <keepDependencies>false</keepDependencies>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <concurrentBuild>true</concurrentBuild>
+  <assignedNode>cloud-mkphyscloud-gate-qa</assignedNode>
+  <canRoam>false</canRoam>
+  <logRotator>
     <daysToKeep>-1</daysToKeep>
     <numToKeep>7</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
     <artifactNumToKeep>-1</artifactNumToKeep>
   </logRotator>
-  <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
@@ -61,38 +66,24 @@ Has multiple optional attributes:
           <description>if non-empty, test latest version from Devel:Cloud Staging</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
-        <hudson.model.BooleanParameterDefinition>
-          <name>testsetup</name>
-          <description>Run tempest with testsetup() in qa_crowbarsetup.sh script</description>
-          <defaultValue>true</defaultValue>
-        </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
-      <doNotScan>false</doNotScan>
-    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>cloud-mkphyscloud-gate-qa</assignedNode>
-  <canRoam>false</canRoam>
-  <disabled>false</disabled>
-  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
-  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers/>
-  <concurrentBuild>true</concurrentBuild>
   <builders>
-    <org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder plugin="conditional-buildstep@">
-      <condition class="org.jenkins_ci.plugins.run_condition.core.ExpressionCondition" plugin="run-condition@1.0">
+    <org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
+      <condition class="org.jenkins_ci.plugins.run_condition.core.ExpressionCondition">
         <expression>${ENV,var="tempest"}</expression>
         <label>smoke</label>
       </condition>
-      <buildStep class="hudson.plugins.parameterizedtrigger.TriggerBuilder" plugin="parameterized-trigger@2.32">
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail"/>
+      <buildStep class="hudson.plugins.parameterizedtrigger.TriggerBuilder">
         <configs>
           <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
             <configs>
               <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
                 <properties>hw_number=$hw_number
-testsetup=$testsetup
+testsetup=true
 scenario_name=$scenario_name
 scenario_job_name=$scenario_job_name
 scenario_build_number=$scenario_build_number
@@ -103,6 +94,7 @@ TESTHEAD=$TESTHEAD
             <projects>cloud-mkphyscloud-qa-test-tempest-smoke</projects>
             <condition>ALWAYS</condition>
             <triggerWithNoParameters>false</triggerWithNoParameters>
+            <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
             <block>
               <buildStepFailureThreshold>
                 <name>FAILURE</name>
@@ -123,18 +115,17 @@ TESTHEAD=$TESTHEAD
                 <completeBuild>true</completeBuild>
               </failureThreshold>
             </block>
-            <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
           </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
         </configs>
       </buildStep>
-      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
     </org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
-    <org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder plugin="conditional-buildstep@">
-      <condition class="org.jenkins_ci.plugins.run_condition.core.ExpressionCondition" plugin="run-condition@1.0">
+    <org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
+      <condition class="org.jenkins_ci.plugins.run_condition.core.ExpressionCondition">
         <expression>${ENV,var="tempest"}</expression>
         <label>defcore</label>
       </condition>
-      <buildStep class="hudson.plugins.parameterizedtrigger.TriggerBuilder" plugin="parameterized-trigger@2.32">
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail"/>
+      <buildStep class="hudson.plugins.parameterizedtrigger.TriggerBuilder">
         <configs>
           <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
             <configs>
@@ -143,7 +134,6 @@ TESTHEAD=$TESTHEAD
 scenario_name=$scenario_name
 scenario_job_name=$scenario_job_name
 scenario_build_number=$scenario_build_number
-testsetup=$testsetup
 TESTHEAD=$TESTHEAD
 </properties>
               </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
@@ -151,6 +141,7 @@ TESTHEAD=$TESTHEAD
             <projects>cloud-mkphyscloud-qa-test-tempest-defcore</projects>
             <condition>ALWAYS</condition>
             <triggerWithNoParameters>false</triggerWithNoParameters>
+            <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
             <block>
               <buildStepFailureThreshold>
                 <name>FAILURE</name>
@@ -171,18 +162,17 @@ TESTHEAD=$TESTHEAD
                 <completeBuild>true</completeBuild>
               </failureThreshold>
             </block>
-            <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
           </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
         </configs>
       </buildStep>
-      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
     </org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
-    <org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder plugin="conditional-buildstep@">
-      <condition class="org.jenkins_ci.plugins.run_condition.core.ExpressionCondition" plugin="run-condition@1.0">
+    <org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
+      <condition class="org.jenkins_ci.plugins.run_condition.core.ExpressionCondition">
         <expression>${ENV,var="tempest"}</expression>
         <label>full</label>
       </condition>
-      <buildStep class="hudson.plugins.parameterizedtrigger.TriggerBuilder" plugin="parameterized-trigger@2.32">
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail"/>
+      <buildStep class="hudson.plugins.parameterizedtrigger.TriggerBuilder">
         <configs>
           <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
             <configs>
@@ -191,7 +181,6 @@ TESTHEAD=$TESTHEAD
 scenario_name=$scenario_name
 scenario_job_name=$scenario_job_name
 scenario_build_number=$scenario_build_number
-testsetup=$testsetup
 TESTHEAD=$TESTHEAD
 </properties>
               </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
@@ -199,66 +188,18 @@ TESTHEAD=$TESTHEAD
             <projects>cloud-mkphyscloud-qa-test-tempest-full</projects>
             <condition>ALWAYS</condition>
             <triggerWithNoParameters>false</triggerWithNoParameters>
+            <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
             <block/>
-            <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
           </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
         </configs>
       </buildStep>
-      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
     </org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
-    <org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder plugin="conditional-buildstep@">
-      <condition class="org.jenkins_ci.plugins.run_condition.core.ExpressionCondition" plugin="run-condition@1.0">
-        <expression>(feature|test).*</expression>
-        <label>${ENV,var="cct_tests"}</label>
-      </condition>
-      <buildStep class="hudson.plugins.parameterizedtrigger.TriggerBuilder" plugin="parameterized-trigger@2.32">
-        <configs>
-          <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
-            <configs>
-              <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-                <properties>hw_number=$hw_number
-scenario_name=$scenario_name
-scenario_job_name=$scenario_job_name
-scenario_build_number=$scenario_build_number
-cct_tests=$cct_tests
-testsetup=$testsetup
-</properties>
-              </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-            </configs>
-            <projects>cloud-mkphyscloud-qa-test-cct</projects>
-            <condition>ALWAYS</condition>
-            <triggerWithNoParameters>false</triggerWithNoParameters>
-            <block>
-              <buildStepFailureThreshold>
-                <name>FAILURE</name>
-                <ordinal>2</ordinal>
-                <color>RED</color>
-                <completeBuild>true</completeBuild>
-              </buildStepFailureThreshold>
-              <unstableThreshold>
-                <name>FAILURE</name>
-                <ordinal>2</ordinal>
-                <color>RED</color>
-                <completeBuild>true</completeBuild>
-              </unstableThreshold>
-              <failureThreshold>
-                <name>FAILURE</name>
-                <ordinal>2</ordinal>
-                <color>RED</color>
-                <completeBuild>true</completeBuild>
-              </failureThreshold>
-            </block>
-            <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
-          </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
-        </configs>
-      </buildStep>
-      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
-    </org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
-    <org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder plugin="conditional-buildstep@">
-      <condition class="org.jenkins_ci.plugins.run_condition.core.BooleanCondition" plugin="run-condition@1.0">
+    <org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
+      <condition class="org.jenkins_ci.plugins.run_condition.core.BooleanCondition">
         <token>${ENV,var="horizon-tests"}</token>
       </condition>
-      <buildStep class="hudson.plugins.parameterizedtrigger.TriggerBuilder" plugin="parameterized-trigger@2.32">
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail"/>
+      <buildStep class="hudson.plugins.parameterizedtrigger.TriggerBuilder">
         <configs>
           <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
             <configs>
@@ -274,6 +215,7 @@ TESTHEAD=$TESTHEAD
             <projects>cloud-mkphyscloud-qa-test-horizon-tests</projects>
             <condition>ALWAYS</condition>
             <triggerWithNoParameters>false</triggerWithNoParameters>
+            <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
             <block>
               <buildStepFailureThreshold>
                 <name>FAILURE</name>
@@ -294,20 +236,16 @@ TESTHEAD=$TESTHEAD
                 <completeBuild>true</completeBuild>
               </failureThreshold>
             </block>
-            <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
           </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
         </configs>
       </buildStep>
-      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
     </org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
   </builders>
   <publishers/>
   <buildWrappers>
-    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@">
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
       <template>#${BUILD_NUMBER}: ${ENV,var="scenario_name"} - ${ENV,var="hw_number"}</template>
-      <runAtStart>true</runAtStart>
-      <runAtEnd>true</runAtEnd>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@"/>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper/>
   </buildWrappers>
 </project>
