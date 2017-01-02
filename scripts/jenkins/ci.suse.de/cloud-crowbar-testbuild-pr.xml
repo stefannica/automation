@@ -68,6 +68,9 @@ fi
 # fetch the latest automation updates
 ${automationrepo}/scripts/jenkins/update_automation
 
+zypper -n in python-python-jenkins python-sh osc build # for jenkins-job-trigger and crowbar-testbuild
+test -e /srv/mkcloud || exit 45 # sanity check
+
 ghs=${automationrepo}/scripts/github-status/github-status.rb
 
 github_opts=(${crowbar_github_pr//:/ })
