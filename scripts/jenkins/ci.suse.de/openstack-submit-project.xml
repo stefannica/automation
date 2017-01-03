@@ -105,7 +105,6 @@ Devel:Cloud:7)
 *) echo "Please add support for the project: $project"
     exit 1
 esac
-mkdir -p $BS_CHECKOUT
 
 
 for COMPONENT in `$OSC ls $COSS 2&gt;/dev/null | grep -E "^(${packagefilter// /|})" | grep -v "^_product."` ; do
