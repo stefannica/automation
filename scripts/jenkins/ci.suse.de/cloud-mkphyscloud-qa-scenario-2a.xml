@@ -18,13 +18,18 @@ This job will redeploy scenario-2b:
 
 Warning: It will wipe all machines!
 &lt;!-- Managed by Jenkins Job Builder --&gt;</description>
-  <logRotator class="hudson.tasks.LogRotator">
+  <keepDependencies>false</keepDependencies>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <concurrentBuild>false</concurrentBuild>
+  <assignedNode>cloud-mkphyscloud-gate-qa</assignedNode>
+  <canRoam>false</canRoam>
+  <logRotator>
     <daysToKeep>-1</daysToKeep>
     <numToKeep>15</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
     <artifactNumToKeep>-1</artifactNumToKeep>
   </logRotator>
-  <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
@@ -130,18 +135,8 @@ Warning: It will wipe all machines!
         </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
-      <doNotScan>false</doNotScan>
-    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>cloud-mkphyscloud-gate-qa</assignedNode>
-  <canRoam>false</canRoam>
-  <disabled>false</disabled>
-  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
-  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers/>
-  <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
@@ -270,14 +265,6 @@ EOSCRIPT
 
   scp /tmp/sbd_prepare_$admin root@$admin:sbd_prepare
 
-  # Check if zypper is used by other application
-  ssh root@$admin '
-    source scripts/qa_crowbarsetup.sh;
-    for node in $(crowbar machines aliases | grep -E "controller|data|network" | grep -oE "^.*[[:space:]]"); do
-      wait_for 20 10 "ssh $node \"zypper refresh\" "
-    done
-  '
-
   ssh root@$admin  "
   export cloud=$cloud ;
   export TESTHEAD=$TESTHEAD ;
@@ -290,7 +277,7 @@ EOSCRIPT
   export scenario=scenario.yml "'
 
   source scripts/qa_crowbarsetup.sh
-  ./sbd_prepare
+  source ./sbd_prepare
 
   timeout --signal=ALRM 60m bash -x -c "source scripts/qa_crowbarsetup.sh ; onadmin_runlist batch;"
   ' || ret=$?
@@ -316,7 +303,7 @@ fi
 exit $ret
 </command>
     </hudson.tasks.Shell>
-    <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@">
+    <hudson.plugins.parameterizedtrigger.TriggerBuilder>
       <configs>
         <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
           <configs>
@@ -333,6 +320,7 @@ scenario_build_number=$BUILD_NUMBER
           <projects>cloud-mkphyscloud-qa-tests-trigger</projects>
           <condition>ALWAYS</condition>
           <triggerWithNoParameters>false</triggerWithNoParameters>
+          <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
           <block>
             <buildStepFailureThreshold>
               <name>FAILURE</name>
@@ -353,7 +341,6 @@ scenario_build_number=$BUILD_NUMBER
               <completeBuild>true</completeBuild>
             </failureThreshold>
           </block>
-          <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
         </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
       </configs>
     </hudson.plugins.parameterizedtrigger.TriggerBuilder>
@@ -363,18 +350,13 @@ scenario_build_number=$BUILD_NUMBER
       <artifacts>.artifacts/**</artifacts>
       <latestOnly>false</latestOnly>
       <allowEmptyArchive>true</allowEmptyArchive>
-      <onlyIfSuccessful>false</onlyIfSuccessful>
-      <fingerprint>false</fingerprint>
       <defaultExcludes>true</defaultExcludes>
-      <caseSensitive>true</caseSensitive>
     </hudson.tasks.ArtifactArchiver>
   </publishers>
   <buildWrappers>
-    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@">
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
       <template>#${BUILD_NUMBER}: ${ENV,var="cloudsource"}</template>
-      <runAtStart>true</runAtStart>
-      <runAtEnd>true</runAtEnd>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@"/>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper/>
   </buildWrappers>
 </project>
