@@ -47,7 +47,7 @@
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers/>
-  <concurrentBuild>false</concurrentBuild>
+  <concurrentBuild>true</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
       <command># THIS JOB JUST BUILD ONE CROWBAR PR AND HANDS IT OVER TO MKCLOUD (IMPLICITLY VIA THE crowbar-testbuild.py)
