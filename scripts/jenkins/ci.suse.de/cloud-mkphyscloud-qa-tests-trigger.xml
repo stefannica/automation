@@ -66,11 +66,6 @@ Has multiple optional attributes:
           <description>if non-empty, test latest version from Devel:Cloud Staging</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
-        <hudson.model.BooleanParameterDefinition>
-          <name>testsetup</name>
-          <description>Run tempest with testsetup() in qa_crowbarsetup.sh script</description>
-          <defaultValue>true</defaultValue>
-        </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>
@@ -88,7 +83,7 @@ Has multiple optional attributes:
             <configs>
               <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
                 <properties>hw_number=$hw_number
-testsetup=$testsetup
+testsetup=true
 scenario_name=$scenario_name
 scenario_job_name=$scenario_job_name
 scenario_build_number=$scenario_build_number
@@ -139,7 +134,6 @@ TESTHEAD=$TESTHEAD
 scenario_name=$scenario_name
 scenario_job_name=$scenario_job_name
 scenario_build_number=$scenario_build_number
-testsetup=$testsetup
 TESTHEAD=$TESTHEAD
 </properties>
               </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
@@ -196,53 +190,6 @@ TESTHEAD=$TESTHEAD
             <triggerWithNoParameters>false</triggerWithNoParameters>
             <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
             <block/>
-          </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
-        </configs>
-      </buildStep>
-    </org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
-    <org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
-      <condition class="org.jenkins_ci.plugins.run_condition.core.ExpressionCondition">
-        <expression>(feature|test).*</expression>
-        <label>${ENV,var="cct_tests"}</label>
-      </condition>
-      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail"/>
-      <buildStep class="hudson.plugins.parameterizedtrigger.TriggerBuilder">
-        <configs>
-          <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
-            <configs>
-              <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-                <properties>hw_number=$hw_number
-scenario_name=$scenario_name
-scenario_job_name=$scenario_job_name
-scenario_build_number=$scenario_build_number
-cct_tests=$cct_tests
-</properties>
-              </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-            </configs>
-            <projects>cloud-mkphyscloud-qa-test-cct</projects>
-            <condition>ALWAYS</condition>
-            <triggerWithNoParameters>false</triggerWithNoParameters>
-            <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
-            <block>
-              <buildStepFailureThreshold>
-                <name>FAILURE</name>
-                <ordinal>2</ordinal>
-                <color>RED</color>
-                <completeBuild>true</completeBuild>
-              </buildStepFailureThreshold>
-              <unstableThreshold>
-                <name>FAILURE</name>
-                <ordinal>2</ordinal>
-                <color>RED</color>
-                <completeBuild>true</completeBuild>
-              </unstableThreshold>
-              <failureThreshold>
-                <name>FAILURE</name>
-                <ordinal>2</ordinal>
-                <color>RED</color>
-                <completeBuild>true</completeBuild>
-              </failureThreshold>
-            </block>
           </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
         </configs>
       </buildStep>
