@@ -21,6 +21,16 @@ Mandatory parameter: hw_number
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
+          <name>cloudsource</name>
+          <description/>
+          <defaultValue>develcloud7</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>upgrade_cloudsource</name>
+          <description/>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
           <name>scenario_name</name>
           <description>Optional; scenario name which typically is an integer with a single letter</description>
           <defaultValue/>
@@ -42,7 +52,6 @@ Mandatory parameter: hw_number
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <com.synopsys.arc.jenkins.plugins.ownership.jobs.JobOwnerJobProperty plugin="ownership@"/>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
@@ -68,6 +77,7 @@ ssh root@$admin "
   source mkcloud.config;
   source scripts/qa_crowbarsetup.sh;
 
+  [[ -z $upgrade_cloudsource ]] &amp;&amp; complain 55 "Variable $upgrade_cloudsource not defined"
 '
 </command>
     </hudson.tasks.Shell>
