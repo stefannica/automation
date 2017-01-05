@@ -32,7 +32,7 @@
 cloudsource=develcloud7
 nodenumber=4
 networkingplugin=linuxbridge
-tempestoptions=-t
+tempestoptions=
 mkcloudtarget=all_noreboot
 label=openstack-mkcloud-SLE12-x86_64
 job_name=cloud-mkcloud7-job-4nodes-linuxbridge-tempestfull-x86_64

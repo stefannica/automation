@@ -31,7 +31,7 @@
               <properties>TESTHEAD=1
 cloudsource=develcloud6
 nodenumber=2
-tempestoptions=-t
+tempestoptions=
 mkcloudtarget=all_noreboot
 label=openstack-mkcloud-SLE12-x86_64
 job_name=cloud-mkcloud6-job-2nodes-tempestfull-x86_64
