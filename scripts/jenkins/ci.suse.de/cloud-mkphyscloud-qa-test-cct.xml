@@ -97,7 +97,6 @@ ssh root@$admin "
   export testsetup=$testsetup;
 " '
   set +e;
-  set +x;
   hostname -f;
   source scripts/qa_crowbarsetup.sh
   source mkcloud.config
