@@ -32,7 +32,7 @@
 cloudsource=develcloud7
 nodenumber=5
 networkingmode=vxlan
-tempestoptions=--parallel
+tempestoptions=--smoke
 hacloud=1
 mkcloudtarget=all_noreboot
 label=openstack-mkcloud-SLE12-x86_64

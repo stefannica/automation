@@ -32,7 +32,7 @@
 cloudsource=develcloud7
 nodenumber=4
 networkingplugin=linuxbridge
-tempestoptions=--parallel
+tempestoptions=--smoke
 mkcloudtarget=all
 label=openstack-mkcloud-SLE12-x86_64
 job_name=cloud-mkcloud7-job-4nodes-linuxbridge-x86_64
