@@ -32,6 +32,7 @@
 cloudsource=develcloud6
 nodenumber=5
 networkingmode=vxlan
+tempestoptions=-s -t
 hacloud=1
 mkcloudtarget=all_noreboot
 label=openstack-mkcloud-SLE12-x86_64
