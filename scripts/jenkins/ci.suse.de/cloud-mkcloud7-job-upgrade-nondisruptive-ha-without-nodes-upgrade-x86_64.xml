@@ -35,7 +35,7 @@ nodenumber=4
 hacloud=1
 storage_method=swift
 mkcloudtarget=plain_with_upgrade
-label=openstack-mkcloud-SLE12-x86_64
+label=openstack-mkcloud-ha-x86_64
 want_postgresql=0
 job_name=cloud-mkcloud7-job-upgrade-nondisruptive-ha-without-nodes-upgrade-x86_64
 </properties>
