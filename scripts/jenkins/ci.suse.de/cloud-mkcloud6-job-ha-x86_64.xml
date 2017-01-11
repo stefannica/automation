@@ -35,7 +35,7 @@ networkingmode=vxlan
 tempestoptions=-s -t
 hacloud=1
 mkcloudtarget=all_noreboot
-label=openstack-mkcloud-ha-x86_64
+label=openstack-mkcloud-SLE12-x86_64
 job_name=cloud-mkcloud6-job-ha-x86_64
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>

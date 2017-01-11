@@ -117,7 +117,7 @@ It will wipe all machines in the selected cloud!
         <hudson.model.StringParameterDefinition>
           <name>commands</name>
           <description>All the steps that needs to be completed to have cloud installed</description>
-          <defaultValue>prepareinstallcrowbar bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases batch</defaultValue>
+          <defaultValue>addupdaterepo prepareinstcrowbar runupdate bootstrapcrowbar instcrowbar allocate waitcloud setup_aliases batch</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.TextParameterDefinition>
           <name>UPDATEREPOS</name>
@@ -140,8 +140,6 @@ export admin=crowbar$hw_number;
 export cloud=qa$hw_number;
 
 if [ ! -z "$UPDATEREPOS" ] ; then
-  # testing update only makes sense with GMx and without TESTHEAD
-  unset TESTHEAD
   export UPDATEREPOS=${UPDATEREPOS//$'\n'/+}
 fi
 
