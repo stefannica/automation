@@ -132,10 +132,10 @@ SHA1 must be latest commit in PR, $context is optional  (only use if multiple ga
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>tempestoptions</name>
-          <description>Additional options to pass to the "tempest run " step. The default is cloudversion
-specific but will default to a smoke run.
+          <description>Additional options to pass to the "run_tempest.sh -N " step.
+Use just \"-t\" for a full tempest run.
 </description>
-          <defaultValue/>
+          <defaultValue>-t -s</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>want_horizon_integration_test</name>
@@ -512,7 +512,7 @@ if [[ $ret != 0 ]] ; then
     if [[ $github_pr_sha ]] ; then
       mkcloudgating_trap
     else
-      $jtsync --ci suse --job $JOB_NAME 1
+      $jtsync --ci suse --job $job_name 1
     fi
     echo "mkcloud ret=$ret"
     exit $ret # check return code before tee
@@ -523,7 +523,7 @@ if [[ $github_pr_sha ]] ; then
   $ghs -r $github_pr_repo -a set-status -s "success" -t $BUILD_URL -c $github_pr_sha --context $ghs_context -m "PR gating succeeded"
   trap "-" ERR
 else
-  $jtsync --ci suse --job $JOB_NAME 0
+  $jtsync --ci suse --job $job_name 0
 fi
 </command>
     </hudson.tasks.Shell>

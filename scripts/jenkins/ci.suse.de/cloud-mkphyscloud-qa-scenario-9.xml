@@ -111,7 +111,7 @@ It will wipe all QA2 machines!
         <hudson.model.StringParameterDefinition>
           <name>commands</name>
           <description>All the steps that needs to be completed to have cloud installed</description>
-          <defaultValue>addupdaterepo prepareinstcrowbar runupdate bootstrapcrowbar instcrowbar allocate waitcloud setup_aliases</defaultValue>
+          <defaultValue>addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.TextParameterDefinition>
           <name>UPDATEREPOS</name>
