@@ -4,14 +4,6 @@
   <description>update OBS/IBS packages from git or tarballs via OBS _service feature</description>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <jenkins.model.BuildDiscarderProperty>
-      <strategy class="hudson.tasks.LogRotator">
-        <daysToKeep>30</daysToKeep>
-        <numToKeep>30</numToKeep>
-        <artifactDaysToKeep>-1</artifactDaysToKeep>
-        <artifactNumToKeep>-1</artifactNumToKeep>
-      </strategy>
-    </jenkins.model.BuildDiscarderProperty>
     <hudson.security.AuthorizationMatrixProperty>
       <permission>hudson.scm.SCM.Tag:cloud</permission>
       <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:cloud</permission>
@@ -27,9 +19,17 @@
       <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:cloud</permission>
       <permission>hudson.model.Item.Cancel:cloud</permission>
       <permission>hudson.model.Item.Delete:cloud</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:cloud</permission>
       <permission>hudson.model.Run.Update:cloud</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>30</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
@@ -136,6 +136,14 @@ COMPONENT=$component
 [ -z "$PROJECTSOURCE" ] &amp;&amp; ( echo "Error: no PROJECTSOURCE defined." ; exit 1 )
 
 export automationrepo=~/github.com/SUSE-Cloud/automation
+export jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
+
+function jtsync_trap()
+{
+  $jtsync --ci suse --matrix crowbar-trackupstream,${project} 1
+}
+trap "jtsync_trap" ERR EXIT
+
 # automation bootstrapping
 if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
   rm -rf ${automationrepo}
@@ -210,7 +218,9 @@ if [ ${OBS_PROJECT} != "Cloud:OpenStack:Master" ] ; then
   grep -q "&lt;linkinfo" .osc/_files || exit 2
 fi
 
-/root/github.com/SUSE-Cloud/automation/scripts/jenkins/track-upstream-and-package.pl</command>
+/root/github.com/SUSE-Cloud/automation/scripts/jenkins/track-upstream-and-package.pl
+trap "-" ERR EXIT
+$jtsync --ci suse --matrix crowbar-trackupstream,${project} 0</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>
