@@ -12,6 +12,7 @@
     <hudson.matrix.TextAxis>
       <name>component</name>
       <values>
+        <string>crowbar</string>
         <string>crowbar-ui</string>
         <string>crowbar-core</string>
         <string>crowbar-openstack</string>
