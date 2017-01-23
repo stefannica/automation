@@ -42,6 +42,11 @@ Has multiple optional attributes:
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
+          <name>trigger-upgrade</name>
+          <description>Trigger the upgrade process for this cloud in a separate job</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
           <name>horizon-tests</name>
           <description>Optional, Run horizon integration test.</description>
           <defaultValue>false</defaultValue>
@@ -266,6 +271,51 @@ TESTHEAD=$TESTHEAD
               </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
             </configs>
             <projects>cloud-mkphyscloud-qa-test-horizon-tests</projects>
+            <condition>ALWAYS</condition>
+            <triggerWithNoParameters>false</triggerWithNoParameters>
+            <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
+            <block>
+              <buildStepFailureThreshold>
+                <name>FAILURE</name>
+                <ordinal>2</ordinal>
+                <color>RED</color>
+                <completeBuild>true</completeBuild>
+              </buildStepFailureThreshold>
+              <unstableThreshold>
+                <name>FAILURE</name>
+                <ordinal>2</ordinal>
+                <color>RED</color>
+                <completeBuild>true</completeBuild>
+              </unstableThreshold>
+              <failureThreshold>
+                <name>FAILURE</name>
+                <ordinal>2</ordinal>
+                <color>RED</color>
+                <completeBuild>true</completeBuild>
+              </failureThreshold>
+            </block>
+          </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+        </configs>
+      </buildStep>
+    </org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
+    <org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
+      <condition class="org.jenkins_ci.plugins.run_condition.core.BooleanCondition">
+        <token>${ENV,var="trigger-upgrade"}</token>
+      </condition>
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail"/>
+      <buildStep class="hudson.plugins.parameterizedtrigger.TriggerBuilder">
+        <configs>
+          <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+            <configs>
+              <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+                <properties>hw_number=$hw_number
+scenario_name=$scenario_name
+scenario_job_name=$scenario_job_name
+scenario_build_number=$scenario_build_number
+</properties>
+              </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+            </configs>
+            <projects>cloud-mkphyscloud-qa-test-upgrade-ui</projects>
             <condition>ALWAYS</condition>
             <triggerWithNoParameters>false</triggerWithNoParameters>
             <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
