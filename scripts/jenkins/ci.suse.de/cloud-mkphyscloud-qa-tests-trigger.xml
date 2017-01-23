@@ -37,7 +37,7 @@ Has multiple optional attributes:
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
-          <name>trigger-upgrade</name>
+          <name>trigger_upgrade</name>
           <description>Trigger the upgrade process for this cloud in a separate job</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
@@ -305,7 +305,7 @@ TESTHEAD=$TESTHEAD
     </org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
     <org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder plugin="conditional-buildstep@">
       <condition class="org.jenkins_ci.plugins.run_condition.core.BooleanCondition" plugin="run-condition@1.0">
-        <token>${ENV,var="trigger-upgrade"}</token>
+        <token>${ENV,var="trigger_upgrade"}</token>
       </condition>
       <buildStep class="hudson.plugins.parameterizedtrigger.TriggerBuilder" plugin="parameterized-trigger@2.32">
         <configs>
