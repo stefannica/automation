@@ -87,7 +87,7 @@ Default: openvswitch</description>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>cloud-mkphyscloud</assignedNode>
   <canRoam>false</canRoam>
-  <disabled>false</disabled>
+  <disabled>true</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers/>
@@ -95,8 +95,8 @@ Default: openvswitch</description>
   <builders>
     <hudson.tasks.Shell>
       <command>n=3
-admin=admin$((n+1))
 cloud=d$n
+admin=crowbar$cloud
 nodenumber=2
 tempestoptions="-t"
 

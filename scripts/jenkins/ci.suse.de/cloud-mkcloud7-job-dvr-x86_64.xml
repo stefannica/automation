@@ -1,7 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description>&lt;!-- Managed by Jenkins Job Builder --&gt;</description>
+  <description>&lt;!-- Managed by Jenkins Job Builder --&gt;&#13;
+&#13;
+https://github.com/SUSE-Cloud/automation/pull/1652&#13;
+&#13;
+12:52:02         j['\''deployment'\'']['\''neutron'\'']['\''elements'\'']['\''neutron-network'\'']=['\''d52-54-77-77-77-01.vf1.cloud.suse.de'\'']&#13;
+12:52:02         puts JSON.pretty_generate(j)&#13;
+12:52:02     '&#13;
+12:52:02 +(mkcloud-common.sh:71) safely(): rubyjsonparse '&#13;
+12:52:02         j['\''deployment'\'']['\''neutron'\'']['\''elements'\'']['\''neutron-network'\'']=['\''d52-54-77-77-77-01.vf1.cloud.suse.de'\'']&#13;
+12:52:02         puts JSON.pretty_generate(j)&#13;
+12:52:02     '&#13;
+12:52:02 +(mkcloud-common.sh:83) rubyjsonparse(): /usr/bin/ruby.ruby2.1 -e '&#13;
+12:52:02         require '\''rubygems'\''&#13;
+12:52:02         require '\''json'\''&#13;
+12:52:02         j=JSON.parse(STDIN.read)&#13;
+12:52:02         &#13;
+12:52:02         j['\''deployment'\'']['\''neutron'\'']['\''elements'\'']['\''neutron-network'\'']=['\''d52-54-77-77-77-01.vf1.cloud.suse.de'\'']&#13;
+12:52:02         puts JSON.pretty_generate(j)&#13;
+12:52:02     '&#13;
+12:52:02 +(mkcloud-common.sh:72) safely(): true&#13;
+12:52:02 +(qa_crowbarsetup.sh:2176) proposal_modify_value(): mv /root/neutron.default.proposal.tmp /root/neutron.default.proposal&#13;
+12:52:02 +(qa_crowbarsetup.sh:2737) custom_configuration(): [[ '' = 1 ]]&#13;
+12:52:02 +(qa_crowbarsetup.sh:2743) custom_configuration(): [[ openvswitch = vmware ]]&#13;
+12:52:02 +(qa_crowbarsetup.sh:2901) custom_configuration(): crowbar neutron proposal --file=/root/neutron.default.proposal edit default&#13;
+12:52:02 Failed to edit: default : Errors in data&#13;
+12:52:02 {"error":"Failed to validate proposal: DVR with GRE or VXLAN requires L2 population\n"}&#13;
+12:52:02 +(qa_crowbarsetup.sh:2902) custom_configuration(): complain 88 ''\''crowbar neutron proposal --</description>
   <logRotator class="hudson.tasks.LogRotator">
     <daysToKeep>7</daysToKeep>
     <numToKeep>-1</numToKeep>
