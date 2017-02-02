@@ -87,7 +87,7 @@ Default: openvswitch</description>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>cloud-mkphyscloud</assignedNode>
   <canRoam>false</canRoam>
-  <disabled>true</disabled>
+  <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers/>
@@ -99,6 +99,7 @@ cloud=d$n
 admin=crowbar$cloud
 nodenumber=2
 tempestoptions="-t"
+sshopt="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
 if [ ! -z "$UPDATEREPOS" ] ; then
   # testing update only makes sense with GMx and without TESTHEAD
@@ -115,9 +116,9 @@ freshadminvm "$admin" "$cloudsource"
 
 # rest of code runs on admin node:
 env | grep -e networking -e libvirt -e cloud &gt; mkcloud.config
-scp mkcloud.config root@$admin:
+scp $sshopt mkcloud.config root@$admin:
 ret=0
-ssh root@$admin "export cloud=$cloud; export UPDATEREPOS=$UPDATEREPOS ; export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL;
+ssh $sshopt root@$admin "export cloud=$cloud; export UPDATEREPOS=$UPDATEREPOS ; export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL;
   export WITHREBOOT=$WITHREBOOT ; export TESTHEAD=$TESTHEAD ; export cloudsource=$cloudsource ; 
   export libvirt_type=$libvirt_type ; export nodenumber=$nodenumber ; 
   export automation_branch=$automation_branch ;"'
