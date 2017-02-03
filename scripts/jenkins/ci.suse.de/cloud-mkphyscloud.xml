@@ -78,6 +78,16 @@ Default: openvswitch</description>
           <description>automation git repo branch to run from</description>
           <defaultValue>master</defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>cloud</name>
+          <description>which cloud to redeploy</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>d3</string>
+              <string>p3</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <hudson.plugins.heavy__job.HeavyJobProperty plugin="heavy-job@1.1">
@@ -94,8 +104,7 @@ Default: openvswitch</description>
   <concurrentBuild>true</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>cloud=p3
-admin=crowbar$cloud
+      <command>admin=crowbar$cloud
 nodenumber=2
 tempestoptions="-t"
 sshopt="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
