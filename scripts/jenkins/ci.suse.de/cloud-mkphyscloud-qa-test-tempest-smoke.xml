@@ -93,9 +93,11 @@ ssh root@$admin "
 " '
   hostname -f;
   sed -i "s/tempestoptions.*/tempestoptions=--smoke/" mkcloud.config
-  if ! grep "want_tempest" mkcloud.config; then 
-    echo "want_tempest=1" &gt; mkcloud.config
+  
+  if ! grep "want_tempest" mkcloud.config ; then 
+    echo "want_tempest=1" &gt;&gt; mkcloud.config
   fi
+
 
   source mkcloud.config;
   source scripts/qa_crowbarsetup.sh;
