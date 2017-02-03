@@ -1,56 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description>&lt;!-- Managed by Jenkins Job Builder --&gt;&#13;
-&#13;
-https://github.com/SUSE-Cloud/automation/pull/1650&#13;
-&#13;
-2017-02-02 10:52:15.021 15847 ERROR heat.engine.stack Traceback (most recent call last):&#13;
-2017-02-02 10:52:15.021 15847 ERROR heat.engine.stack   File "/usr/lib/python2.7/site-packages/heat/engine/stack.py", line 827, in validate&#13;
-2017-02-02 10:52:15.021 15847 ERROR heat.engine.stack     result = res.validate()&#13;
-2017-02-02 10:52:15.021 15847 ERROR heat.engine.stack   File "/usr/lib/python2.7/site-packages/heat/engine/resources/openstack/nova/server.py", line 1430, in validate&#13;
-2017-02-02 10:52:15.021 15847 ERROR heat.engine.stack     self._validate_image_flavor(image, flavor)&#13;
-2017-02-02 10:52:15.021 15847 ERROR heat.engine.stack   File "/usr/lib/python2.7/site-packages/heat/engine/resources/openstack/nova/server.py", line 1375, in _validate_image_flavor&#13;
-2017-02-02 10:52:15.021 15847 ERROR heat.engine.stack     image_obj = self.client_plugin('glance').get_image(image)&#13;
-2017-02-02 10:52:15.021 15847 ERROR heat.engine.stack   File "/usr/lib/python2.7/site-packages/heat/engine/clients/os/glance.py", line 101, in get_image&#13;
-2017-02-02 10:52:15.021 15847 ERROR heat.engine.stack     return self.client().images.get(image_identifier)&#13;
-2017-02-02 10:52:15.021 15847 ERROR heat.engine.stack   File "/usr/lib/python2.7/site-packages/glanceclient/v1/images.py", line 132, in get&#13;
-2017-02-02 10:52:15.021 15847 ERROR heat.engine.stack     % urlparse.quote(str(image_id)))&#13;
-2017-02-02 10:52:15.021 15847 ERROR heat.engine.stack   File "/usr/lib/python2.7/site-packages/keystoneclient/adapter.py", line 179, in head&#13;
-2017-02-02 10:52:15.021 15847 ERROR heat.engine.stack     return self.request(url, 'HEAD', **kwargs)&#13;
-2017-02-02 10:52:15.021 15847 ERROR heat.engine.stack   File "/usr/lib/python2.7/site-packages/glanceclient/common/http.py", line 346, in request&#13;
-2017-02-02 10:52:15.021 15847 ERROR heat.engine.stack     return self._handle_response(resp)&#13;
-2017-02-02 10:52:15.021 15847 ERROR heat.engine.stack   File "/usr/lib/python2.7/site-packages/glanceclient/common/http.py", line 112, in _handle_response&#13;
-2017-02-02 10:52:15.021 15847 ERROR heat.engine.stack     raise exc.from_response(resp)&#13;
-2017-02-02 10:52:15.021 15847 ERROR heat.engine.stack HTTPMultipleChoices: HTTPMultipleChoices (HTTP 300) Requested version of OpenStack Images API is not available.&#13;
-2017-02-02 10:52:15.021 15847 ERROR heat.engine.stack&#13;
-</description>
-  <logRotator class="hudson.tasks.LogRotator">
+  <description>&lt;!-- Managed by Jenkins Job Builder --&gt;</description>
+  <keepDependencies>false</keepDependencies>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <concurrentBuild>false</concurrentBuild>
+  <assignedNode>cloud-trigger</assignedNode>
+  <canRoam>false</canRoam>
+  <logRotator>
     <daysToKeep>7</daysToKeep>
     <numToKeep>-1</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
     <artifactNumToKeep>-1</artifactNumToKeep>
   </logRotator>
-  <keepDependencies>false</keepDependencies>
-  <properties>
-    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
-      <doNotScan>false</doNotScan>
-    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
-  </properties>
+  <properties/>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>cloud-trigger</assignedNode>
-  <canRoam>false</canRoam>
-  <disabled>false</disabled>
-  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
-  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers>
+  <triggers class="vector">
     <hudson.triggers.TimerTrigger>
       <spec>H H * * *</spec>
     </hudson.triggers.TimerTrigger>
   </triggers>
-  <concurrentBuild>false</concurrentBuild>
   <builders>
-    <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@">
+    <hudson.plugins.parameterizedtrigger.TriggerBuilder>
       <configs>
         <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
           <configs>
@@ -72,6 +44,7 @@ job_name=cloud-mkcloud7-job-magnum-x86_64
           <projects>openstack-mkcloud</projects>
           <condition>ALWAYS</condition>
           <triggerWithNoParameters>false</triggerWithNoParameters>
+          <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
           <block>
             <buildStepFailureThreshold>
               <name>FAILURE</name>
@@ -92,7 +65,6 @@ job_name=cloud-mkcloud7-job-magnum-x86_64
               <completeBuild>true</completeBuild>
             </failureThreshold>
           </block>
-          <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
         </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
       </configs>
     </hudson.plugins.parameterizedtrigger.TriggerBuilder>
