@@ -1,7 +1,8 @@
 #!/bin/bash
 hostname crowbar
 zypper ar http://clouddata.cloud.suse.de/repos/x86_64/SLES12-SP2-Pool/ pool
-zypper -n in git-core
+zypper -n in git-core patch
+zypper rr pool
 git clone https://github.com/SUSE-Cloud/automation.git
 cd automation
 git checkout p3
@@ -15,11 +16,11 @@ export cloudsource=GM7
 #export TESTHEAD=1
 export cloud=p3
 export nodenumber=3
-export want_mtu_size=8900
+#export want_mtu_size=8900 # creates trouble for gate->crowbarp3
 export cephvolumenumber=1
-# 2nd node only has 32GB RAM, making it more suitable for controller
-#export want_node_roles=compute=1,controller=1,compute=2
-#export want_node_aliases=n1=1,dashboard=1,n2=1,n3=1
+# 2nd node only has 64GB RAM, making it more suitable for controller
+export want_node_roles=compute=1,controller=1,compute=1
+export want_node_aliases=n1=1,dashboard=1,n2=1
 export want_rootpw=securepassword
 export want_tempest=0
 # avoid crashing controller node from ovs+gre (bnc#970720)
@@ -57,12 +58,9 @@ for u in {keystone,glance,cinder,neutron,nova} ; do
 echo TODO set public name to dashboard.p3.cloud.suse.de
 
 # on admin node to enable real certs:
-wget https://raw.githubusercontent.com/SUSE-Cloud/automation/production/scripts/productioncloud/batch-ssl.yaml
+cd ~/automation/hostscripts/productioncloud/
 crowbar batch build batch-ssl.yaml
-wget https://raw.githubusercontent.com/SUSE-Cloud/automation/production/scripts/productioncloud/batch-ssh-keys.yaml
 crowbar batch build batch-ssh-keys.yaml
-wget https://raw.githubusercontent.com/SUSE-Cloud/automation/production/scripts/productioncloud/batch-users.yaml
 crowbar batch build batch-users.yaml
-wget https://raw.githubusercontent.com/SUSE-Cloud/automation/production/scripts/productioncloud/batch-ceph.yaml
-crowbar batch build batch-ceph.yaml
+#crowbar batch build batch-ceph.yaml
 )
