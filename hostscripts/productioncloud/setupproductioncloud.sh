@@ -8,7 +8,7 @@ cd automation
 git checkout p3
 cd scripts
 
-export want_ldap=1
+#export want_ldap=1 FIXME
 export want_all_ssl=1
 export controller_raid_volumes=2
 export want_ssl_keys=root@cloud.suse.de:/etc/cloud-keys/
