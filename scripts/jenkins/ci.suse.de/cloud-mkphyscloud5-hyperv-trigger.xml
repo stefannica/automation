@@ -19,9 +19,9 @@ of mkphyscloud with Devel:Cloud:5</description>
       <permission>hudson.model.Item.Discover:cloud</permission>
       <permission>hudson.model.Item.Build:cloud</permission>
       <permission>hudson.model.Item.Cancel:cloud</permission>
-      <permission>hudson.model.Item.Configure:cloud</permission>
-      <permission>hudson.model.Item.Delete:cloud</permission>
       <permission>hudson.model.Item.Workspace:cloud</permission>
+      <permission>hudson.model.Item.Delete:cloud</permission>
+      <permission>hudson.model.Item.Configure:cloud</permission>
       <permission>hudson.model.Run.Update:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@">
@@ -35,7 +35,7 @@ of mkphyscloud with Devel:Cloud:5</description>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>cloud-trigger</assignedNode>
   <canRoam>false</canRoam>
-  <disabled>false</disabled>
+  <disabled>true</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers>
