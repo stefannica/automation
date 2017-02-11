@@ -97,7 +97,7 @@ Default: openvswitch</description>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>cloud-mkphyscloud</assignedNode>
   <canRoam>false</canRoam>
-  <disabled>false</disabled>
+  <disabled>true</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers/>
@@ -107,7 +107,7 @@ Default: openvswitch</description>
       <command>admin=crowbar$cloud
 nodenumber=2
 tempestoptions="-t"
-sshopt="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+sshopt="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -4"
 
 if [ ! -z "$UPDATEREPOS" ] ; then
   # testing update only makes sense with GMx and without TESTHEAD
