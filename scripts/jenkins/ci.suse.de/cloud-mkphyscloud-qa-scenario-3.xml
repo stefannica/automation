@@ -162,6 +162,14 @@ It will wipe all machines in the selected cloud!&#13;
 export admin=crowbar$hw_number;
 export cloud=qa$hw_number;
 
+if [ ! -z "$UPDATEREPOS" ] ; then
+  export UPDATEREPOS=${UPDATEREPOS//$'\n'/+}
+fi
+
+export artifacts_dir=$WORKSPACE/.artifacts
+rm -rf $artifacts_dir
+mkdir -p $artifacts_dir
+touch $artifacts_dir/.ignore
 
 # destroy the old admin VM if any and spawn a clean new admin VM afterwards
 # /usr/local/sbin/freshadminvm
@@ -189,13 +197,35 @@ scp ~/github.com/$repo_owner/automation/scripts/scenarios/cloud$cloud_version/qa
 ret=0
 
 ssh root@$admin "
-crowbar batch build scenario.yaml
+export cloud=$cloud
+export hw_number=$hw_number
+export UPDATEREPOS=$UPDATEREPOS
+export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL
+export TESTHEAD=$TESTHEAD
+export cloudsource=$cloudsource
+export nodenumber=$nodenumber
+export hacloud=$hacloud
+export clusterconfig=$clusterconfig
+export shared_storage_ip=$shared_storage_ip
+export want_node_aliases=controller=3,compute=3
+export scenario=\"/root/scenario.yml\"
+export commands=\"$commands\" "'
+
+sed -i -e "s,##shared_nfs_for_glance##,$shared_storage_ip," scenario.yml
+sed -i -e "s,##shared_nfs_export_for_glance##,/var/$cloud/ha-glance/," scenario.yml
+sed -i -e "s,##shared_nfs_for_database##,$shared_storage_ip:/var/$cloud/ha-database," scenario.yml
+sed -i -e "s,##shared_nfs_for_rabbitmq##,$shared_storage_ip:/var/$cloud/ha-rabbitmq," scenario.yml
+
+[ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export updatesteps="addupdaterepo runupdate"
+
+timeout --signal=ALRM 150m bash -x -c ". scripts/qa_crowbarsetup.sh ; onadmin_runlist $commands;"
+' || ret=$?
 
 
-if [ $RUNNOVAEVACUATE == "true" ] &amp;&amp; [ $ret=0 ] ; then
+if [ $RUNNOVAEVACUATE == "true" ] &amp;&amp; [ "$ret"=0 ] ; then
   crowbarctl proposal show --filter deployment.pacemaker.elements.pacemaker-remote --json pacemaker services &gt; tempjs
   PJSON='import json,sys; l1=json.load(sys.stdin)'
-  ssh controller1 'cat /root/.ssh/id_rsa.pub' &gt; temp_ssh
+  ssh node1 'cat /root/.ssh/id_rsa.pub' &gt; temp_ssh
   n=$(cat tempjs | python -c "$PJSON; print len(l1)")
   for((i=1; i&lt;=$n; i+=1)) ; do
     scp temp_ssh compute$i:/tmp/
@@ -206,7 +236,7 @@ if [ $RUNNOVAEVACUATE == "true" ] &amp;&amp; [ $ret=0 ] ; then
   oncontroller nova_evacuate;
   ret=$?
 fi
-"
+
 if [ $ret != 0 ] ; then
   ssh $sshopts root@$admin '
   set -x
