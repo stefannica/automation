@@ -203,9 +203,12 @@ timeout --signal=ALRM 150m bash -x -c ". scripts/qa_crowbarsetup.sh ; onadmin_ru
 
 
 if [ $RUNNOVAEVACUATE == "true" ] &amp;&amp; [ "$ret"=0 ] ; then
+ssh root@$admin &lt;&lt;EOF
   crowbarctl proposal show --filter deployment.pacemaker.elements.pacemaker-remote --json pacemaker services &gt; tempjs
+  crowbarctl proposal show --filter deployment.pacemaker.elements.pacemaker-cluster-member --json pacemaker services &gt;clusterjs
   PJSON='import json,sys; l1=json.load(sys.stdin)'
   ssh controller1 'cat /root/.ssh/id_rsa.pub' &gt; temp_ssh
+  scp clusterjs controller1:/tmp/
   n=$(cat tempjs | python -c "$PJSON; print len(l1)")
   for((i=1; i&lt;=$n; i+=1)) ; do
     scp temp_ssh compute$i:/tmp/
@@ -214,6 +217,7 @@ if [ $RUNNOVAEVACUATE == "true" ] &amp;&amp; [ "$ret"=0 ] ; then
   source scripts/qa_crowbarsetup.sh
   get_novacontroller;
   oncontroller nova_evacuate;
+  EOF
   ret=$?
 fi
 
