@@ -65,10 +65,9 @@ done
 iptables_unique_rule PREROUTING -t nat -p tcp --dport \$(( $cloud_port_offset + 6080 )) \\
     -j DNAT --to-destination $net_public.2
 
-# need to delete+insert on top to make sure our ACCEPT comes before libvirt's REJECT
-for x in D I ; do
-    iptables -\$x FORWARD -d $net_admin.0/24 -j ACCEPT
-    iptables -\$x FORWARD -d $net_public.0/24 -j ACCEPT
+# delete libvirt's REJECT rules to allow public net
+for x in i o ; do
+    iptables -D FORWARD -\$x $cloudbr -j REJECT
 done
 
 echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
