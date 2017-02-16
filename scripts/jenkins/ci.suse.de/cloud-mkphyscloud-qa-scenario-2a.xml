@@ -175,7 +175,7 @@ ping -c 3 $netapp_server || ret=$?
 
 if [ $ret != 0 ] ; then 
   echo "netapp server is unavailable!"
-  exit
+  exit 1
 fi
 
 # destroy the old admin VM if any and spawn a clean new admin VM afterwards
@@ -317,7 +317,7 @@ EOSCRIPT
   source scripts/qa_crowbarsetup.sh
   ./sbd_prepare
 
-  timeout --signal=ALRM 60m bash -x -c "source scripts/qa_crowbarsetup.sh ; crowbar batch --timeout 2400 build scenario.yml;"
+  crowbar batch --timeout 2400 build scenario.yml;"
   ' || ret=$?
 
   if [ $ret != 0 ] ; then
