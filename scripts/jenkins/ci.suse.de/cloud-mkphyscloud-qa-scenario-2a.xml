@@ -5,7 +5,7 @@
 &lt;a href='https://github.com/SUSE-Cloud/automation/tree/master/jenkins/ci.suse.de/'&gt;git&lt;/a&gt;
 &lt;/b&gt;
 
-This job will redeploy scenario-2b:
+This job will redeploy scenario-2a:
   - total 7 nodes including admin node
   - database: default, postgresql
   - pacemaker: 3 clusters with 2 nodes (SBD)
@@ -15,6 +15,7 @@ This job will redeploy scenario-2b:
   - nova: ssl, libvirt migration enabled, shared storage, kvm kernel samepage merging, 1 KVM
   - cinder: Local file
   - neutron: linuxbridge
+  - manila: NetApp backend (we expect that a vserver 'cloud-manila-svm' is available on the 'netapp-n1-e0m.cloud.suse.de' server)
 
 Warning: It will wipe all machines!
 &lt;!-- Managed by Jenkins Job Builder --&gt;</description>
@@ -57,6 +58,16 @@ Warning: It will wipe all machines!
           <name>branch</name>
           <description>Mandatory, automation repo branch</description>
           <defaultValue>master</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>netapp_server</name>
+          <description>Mandatory, the name of the NetApp Storage backend server</description>
+          <defaultValue>netapp-n1-e0m.cloud.suse.de</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>netapp_vserver</name>
+          <description>Mandatory, the name of the NetApp Storage backend vserver</description>
+          <defaultValue>cloud-manila-svm</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>tempest</name>
@@ -147,6 +158,8 @@ Warning: It will wipe all machines!
       <command>#!/bin/bash
 admin=crowbar$hw_number
 cloud=qa$hw_number
+netapp_server=$netapp_server
+netapp_password=`cat /home/jenkins/passwords/netapp_password`
 
 if [ ! -z "$UPDATEREPOS" ] ; then
   export UPDATEREPOS=${UPDATEREPOS//$'\n'/+}
@@ -156,6 +169,14 @@ export artifacts_dir=$WORKSPACE/.artifacts
 rm -rf $artifacts_dir
 mkdir -p $artifacts_dir
 touch $artifacts_dir/.ignore
+  
+# check that netapp backend server is available
+ping -c 3 $netapp_server || ret=$?
+
+if [ $ret != 0 ] ; then 
+  echo "netapp server is unavailable!"
+  exit
+fi
 
 # destroy the old admin VM if any and spawn a clean new admin VM afterwards
 # /usr/local/sbin/freshadminvm
@@ -199,9 +220,15 @@ export want_node_aliases=controller=2,data=2,network=2,computekvm=1 ;
 export want_node_roles=controller=2,storage=2,network=2,compute=1 ;
 export scenario=\"/root/scenario.yml\" ;
 export commands=\"$commands\" "'
+export netapp_password=$netapp_password
+export netapp_server=$netapp_server
+export netapp_vserver=$netapp_vserver
 
 sed -i -e "s,##shared_nfs_for_database##,$shared_storage_ip:/var/$cloud/ha-database," scenario.yml
 sed -i -e "s,##shared_nfs_for_rabbitmq##,$shared_storage_ip:/var/$cloud/ha-rabbitmq," scenario.yml
+sed -i -e "s,##netapp_password##,$netapp_password," scenario.yml
+sed -i -e "s,##netapp_server##,$netapp_server," scenario.yml
+sed -i -e "s,##netapp_vserver##,$netapp_vserver," scenario.yml
 
 [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export updatesteps="addupdaterepo runupdate"
 
@@ -290,7 +317,7 @@ EOSCRIPT
   source scripts/qa_crowbarsetup.sh
   ./sbd_prepare
 
-  timeout --signal=ALRM 60m bash -x -c "source scripts/qa_crowbarsetup.sh ; onadmin_runlist batch;"
+  timeout --signal=ALRM 60m bash -x -c "source scripts/qa_crowbarsetup.sh ; crowbar batch --timeout 2400 build scenario.yml;"
   ' || ret=$?
 
   if [ $ret != 0 ] ; then
