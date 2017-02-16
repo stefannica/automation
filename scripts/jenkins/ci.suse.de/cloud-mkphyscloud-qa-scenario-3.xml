@@ -12,13 +12,18 @@ Scenario details:
 
 It will wipe all machines in the selected cloud!
 &lt;!-- Managed by Jenkins Job Builder --&gt;</description>
-  <logRotator class="hudson.tasks.LogRotator">
+  <keepDependencies>false</keepDependencies>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <concurrentBuild>false</concurrentBuild>
+  <assignedNode>cloud-mkphyscloud-gate-qa</assignedNode>
+  <canRoam>false</canRoam>
+  <logRotator>
     <daysToKeep>-1</daysToKeep>
     <numToKeep>15</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
     <artifactNumToKeep>-1</artifactNumToKeep>
   </logRotator>
-  <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
@@ -122,25 +127,10 @@ It will wipe all machines in the selected cloud!
           <description>add update repos before crowbar install</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
-        <hudson.model.BooleanParameterDefinition>
-          <name>RUNNOVAEVACUATE</name>
-          <description>Will execute nova evacuate test after deployment</description>
-          <defaultValue>false</defaultValue>
-        </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
-      <doNotScan>false</doNotScan>
-    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>cloud-mkphyscloud-gate-qa</assignedNode>
-  <canRoam>false</canRoam>
-  <disabled>false</disabled>
-  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
-  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers/>
-  <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
@@ -182,18 +172,18 @@ scp ~/github.com/$repo_owner/automation/scripts/scenarios/cloud$cloud_version/qa
 ret=0
 
 ssh root@$admin "
-export cloud=$cloud
-export hw_number=$hw_number
-export UPDATEREPOS=$UPDATEREPOS
-export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL
-export TESTHEAD=$TESTHEAD
-export cloudsource=$cloudsource
-export nodenumber=$nodenumber
-export hacloud=$hacloud
-export clusterconfig=$clusterconfig
-export shared_storage_ip=$shared_storage_ip
-export want_node_aliases=controller=3,compute=3
-export scenario=\"/root/scenario.yml\"
+export cloud=$cloud ;
+export hw_number=$hw_number ;
+export UPDATEREPOS=$UPDATEREPOS ;
+export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL ;
+export TESTHEAD=$TESTHEAD ;
+export cloudsource=$cloudsource ;
+export nodenumber=$nodenumber ;
+export hacloud=$hacloud ;
+export clusterconfig=$clusterconfig ;
+export shared_storage_ip=$shared_storage_ip ;
+export want_node_aliases=controller=3,compute=3;
+export scenario=\"/root/scenario.yml\" ;
 export commands=\"$commands\" "'
 
 sed -i -e "s,##shared_nfs_for_glance##,$shared_storage_ip," scenario.yml
@@ -206,25 +196,6 @@ sed -i -e "s,##shared_nfs_for_rabbitmq##,$shared_storage_ip:/var/$cloud/ha-rabbi
 timeout --signal=ALRM 150m bash -x -c ". scripts/qa_crowbarsetup.sh ; onadmin_runlist $commands;"
 ' || ret=$?
 
-
-if [ $RUNNOVAEVACUATE == "true" ] &amp;&amp; [ "$ret"=0 ] ; then
-ssh root@$admin &lt;&lt;EOF
-  crowbarctl proposal show --filter deployment.pacemaker.elements.pacemaker-remote --json pacemaker services &gt; tempjs
-  crowbarctl proposal show --filter deployment.pacemaker.elements.pacemaker-cluster-member --json pacemaker services &gt;clusterjs
-  PJSON='import json,sys; l1=json.load(sys.stdin)'
-  ssh controller1 'cat /root/.ssh/id_rsa.pub' &gt; temp_ssh
-  scp clusterjs controller1:/tmp/
-  n=$(cat tempjs | python -c "$PJSON; print len(l1)")
-  for((i=1; i&lt;=$n; i+=1)) ; do
-    scp temp_ssh compute$i:/tmp/
-    ssh compute$i 'cat /tmp/temp_ssh &gt;&gt; /root/.ssh/authorized_keys'
-  done
-  source scripts/qa_crowbarsetup.sh
-  get_novacontroller;
-  oncontroller nova_evacuate;
-  EOF
-  ret=$?
-fi
 
 if [ $ret != 0 ] ; then
   ssh $sshopts root@$admin '
@@ -246,7 +217,7 @@ fi &gt;&amp;2
 exit $ret
 </command>
     </hudson.tasks.Shell>
-    <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@">
+    <hudson.plugins.parameterizedtrigger.TriggerBuilder>
       <configs>
         <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
           <configs>
@@ -263,6 +234,7 @@ scenario_build_number=$BUILD_NUMBER
           <projects>cloud-mkphyscloud-qa-tests-trigger</projects>
           <condition>ALWAYS</condition>
           <triggerWithNoParameters>false</triggerWithNoParameters>
+          <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
           <block>
             <buildStepFailureThreshold>
               <name>FAILURE</name>
@@ -283,7 +255,6 @@ scenario_build_number=$BUILD_NUMBER
               <completeBuild>true</completeBuild>
             </failureThreshold>
           </block>
-          <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
         </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
       </configs>
     </hudson.plugins.parameterizedtrigger.TriggerBuilder>
@@ -293,18 +264,13 @@ scenario_build_number=$BUILD_NUMBER
       <artifacts>.artifacts/**</artifacts>
       <latestOnly>false</latestOnly>
       <allowEmptyArchive>true</allowEmptyArchive>
-      <onlyIfSuccessful>false</onlyIfSuccessful>
-      <fingerprint>false</fingerprint>
       <defaultExcludes>true</defaultExcludes>
-      <caseSensitive>true</caseSensitive>
     </hudson.tasks.ArtifactArchiver>
   </publishers>
   <buildWrappers>
-    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@">
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
       <template>#${BUILD_NUMBER}: ${ENV,var="cloudsource"}</template>
-      <runAtStart>true</runAtStart>
-      <runAtEnd>true</runAtEnd>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@"/>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper/>
   </buildWrappers>
 </project>
