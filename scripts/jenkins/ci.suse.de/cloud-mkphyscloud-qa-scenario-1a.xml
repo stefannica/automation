@@ -68,6 +68,11 @@ It will wipe all machines in the selected cloud!
           <defaultValue>features:base</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
+          <name>trigger_upgrade</name>
+          <description>Trigger the upgrade process for this cloud in a separate job</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
           <name>horizon-tests</name>
           <description>Optional, Run horizon integration tests.</description>
           <defaultValue>false</defaultValue>
@@ -91,6 +96,11 @@ It will wipe all machines in the selected cloud!
           <name>cloudsource</name>
           <description/>
           <defaultValue>develcloud$cloud_version</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>upgrade_cloudsource</name>
+          <description/>
+          <defaultValue>develcloud$(($cloud_version + 1))</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>TESTHEAD</name>
@@ -165,7 +175,7 @@ ssh root@localhost "wipe_nfs_shares qa$hw_number"
 update_automation
 
 # put variables needed during the build process into mkcloud.config file
-env | grep -e networking -e libvirt -e cloud &gt; mkcloud.config
+env | grep -e networking -e libvirt -e cloud -e upgrade -e cct -e TESTHEAD &gt; mkcloud.config
 
 # copy scripts/ dir onto the admin node in /root/scripts
 scp -r ~/github.com/$repo_owner/automation/scripts mkcloud.config root@$admin:
@@ -229,6 +239,7 @@ exit $ret
 tempest=$tempest
 cct_tests=$cct
 horizon-tests=$horizon-tests
+trigger_upgrade=$trigger_upgrade
 scenario_name=1a
 scenario_job_name=$JOB_NAME
 scenario_build_number=$BUILD_NUMBER

@@ -40,6 +40,7 @@ nodenumber=5
 hacloud=1
 storage_method=swift
 want_nodesupgrade=1
+want_ping_running_instances=1
 mkcloudtarget=plain_with_upgrade_test testsetup
 label=openstack-mkcloud-ha-x86_64
 job_name=cloud-mkcloud7-job-upgrade-nondisruptive-ha-x86_64
