@@ -70,8 +70,8 @@ ${automationrepo}/scripts/jenkins/update_automation
 
 zypper -n in python-python-jenkins python-sh osc build # for jenkins-job-trigger and crowbar-testbuild
 test -w /srv/mkcloud || { # recover from clouddata reboot
-    umount -a -t nfs
-    mount -a -t nfs
+    umount -a -t nfs || :
+    mount -a -t nfs || :
 }
 test -w /srv/mkcloud || exit 45 # sanity check
 
