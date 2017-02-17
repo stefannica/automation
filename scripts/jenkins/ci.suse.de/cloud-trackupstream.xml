@@ -3,11 +3,44 @@
   <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
     <runSequentially>true</runSequentially>
   </executionStrategy>
-  <combinationFilter>!( ( ["Devel:Cloud:5:Staging"].contains(project)  &amp;&amp;
-     ["openstack-dashboard-theme-SUSE", "crowbar-core", "crowbar-openstack", "crowbar-ha", "crowbar-hyperv", "crowbar-ceph", "release-notes-suse-openstack-cloud", "crowbar-ui"].contains(component)      )   ||
-   ( ( ! ["Devel:Cloud:5:Staging"].contains(project) ) &amp;&amp;
-     component.startsWith('crowbar-barclamp-')  || ["suse-cloud-upgrade"].contains(component)    ) ||
-   ( ["Devel:Cloud:5:Staging", "Devel:Cloud:6:Staging"].contains(project)  &amp;&amp; ["crowbar-init"].contains(component)) )</combinationFilter>
+  <combinationFilter>!(
+  (
+    [
+      "Devel:Cloud:5:Staging"
+    ].contains(project) &amp;&amp;
+    [
+      "openstack-dashboard-theme-SUSE",
+      "crowbar-core",
+      "crowbar-openstack",
+      "crowbar-ha",
+      "crowbar-hyperv",
+      "crowbar-ceph",
+      "release-notes-suse-openstack-cloud",
+      "crowbar-ui"
+    ].contains(component)
+  )
+  ||
+  (
+    (
+      ! [
+        "Devel:Cloud:5:Staging"
+      ].contains(project) ) &amp;&amp;
+     component.startsWith('crowbar-barclamp-') ||
+     [
+       "suse-cloud-upgrade"
+     ].contains(component)
+  )
+  ||
+  (
+    [
+      "Devel:Cloud:5:Staging",
+      "Devel:Cloud:6:Staging"
+    ].contains(project) &amp;&amp;
+    [
+      "crowbar-init"
+    ].contains(component)
+  )
+)</combinationFilter>
   <axes>
     <hudson.matrix.TextAxis>
       <name>component</name>

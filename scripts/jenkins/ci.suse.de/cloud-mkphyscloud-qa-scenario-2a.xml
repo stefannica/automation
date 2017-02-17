@@ -317,7 +317,7 @@ EOSCRIPT
   source scripts/qa_crowbarsetup.sh
   ./sbd_prepare
 
-  crowbar batch --timeout 2400 build scenario.yml || ret=$?
+  crowbar batch --timeout 2400 build scenario.yml' || ret=$?
 
   if [ $ret != 0 ] ; then
     ssh root@$admin '
