@@ -89,6 +89,11 @@ admin=crowbar$hw_number;
 cloud=qa$hw_number;
 result=0
 
+artifacts_dir=$WORKSPACE/.artifacts
+rm -rf $artifacts_dir
+mkdir -p $artifacts_dir
+touch $artifacts_dir/.ignore
+
 ssh root@$admin "
   export cloud=$cloud;
   export upgrade_cloudsource=$upgrade_cloudsource
@@ -110,9 +115,11 @@ ssh root@$admin "
   # from scripts/mkcloud -&gt; crowbarupgrade_5plus
   onadmin_zypper_patch_all
   onadmin_run_cct
-'
+' || result=$?
 
-scp root@$admin:scp /root/github.com/SUSE-Cloud/cct/*.png $WORKSPACE/.artifacts</command>
+scp root@$admin:/root/github.com/SUSE-Cloud/cct/*.png $artifacts_dir
+
+exit $result</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
