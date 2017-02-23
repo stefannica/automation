@@ -73,24 +73,36 @@ Mandatory parameter: hw_number&#13;
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
-admin=crowbar$hw_number;
-cloud=qa$hw_number;
+set -x
+
+admin=crowbar$hw_number
+cloud=qa$hw_number
+
+echo $cloud
+echo $admin
+
 export artifacts_dir=$WORKSPACE/.artifacts
 rm -rf $artifacts_dir
 mkdir -p $artifacts_dir
 touch $artifacts_dir/.ignore
 
-ssh -T root@$rally_server &lt;&lt; 'EOF'
+ssh -T root@$rally_server "bash -s $cloud" &lt;&lt;'EOF'
+#ssh -T root@$rally_server $cloud &lt;&lt; 'EOF'
 source .openrc
-rally deployment list | grep $cloud
+cloud=$1
+echo "aaaaa" $cloud
+rally deployment list | grep "qa$hw_number"
 deployment_exist=$?
+echo "AAAAAAA" $deployment_exist 
 if [[ $deployment_exist != 0 ]]; then
-    rally deployment create --filename qa3-deployment.json
+    echo "NEW"
+#    rally deployment create --filename qa3-deployment.json
 else
-    rally deployment use $cloud
+	echo "OLD"
+#    rally deployment use "$cloud"
 fi
-rally task start rally/samples/tasks/scenarios/nova/boot-and-delete.json
-rally task report --out=boot-and-delete.html
+#rally task start rally/samples/tasks/scenarios/nova/boot-and-delete.json
+#rally task report --out=boot-and-delete.html
 EOF
 scp root@$rally_server:/root/*.html $artifacts_dir
 </command>
