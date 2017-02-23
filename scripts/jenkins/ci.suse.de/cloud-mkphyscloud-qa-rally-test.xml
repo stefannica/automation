@@ -76,10 +76,15 @@ Mandatory parameter: hw_number&#13;
       <command>#!/bin/bash
 admin=crowbar$hw_number;
 cloud=qa$hw_number;
-artifacts_dir=$WORKSPACE/
+
+export artifacts_dir=$WORKSPACE/.artifacts
+rm -rf $artifacts_dir
+mkdir -p $artifacts_dir
+touch $artifacts_dir/.ignore
+
 ssh -T root@$rally_server &lt;&lt; 'EOF'
 source .openrc
-rally deployment create --filename qa3-deployment.json
+rally deployment create --filename qa3-deployment.json --name=qa3
 rally task start rally/samples/tasks/scenarios/nova/boot-and-delete.json
 rally task report --out=boot-and-delete.html
 EOF
@@ -89,7 +94,7 @@ scp root@$rally_server:/root/boot-and-delete.html $artifacts_dir</command>
   </builders>
   <publishers>
     <hudson.tasks.ArtifactArchiver>
-      <artifacts>$WORKSPACE/*.html</artifacts>
+      <artifacts>.artifacts/**</artifacts>
       <allowEmptyArchive>true</allowEmptyArchive>
       <onlyIfSuccessful>false</onlyIfSuccessful>
       <fingerprint>false</fingerprint>
