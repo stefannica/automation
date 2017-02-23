@@ -25,7 +25,6 @@ Mandatory parameter: hw_number&#13;
     <org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty plugin="gitlab-logo@">
       <repositoryName/>
     </org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty>
-    <com.synopsys.arc.jenkins.plugins.ownership.jobs.JobOwnerJobProperty plugin="ownership@"/>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@">
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
@@ -76,7 +75,6 @@ Mandatory parameter: hw_number&#13;
       <command>#!/bin/bash
 admin=crowbar$hw_number;
 cloud=qa$hw_number;
-
 export artifacts_dir=$WORKSPACE/.artifacts
 rm -rf $artifacts_dir
 mkdir -p $artifacts_dir
@@ -84,12 +82,18 @@ touch $artifacts_dir/.ignore
 
 ssh -T root@$rally_server &lt;&lt; 'EOF'
 source .openrc
-rally deployment create --filename qa3-deployment.json --name=qa3
+rally deployment list | grep $cloud
+deployment_exist=$?
+if [[ $deployment_exist != 0 ]]; then
+    rally deployment create --filename qa3-deployment.json
+else
+    rally deployment use $cloud
+fi
 rally task start rally/samples/tasks/scenarios/nova/boot-and-delete.json
 rally task report --out=boot-and-delete.html
 EOF
-echo "Artifacts !!!"  $artifacts_dir
-scp root@$rally_server:/root/boot-and-delete.html $artifacts_dir</command>
+scp root@$rally_server:/root/*.html $artifacts_dir
+</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
