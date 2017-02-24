@@ -100,31 +100,33 @@ openstack image show -c name --format value $image_name
 image_exist=$?
 # Upload jeos image
 if [[ $image_exist != 0 ]]; then
-    curl -s http://clouddata.cloud.suse.de/images/jeos-64.qcow2 | \
-    openstack image create --public --disk-format qcow2 $image_name
+    curl -s http://clouddata.cloud.suse.de/images/jeos-64.qcow2 |
+openstack image create --public --disk-format qcow2 $image_name
 fi
 # Check if specific cloud deployemnt already exist
-#rally deployment list | grep $cloud
-#deployment_exist=$?
-#if [[ $deployment_exist != 0 ]]; then
-#    # Creat new cloud deployment env
-#    rally deployment create --filename $cloud-deployment.json --name $cloud
-#else
-#    # Use existing deployment
-#    rally deployment use $cloud
-#fi
+rally deployment list | grep $cloud
+deployment_exist=$?
+if [[ $deployment_exist != 0 ]]; then
+    # Creat new cloud deployment env
+    rally deployment create --filename $cloud-deployment.json --name $cloud
+else
+    # Use existing deployment
+    rally deployment use $cloud
+fi
 # Run rally test
-#rally task start rally/samples/tasks/scenarios/nova/boot-and-delete.json
+rally task start rally/samples/tasks/scenarios/nova/boot-and-delete.json
+rally task start rally/samples/tasks/scenarios/nova/nova.json
 # Generate html output
-#out_dir=/root/htmlout
-#rm -rf $out_dir
-#mkdir -p /root/htmlout
-#rally task report --out=$out_dir/boot-and-delete.html
+out_dir=/root/results
+rm -rf $out_dir
+mkdir -p /root/results
+rally task results &gt; $out_dir/output.json
+rally task report $out_dir/output.json --out $out_dir/output.html
 EOF
-#ret=$?
+ret=$?
 # Copy test run reslust output to jenkins artifacts
-#scp root@$rally_server:/root/htmlout/*.html $artifacts_dir
-#exit $ret
+scp root@$rally_server:/root/results/*.html $artifacts_dir
+exit $ret
 </command>
     </hudson.tasks.Shell>
   </builders>
