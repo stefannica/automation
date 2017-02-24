@@ -98,19 +98,15 @@ source .openrc
 # Check if jeos image already exist on cloud
 openstack image show -c name --format value $image_name
 image_exist=$?
-echo $image_exist
-ret=0
 # Upload jeos image
-if [ $image_exis != $ret ]; then 
-    echo "Image exist!!!"
-else
+if [[ $image_exist != 0 ]]; then
     curl -s http://clouddata.cloud.suse.de/images/jeos-64.qcow2 | \
     openstack image create --public --disk-format qcow2 $image_name
 fi
 # Check if specific cloud deployemnt already exist
 #rally deployment list | grep $cloud
 #deployment_exist=$?
-#if [[ $deployment_exist -ne 0 ]]; then
+#if [[ $deployment_exist != 0 ]]; then
 #    # Creat new cloud deployment env
 #    rally deployment create --filename $cloud-deployment.json --name $cloud
 #else
