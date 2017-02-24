@@ -98,8 +98,12 @@ source .openrc
 # Check if jeos image already exist on cloud
 openstack image show -c name --format value $image_name
 image_exist=$?
+echo $image_exist
+ret=0
 # Upload jeos image
-if [ "$image_exis" != "0" ]; then
+if [ $image_exis != $ret ]; then 
+    echo "Image exist!!!"
+else
     curl -s http://clouddata.cloud.suse.de/images/jeos-64.qcow2 | \
     openstack image create --public --disk-format qcow2 $image_name
 fi
