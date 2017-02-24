@@ -125,7 +125,7 @@ rally task report $out_dir/output.json --out $out_dir/output.html
 EOF
 ret=$?
 # Copy test run reslust output to jenkins artifacts
-scp root@$rally_server:/root/results/*.html $artifacts_dir
+scp root@$rally_server:/root/results/* $artifacts_dir
 exit $ret
 </command>
     </hudson.tasks.Shell>
