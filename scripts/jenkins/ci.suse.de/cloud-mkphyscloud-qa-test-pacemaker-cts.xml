@@ -61,7 +61,7 @@ rm -rf $artifacts_dir
 mkdir -p $artifacts_dir
 touch $artifacts_dir/.ignore
 
-ssh -T root@$admin &lt;&lt; 'EOF'
+ssh -T root@$admin &lt;&lt; EOF
 
 # get the nodes names
 node1=`ssh controller1 hostname`

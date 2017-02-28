@@ -6,13 +6,18 @@ Setup rally envirment.
 Run test
 Mandatory parameter: hw_number
 &lt;!-- Managed by Jenkins Job Builder --&gt;</description>
-  <logRotator class="hudson.tasks.LogRotator">
+  <keepDependencies>false</keepDependencies>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <concurrentBuild>true</concurrentBuild>
+  <assignedNode>cloud-mkphyscloud-gate-qa</assignedNode>
+  <canRoam>false</canRoam>
+  <logRotator>
     <daysToKeep>-1</daysToKeep>
     <numToKeep>7</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
     <artifactNumToKeep>-1</artifactNumToKeep>
   </logRotator>
-  <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
@@ -49,23 +54,11 @@ Mandatory parameter: hw_number
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
-      <doNotScan>false</doNotScan>
-    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>cloud-mkphyscloud-gate-qa</assignedNode>
-  <canRoam>false</canRoam>
-  <disabled>false</disabled>
-  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
-  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers/>
-  <concurrentBuild>true</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
-admin=crowbar$hw_number;
-cloud=qa$hw_number;
 
 # Create artifacts dir
 export artifacts_dir=$WORKSPACE/.artifacts
@@ -73,40 +66,13 @@ rm -rf $artifacts_dir
 mkdir -p $artifacts_dir
 touch $artifacts_dir/.ignore
 
-# Connect to rally server and run tests
-ssh -T root@$rally_server "bash -s $cloud $image_name" &lt;&lt;'EOF'
-
-cloud=$1
-image_name=$2
-
-source .openrc
-# Check if jeos image already exist on cloud
-openstack image show -c name --format value $image_name
-image_exist=$?
-# Upload jeos image
-if [[ $image_exist != 0 ]]; then
-    curl -s http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update:/JeOS/images/SLES12-SP2-JeOS-for-OpenStack-Cloud.x86_64-1.2.0-Build13.308.qcow2| \
-    openstack image create --public --disk-format qcow2 $image_name
-fi
-# Check if specific cloud deployemnt already exist
-rally deployment list | grep $cloud
-deployment_exist=$?
-if [[ $deployment_exist != 0 ]]; then
-    # Creat new cloud deployment env
-    rally deployment create --filename $cloud-deployment.json --name $cloud
-else
-    # Use existing deployment
-    rally deployment use $cloud
-fi
-# Run rally test
-rally task start rally/samples/tasks/scenarios/nova/nova.json
-# Generate run results output
-out_dir=/root/results
-rm -rf $out_dir
-mkdir -p /root/results
-rally task results &gt; $out_dir/output.json
-rally task report $out_dir/output.json --out $out_dir/output.html
-EOF
+admin=crowbar$hw_number
+cloud=qa$hw_number
+export $rally_server
+export $jeos-rally
+scp root@$admin:/root/scripts/jenkins-support .
+source ./jenkins-support
+connect_rally_server_run_test
 ret=$?
 # Copy test run reslust output to jenkins artifacts
 scp root@$rally_server:/root/results/* $artifacts_dir
@@ -117,19 +83,15 @@ exit $ret
   <publishers>
     <hudson.tasks.ArtifactArchiver>
       <artifacts>.artifacts/**</artifacts>
+      <latestOnly>false</latestOnly>
       <allowEmptyArchive>true</allowEmptyArchive>
-      <onlyIfSuccessful>false</onlyIfSuccessful>
-      <fingerprint>false</fingerprint>
       <defaultExcludes>true</defaultExcludes>
-      <caseSensitive>true</caseSensitive>
     </hudson.tasks.ArtifactArchiver>
   </publishers>
   <buildWrappers>
-    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@">
-      <template>#${BUILD_NUMBER} - ${scenario_name} - qa$hw_number - full</template>
-      <runAtStart>true</runAtStart>
-      <runAtEnd>true</runAtEnd>
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+      <template>#${BUILD_NUMBER} - ${scenario_name} - qa$hw_number - openstack-rally</template>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@"/>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper/>
   </buildWrappers>
 </project>
