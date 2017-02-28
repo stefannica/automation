@@ -68,12 +68,19 @@ touch $artifacts_dir/.ignore
 
 admin=crowbar$hw_number
 cloud=qa$hw_number
-export $rally_server
-export $jeos-rally
-scp root@$admin:/root/scripts/jenkins-support .
-source ./jenkins-support
+
+export rally_server=$rally_server
+export image_name=$image_name
+
+scp root@$admin:/root/scripts/jenkins-support.sh .
+source jenkins-support.sh
 connect_rally_server_run_test
 ret=$?
+# Archive artifacts on rally server
+ssh -T root@$rally_server &lt;&lt;'EOF'
+mkdir -p /root/rally-resulst-backup/${BUILD_NUMBER}
+cp /root/results/* /root/rally-resulst-backup/${BUILD_NUMBER}/
+EOF
 # Copy test run reslust output to jenkins artifacts
 scp root@$rally_server:/root/results/* $artifacts_dir
 exit $ret
