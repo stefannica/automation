@@ -56,18 +56,19 @@ Mandatory parameter: hw_number
 admin=crowbar$hw_number;
 cloud=qa$hw_number;
 
-# get nodes names
-node1=`ssh $admin ssh controller1 hostname`
-node2=`ssh $admin ssh controller2 hostname`
-node3=`ssh $admin ssh controller3 hostname`
-
 export artifacts_dir=$WORKSPACE/.artifacts
 rm -rf $artifacts_dir
 mkdir -p $artifacts_dir
 touch $artifacts_dir/.ignore
 
-# pacemaker-cts preparation script
+ssh -T root@$admin &lt;&lt; 'EOF'
 
+# get the nodes names
+node1=`ssh controller1 hostname`
+node2=`ssh controller2 hostname`
+node3=`ssh controller3 hostname`
+
+# pacemaker-cts preparation script
 cat &gt; /tmp/pacemaker_cts_prepare &lt;&lt;EOSCRIPT
   zypper ar dir:///srv/tftpboot/suse-12.2/x86_64/repos/SLE12-SP2-HA-Updates SLES12-SP2-HA-Updates 
   zypper ar dir:///srv/tftpboot/suse-12.2/x86_64/repos/SLE12-SP2-HA-Pool SLE12-SP2-HA-Pool  
@@ -75,26 +76,17 @@ cat &gt; /tmp/pacemaker_cts_prepare &lt;&lt;EOSCRIPT
   zypper -n in pacemaker-cts
 EOSCRIPT
 
-# copy pacemaker-cts preparation script into crowbar node
-scp /tmp/pacemaker_cts_prepare root@$admin:/tmp
- 
 # install pacemaker-cts utility on the crowbar node
-ssh root@$admin bash /tmp/pacemaker_cts_prepare
+bash /tmp/pacemaker_cts_prepare
 
 # copy pacemaker-cts preparation script to every node in the cluster
-for i in controller{1..3}; do ssh root@$admin scp /tmp/pacemaker_cts_prepare $i:/tmp ; done
+for i in controller{1..3}; do scp /tmp/pacemaker_cts_prepare $i:/tmp ; done
 
 # install pacemaker-cts on each controller node in the cluster
-for i in controller{1..3}; do ssh root@$admin ssh $i bash /tmp/pacemaker_cts_prepare ; done
-
-ssh -T root@$admin &lt;&lt; EOF
+for i in controller{1..3}; do ssh $i bash /tmp/pacemaker_cts_prepare ; done
 
 # obtaining credentials
 source .openrc
-
-node1=$node1
-node2=$node2
-node3=$node3
 
 # run pacemaker-cts on the crowbar node
 /usr/share/pacemaker/tests/cts/CTSlab.py --nodes ''$node1' '$node2' '$node3'' --at-boot 0 --benchmark --stonith-type ipmi --no-loop-tests --no-unsafe-tests --fencing openstack --once
