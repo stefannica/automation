@@ -56,7 +56,6 @@ Mandatory parameter: hw_number
 admin=crowbar$hw_number
 cloud=qa$hw_number
 
-
 export artifacts_dir=$WORKSPACE/.artifacts
 rm -rf $artifacts_dir
 mkdir -p $artifacts_dir
@@ -65,9 +64,10 @@ touch $artifacts_dir/.ignore
 ssh -T root@$admin '
 
 # get the nodes names
-node1=`ssh controller1 hostname`;
-node2=`ssh controller2 hostname`;
-node3=`ssh controller3 hostname`;
+export node1=`ssh controller1 hostname`;
+export node2=`ssh controller2 hostname`;
+export node3=`ssh controller3 hostname`;
+export node_list="'$node1 $node2 $node3'"; 
 
 # pacemaker-cts preparation script
 cat &gt; /tmp/pacemaker_cts_prepare &lt;&lt;EOSCRIPT
@@ -92,11 +92,9 @@ source .openrc
 # prepare pacemaker-cts runner script:
 echo $node1 $node2 $node3
 
-cat &gt; /tmp/pacemaker_cts_runner &lt;&lt;EOSCRIPT
-   /usr/share/pacemaker/tests/cts/CTSlab.py --nodes nodes --at-boot 0 --benchmark --stonith-type ipmi --no-loop-tests --no-unsafe-tests --fencing openstack --once
-EOSCRIPT
+echo  "/usr/share/pacemaker/tests/cts/CTSlab.py --nodes 'nodes_list' --at-boot 0 --benchmark --stonith-type ipmi --no-loop-tests --no-unsafe-tests --fencing openstack --once" &gt; /tmp/pacemaker_cts_runner
 
-sed -i -e "s,nodes,$node1 $node2 $node3," /tmp/pacemaker_cts_runner
+sed -i -e "s,nodes_list,$node1 $node2 $node3," /tmp/pacemaker_cts_runner
 cat /tmp/pacemaker_cts_runner
 # run pacemaker-cts on the crowbar node
 bash /tmp/pacemaker_cts_runner
