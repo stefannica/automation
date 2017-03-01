@@ -6,18 +6,13 @@ Useful only for cloud that was built by mkcloud and which has 3 nodes cluster
 e.g. 1a, 1b, 2b, 6a, 
 Mandatory parameter: hw_number
 &lt;!-- Managed by Jenkins Job Builder --&gt;</description>
-  <keepDependencies>false</keepDependencies>
-  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
-  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <concurrentBuild>true</concurrentBuild>
-  <assignedNode>cloud-mkphyscloud-gate-qa</assignedNode>
-  <canRoam>false</canRoam>
-  <logRotator>
+  <logRotator class="hudson.tasks.LogRotator">
     <daysToKeep>-1</daysToKeep>
     <numToKeep>7</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
     <artifactNumToKeep>-1</artifactNumToKeep>
   </logRotator>
+  <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
@@ -43,8 +38,18 @@ Mandatory parameter: hw_number
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>cloud-mkphyscloud-gate-qa</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
@@ -63,7 +68,6 @@ ssh -T root@$admin '
 node1=`ssh controller1 hostname`;
 node2=`ssh controller2 hostname`;
 node3=`ssh controller3 hostname`;
-nodes=`echo $node1; echo $node2; echo $node3`; 
 
 # pacemaker-cts preparation script
 cat &gt; /tmp/pacemaker_cts_prepare &lt;&lt;EOSCRIPT
@@ -74,19 +78,28 @@ cat &gt; /tmp/pacemaker_cts_prepare &lt;&lt;EOSCRIPT
 EOSCRIPT
 
 # install pacemaker-cts utility on the crowbar node
-bash /tmp/pacemaker_cts_prepare
+bash /tmp/pacemaker_cts_prepare 
 
 # copy pacemaker-cts preparation script to every node in the cluster
-for i in controller{1..3}; do scp /tmp/pacemaker_cts_prepare $i:/tmp ; done
+for i in controller{1..3}; do scp /tmp/pacemaker_cts_prepare $i:/tmp ; done 
 
 # install pacemaker-cts on each controller node in the cluster
-for i in controller{1..3}; do ssh $i bash /tmp/pacemaker_cts_prepare ; done
+for i in controller{1..3}; do ssh $i bash /tmp/pacemaker_cts_prepare ; done 
 
 # obtaining credentials
-source .openrc
+source .openrc 
 
+# prepare pacemaker-cts runner script:
+echo $node1 $node2 $node3
+
+cat &gt; /tmp/pacemaker_cts_runner &lt;&lt;EOSCRIPT
+   /usr/share/pacemaker/tests/cts/CTSlab.py --nodes 'node1 node2 node3' --at-boot 0 --benchmark --stonith-type ipmi --no-loop-tests --no-unsafe-tests --fencing openstack --once
+EOSCRIPT
+
+cat /tmp/pacemaker_cts_runner
 # run pacemaker-cts on the crowbar node
-/usr/share/pacemaker/tests/cts/CTSlab.py --nodes ''$node1' '$node2' '$node3'' --at-boot 0 --benchmark --stonith-type ipmi --no-loop-tests --no-unsafe-tests --fencing openstack --once'
+bash /tmp/pacemaker_cts_runner
+'
 
 ret=$?
 </command>
@@ -97,13 +110,18 @@ ret=$?
       <artifacts>.artifacts/**</artifacts>
       <latestOnly>false</latestOnly>
       <allowEmptyArchive>true</allowEmptyArchive>
+      <onlyIfSuccessful>false</onlyIfSuccessful>
+      <fingerprint>false</fingerprint>
       <defaultExcludes>true</defaultExcludes>
+      <caseSensitive>true</caseSensitive>
     </hudson.tasks.ArtifactArchiver>
   </publishers>
   <buildWrappers>
-    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@">
       <template>#${BUILD_NUMBER} - ${scenario_name} - qa$hw_number - pacemaker-cts</template>
+      <runAtStart>true</runAtStart>
+      <runAtEnd>true</runAtEnd>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper/>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@"/>
   </buildWrappers>
 </project>
