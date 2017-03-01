@@ -93,9 +93,10 @@ source .openrc
 echo $node1 $node2 $node3
 
 cat &gt; /tmp/pacemaker_cts_runner &lt;&lt;EOSCRIPT
-   /usr/share/pacemaker/tests/cts/CTSlab.py --nodes 'node1 node2 node3' --at-boot 0 --benchmark --stonith-type ipmi --no-loop-tests --no-unsafe-tests --fencing openstack --once
+   /usr/share/pacemaker/tests/cts/CTSlab.py --nodes nodes --at-boot 0 --benchmark --stonith-type ipmi --no-loop-tests --no-unsafe-tests --fencing openstack --once
 EOSCRIPT
 
+sed -i -e "s,nodes,$node1 $node2 $node3," /tmp/pacemaker_cts_runner
 cat /tmp/pacemaker_cts_runner
 # run pacemaker-cts on the crowbar node
 bash /tmp/pacemaker_cts_runner
