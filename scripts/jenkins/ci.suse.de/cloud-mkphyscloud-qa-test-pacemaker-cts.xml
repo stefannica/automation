@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description>Run pacemaker-cts tests.      
-Useful only for cloud that was built by mkcloud and which has 3 nodes cluster
+  <description>Run pacemaker-cts testsuite.      
+It's a useful only for cloud that was built by mkcloud and which has 3 nodes cluster
 e.g. 1a, 1b, 2b, 6a, 
 Mandatory parameter: hw_number
 &lt;!-- Managed by Jenkins Job Builder --&gt;</description>
   <logRotator class="hudson.tasks.LogRotator">
     <daysToKeep>-1</daysToKeep>
-    <numToKeep>7</numToKeep>
+    <numToKeep>15</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
     <artifactNumToKeep>-1</artifactNumToKeep>
   </logRotator>
@@ -56,18 +56,20 @@ Mandatory parameter: hw_number
 admin=crowbar$hw_number
 cloud=qa$hw_number
 
+# Create the artifacts directory
 export artifacts_dir=$WORKSPACE/.artifacts
 rm -rf $artifacts_dir
 mkdir -p $artifacts_dir
 touch $artifacts_dir/.ignore
 
-ssh root@$admin "echo \"/usr/share/pacemaker/tests/cts/CTSlab.py --nodes 'node1 node2 node3' --at-boot 0 --benchmark --stonith-type ipmi --no-loop-tests --no-unsafe-tests --fencing openstack --once\" &gt; /tmp/pacemaker_cts_runner"
+ssh root@$admin "echo \"/usr/share/pacemaker/tests/cts/CTSlab.py \
+                 --nodes 'node1 node2 node3' --at-boot 0 --benchmark --stonith-type \
+                 ipmi --no-loop-tests --no-unsafe-tests --fencing openstack --once\" &gt; /tmp/pacemaker_cts_runner"
 
 ssh -T root@$admin '
 export node1=`ssh controller1 hostname`;
 export node2=`ssh controller2 hostname`;
 export node3=`ssh controller3 hostname`;
-export nodes_list="$node1 $node2 $node3"
 
 # pacemaker-cts preparation script
 cat &gt; /tmp/pacemaker_cts_prepare &lt;&lt;EOSCRIPT
@@ -93,12 +95,13 @@ sed -i -e "s,node1,$node1," /tmp/pacemaker_cts_runner
 sed -i -e "s,node2,$node2," /tmp/pacemaker_cts_runner
 sed -i -e "s,node3,$node3," /tmp/pacemaker_cts_runner
 
-cat /tmp/pacemaker_cts_runner
 # run pacemaker-cts on the crowbar node
 bash /tmp/pacemaker_cts_runner
-'
+' 
 
-ret=$?
+result=$?
+if [[ $result -gt 0 ]]; then
+  exit $result
 </command>
     </hudson.tasks.Shell>
   </builders>
