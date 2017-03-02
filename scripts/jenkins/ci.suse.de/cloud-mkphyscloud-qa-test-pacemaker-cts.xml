@@ -2,8 +2,8 @@
 <project>
   <actions/>
   <description>Run pacemaker-cts testsuite.      
-It's a useful only for cloud that was built by mkcloud and which has 3 nodes cluster
-e.g. 1a, 1b, 2b, 6a, 
+It's a useful only for cloud that was built by mkcloud 
+and which has 3 nodes cluster (e.g. 1a, 1b, 2b, 6a)                      
 Mandatory parameter: hw_number
 &lt;!-- Managed by Jenkins Job Builder --&gt;</description>
   <logRotator class="hudson.tasks.LogRotator">
@@ -63,8 +63,10 @@ mkdir -p $artifacts_dir
 touch $artifacts_dir/.ignore
 
 ssh root@$admin "echo \"/usr/share/pacemaker/tests/cts/CTSlab.py \
-                 --nodes 'node1 node2 node3' --at-boot 0 --benchmark --stonith-type \
-                 ipmi --no-loop-tests --no-unsafe-tests --fencing openstack --once\" &gt; /tmp/pacemaker_cts_runner"
+                 --nodes 'node1 node2 node3' --at-boot 0 \
+                 --benchmark --stonith-type ipmi --no-loop-tests \
+                 --no-unsafe-tests --fencing openstack --once\" &gt; \
+                 /tmp/pacemaker_cts_runner"
 
 ssh -T root@$admin '
 export node1=`ssh controller1 hostname`;
@@ -83,10 +85,12 @@ EOSCRIPT
 bash /tmp/pacemaker_cts_prepare 
 
 # copy pacemaker-cts preparation script to every node in the cluster
-for i in controller{1..3}; do scp /tmp/pacemaker_cts_prepare $i:/tmp ; done 
+for i in controller{1..3}; do scp /tmp/pacemaker_cts_prepare $i:/tmp \
+; done 
 
 # install pacemaker-cts on each controller node in the cluster
-for i in controller{1..3}; do ssh $i bash /tmp/pacemaker_cts_prepare ; done 
+for i in controller{1..3}; do ssh $i bash /tmp/pacemaker_cts_prepare \
+; done 
 
 # obtaining credentials
 source .openrc 
@@ -102,6 +106,7 @@ bash /tmp/pacemaker_cts_runner
 result=$?
 if [[ $result -gt 0 ]]; then
   exit $result
+fi
 </command>
     </hudson.tasks.Shell>
   </builders>
