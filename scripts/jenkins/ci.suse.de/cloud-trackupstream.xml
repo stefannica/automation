@@ -43,7 +43,7 @@
   ||
   (
     [
-      "Devel:Cloud:6:Staging:HCP"
+      "Devel:Cloud:6:HCP:Staging"
     ].contains(project) &amp;&amp;
     [
       "crowbar-ui",
@@ -109,7 +109,7 @@
       <values>
         <string>Devel:Cloud:5:Staging</string>
         <string>Devel:Cloud:6:Staging</string>
-        <string>Devel:Cloud:6:Staging:HCP</string>
+        <string>Devel:Cloud:6:HCP:Staging</string>
         <string>Devel:Cloud:7:Staging</string>
       </values>
     </hudson.matrix.TextAxis>
