@@ -51,7 +51,7 @@ onadmin_runlist addupdaterepo prepareinstallcrowbar bootstrapcrowbar installcrow
 # give read-permissions to the users that will need it
 get_novacontroller
 oncontroller '
-for u in {keystone,glance,cinder,neutron,nova} ; do
+for u in {keystone,glance,cinder,neutron,nova,barbican,ceph,aodh,heat,manila} ; do
     setfacl -m u:$u:r /etc/cloud-keys/*.key
     done
 cat > /etc/openldap/ldap.conf <<EOF
