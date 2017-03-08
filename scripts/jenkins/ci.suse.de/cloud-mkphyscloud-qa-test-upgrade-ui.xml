@@ -107,6 +107,8 @@ ssh root@$admin "
   onadmin_zypper_patch_all
   onadmin_allow_vendor_change_at_nodes
 
+  # fail on errors on the next two steps
+  set -e
   export cct_tests=feature:ui:upgrade:landing+feature:ui:upgrade:admin:backup
   onadmin_run_cct
 
@@ -116,6 +118,8 @@ ssh root@$admin "
   export cct_tests=feature:ui:upgrade:admin:repos
   onadmin_run_cct
 
+  # do not fail on error in the last step
+  set +e
   # We only check if the upgrade screen is ready but we will do the upgrade via crowbarctl later
   export cct_tests=feature:ui:upgrade:admin:upgrade
   onadmin_run_cct
@@ -134,7 +138,7 @@ fi
 cct_deps_cleanup $admin
 
 # remove cloud6 ptf repo in case it exists
-ssh root@$admin "zypper --non-interactive cloud-ptf"
+ssh root@admin "zypper --non-interactive cloud-ptf"
 
 # Trigger the SLE upgrade from crowbarctl
 # The cct process runs on the admin node we can't use it here reliably
@@ -147,7 +151,6 @@ ssh root@$admin "
   hostname -f;
   source mkcloud.config;
   source scripts/qa_crowbarsetup.sh;
-  export cloudsource=$upgrade_cloudsource
 
   # Do the upgrade of the admin node
   onadmin_upgrade_admin_server
@@ -163,21 +166,13 @@ wait_for 150 1 "nc -w 1 -z $admin 22" "admin node to start ssh daemon"
 ssh root@$admin "
   export cloud=$cloud;
   export cloudsource=$upgrade_cloudsource
-  export cct_checkout_branch=$cct_checkout_branch
 " '
   set -x;
   hostname -f;
   source mkcloud.config;
   source scripts/qa_crowbarsetup.sh;
-  export cloudsource=$upgrade_cloudsource
 
   onadmin_check_admin_server_upgraded
-
-  export cct_tests=feature:ui:upgrade:pgsql:create
-  onadmin_run_cct
-
-  export cct_tests=feature:ui:upgrade:nodes:repos
-  onadmin_run_cct
 '
 </command>
     </hudson.tasks.Shell>
