@@ -1,32 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description/>
+  <description>&lt;!-- Managed by Jenkins Job Builder --&gt;
+&lt;!-- Managed by Jenkins Job Builder --&gt;</description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>300</daysToKeep>
+    <numToKeep>300</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
-      <doNotScan>false</doNotScan>
-    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
-    <com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty plugin="gitlab-plugin@">
-      <gitLabConnection>https://gitlab.suse.de</gitLabConnection>
-    </com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty>
-    <org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty plugin="gitlab-logo@">
-      <repositoryName/>
-    </org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty>
-    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@">
-      <autoRebuild>false</autoRebuild>
-      <rebuildDisabled>false</rebuildDisabled>
-    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.security.AuthorizationMatrixProperty>
+      <permission>hudson.model.Item.Cancel:cloud</permission>
+      <permission>hudson.model.Item.Delete:cloud</permission>
+      <permission>hudson.model.Item.Read:cloud</permission>
+      <permission>hudson.model.Item.Read:anonymous</permission>
+      <permission>hudson.model.Run.Delete:cloud</permission>
+      <permission>hudson.model.Item.Workspace:cloud</permission>
+      <permission>hudson.model.Item.Build:cloud</permission>
+      <permission>hudson.scm.SCM.Tag:cloud</permission>
+      <permission>hudson.model.Item.Configure:cloud</permission>
+      <permission>hudson.model.Item.Discover:cloud</permission>
+      <permission>hudson.model.Run.Update:cloud</permission>
+    </hudson.security.AuthorizationMatrixProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
           <name>crowbar_repo</name>
-          <description/>
+          <description>The repo to build the rpm from</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
+          <name>crowbar_org</name>
+          <description>The github organization to use</description>
+          <defaultValue>crowbar</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
           <name>crowbar_github_pr</name>
-          <description/>
+          <description>The pull request to integrate into the package</description>
           <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -36,9 +48,9 @@
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <hudson.plugins.heavy__job.HeavyJobProperty plugin="heavy-job@1.1">
-      <weight>1</weight>
-    </hudson.plugins.heavy__job.HeavyJobProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>cloud-testbuild-pr</assignedNode>
@@ -50,7 +62,8 @@
   <concurrentBuild>true</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command># THIS JOB JUST BUILD ONE CROWBAR PR AND HANDS IT OVER TO MKCLOUD (IMPLICITLY VIA THE crowbar-testbuild.py)
+      <command>#####
+# THIS JOB JUST BUILD ONE CROWBAR PR AND HANDS IT OVER TO MKCLOUD (IMPLICITLY VIA THE crowbar-testbuild.py)
 # you can call it with a crowbar repo and a PR "&lt;pr_id&gt;:&lt;sha1&gt;:&lt;branch_name&gt;" as parameter and for this single
 # pr the crowbar-testbuild.py will be run no matter what its github status is
 #
@@ -68,13 +81,6 @@ fi
 # fetch the latest automation updates
 ${automationrepo}/scripts/jenkins/update_automation
 
-zypper -n in python-python-jenkins python-sh osc build # for jenkins-job-trigger and crowbar-testbuild
-test -w /srv/mkcloud || { # recover from clouddata reboot
-    umount -a -t nfs || :
-    mount -a -t nfs || :
-}
-test -w /srv/mkcloud || exit 45 # sanity check
-
 ghs=${automationrepo}/scripts/github-status/github-status.rb
 
 github_opts=(${crowbar_github_pr//:/ })
@@ -84,32 +90,45 @@ github_pr_branch=${github_opts[2]}
 
 function crowbargating_trap()
 {
-    $ghs -a set-status -s "failure" -r crowbar/$crowbar_repo -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud/testbuild" -m "testbuild job failed"
+    $ghs -a set-status -s "failure" -r $crowbar_org/$crowbar_repo -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud/testbuild" -m "testbuild job failed"
 }
 
 # this job is part of the "pending" state (as it is a prerequisite of the openstack-mkcloud job)
 # so we report pending now
-$ghs -a set-status -s "pending" -r crowbar/$crowbar_repo -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud/testbuild" -m "Started testbuild job"
+$ghs -a set-status -s "pending" -r $crowbar_org/$crowbar_repo -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud/testbuild" -m "Started testbuild job"
 
 
 # the status of the build is set via crowbar-testbuild.py (hopefully)
 # as lots of failures happened lately, a trap was added to catch exceptions (all that we saw were worth an error report to the PR)
 trap "crowbargating_trap" ERR
 
-${automationrepo}/scripts/crowbar-testbuild.py $crowbar_repo $crowbar_github_pr
+${automationrepo}/scripts/crowbar-testbuild.py $crowbar_org $crowbar_repo $crowbar_github_pr
 
-$ghs -a set-status -s "success" -r crowbar/$crowbar_repo -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud/testbuild" -m "testbuild job succeeded"
-$ghs -a set-status -s "pending" -r crowbar/$crowbar_repo -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud" -m "Queued testbuild PR gating"
+$ghs -a set-status -s "success" -r $crowbar_org/$crowbar_repo -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud/testbuild" -m "testbuild job succeeded"
+$ghs -a set-status -s "pending" -r $crowbar_org/$crowbar_repo -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud" -m "Queued testbuild PR gating"
 
-trap "-" ERR</command>
+trap "-" ERR
+</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>
   <buildWrappers>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@"/>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@">
       <template>#${BUILD_NUMBER}: ${ENV,var="job_name"}</template>
       <runAtStart>true</runAtStart>
       <runAtEnd>true</runAtEnd>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.18">
+      <strategy class="hudson.plugins.build_timeout.impl.NoActivityTimeOutStrategy">
+        <timeoutSecondsString>3600</timeoutSecondsString>
+      </strategy>
+      <operationList>
+        <hudson.plugins.build__timeout.operations.AbortOperation/>
+        <hudson.plugins.build__timeout.operations.WriteDescriptionOperation>
+          <description>Job aborted due to 60 minutes of inactivity.</description>
+        </hudson.plugins.build__timeout.operations.WriteDescriptionOperation>
+      </operationList>
+    </hudson.plugins.build__timeout.BuildTimeoutWrapper>
   </buildWrappers>
 </project>
