@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <actions/>
+  <description>&lt;!-- Managed by Jenkins Job Builder --&gt;</description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>-1</daysToKeep>
+    <numToKeep>48</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>mode</name>
+          <description>normal: trigger unseen PRs
+rebuild: trigger unseend and pending PRs
+forcerebuild: trigger unseen, pending and failed PRs
+forceall: trigger rebuild for all open PRs
+</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>normal</string>
+              <string>rebuild</string>
+              <string>forcerebuild</string>
+              <string>forceall</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <com.synopsys.arc.jenkins.plugins.ownership.jobs.JobOwnerJobProperty plugin="ownership@"/>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>cloud-trigger</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>H/20 * * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>## THIS IS A TRIGGER JOB ONLY - NO WORKER CODE IN HERE - DO NOT DARE TO ADD SOME
+## TRIGGER JOBS ARE MOVED TO A DEDICATED TRIGGER NODE
+## THIS JOB IS ABOUT PRs FOR THE CCT REPO
+[[ $NODE_NAME != 'cloud-trigger' ]] &amp;&amp; exit 99
+##
+
+set -x
+
+export automationrepo=~/github.com/SUSE-Cloud/automation
+
+# automation bootstrapping
+if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
+    rm -rf ${automationrepo}
+    curl https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation | bash
+fi
+# fetch the latest automation updates
+${automationrepo}/scripts/jenkins/update_automation
+
+ghs=${automationrepo}/scripts/github-status/github-status.rb
+
+action=list-unseen-prs
+case $mode in
+  rebuild) action=list-rebuild-prs
+  ;;
+  forcerebuild) action=list-forcerebuild-prs
+  ;;
+  forceall) action=list-open-prs
+  ;;
+esac
+
+
+# PR testing for crowbar repos
+declare -a crowbar_repos=(
+    crowbar
+    crowbar-ceph
+    crowbar-core
+    crowbar-ha
+    crowbar-openstack
+    crowbar-monitoring
+)
+
+declare -a master_branches=(
+    stable/sap/3.0
+)
+
+org=sap-oc
+for repo in ${crowbar_repos[@]}; do
+    declare -a branches=${master_branches[@]}
+
+    for branch in ${branches[@]} ; do
+        for github_pr in $(timeout 4m $ghs -r $org/$repo -a $action -b $branch --context "suse/mkcloud/testbuild") ; do
+            github_pr_opts=(${github_pr//:/ })
+            github_pr_id=${github_pr_opts[0]}
+            github_pr_sha=${github_pr_opts[1]}
+            github_pr_sha_short=${github_pr_sha:0:8}
+            # set status to pending (do it first to prevent race condition with github status)
+            $ghs -r $org/$repo -a set-status -s "pending" -t $BUILD_URL -c $github_pr_sha --context "suse/mkcloud/testbuild" -m "Queued testbuild job"
+            # trigger testbuild job
+            job_name="$repo testbuild PR $github_pr_id $github_pr_sha_short"
+            ${automationrepo}/scripts/jenkins/jenkins-job-trigger \
+                cloud-crowbar-testbuild-pr -p crowbar_repo=$repo crowbar_org=$org crowbar_github_pr=$github_pr job_name="$job_name"
+        done
+    done
+done
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>
