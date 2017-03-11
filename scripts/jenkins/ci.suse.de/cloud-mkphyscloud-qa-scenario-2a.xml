@@ -1,47 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description>&lt;b&gt;This job is managed by JJB! Changes must be done in&#13;
-&lt;a href='https://github.com/SUSE-Cloud/automation/tree/master/jenkins/ci.suse.de/'&gt;git&lt;/a&gt;&#13;
-&lt;/b&gt;&#13;
-&#13;
-This job will redeploy scenario-2a:&#13;
-  - total 7 nodes including admin node&#13;
-  - database: default, postgresql&#13;
-  - pacemaker: 3 clusters with 2 nodes (SBD)&#13;
-  - keystone UUID&#13;
-  - swift (allow public container, enable object versioning)&#13;
-  - glance (storage swift)&#13;
-  - nova: ssl, libvirt migration enabled, shared storage, kvm kernel samepage merging, 1 KVM&#13;
-  - cinder: Local file&#13;
-  - neutron: linuxbridge&#13;
-  - manila: NetApp backend (we expect that a vserver 'cloud-manila-svm' is available on the 'netapp-n1-e0m.cloud.suse.de' server)&#13;
-&#13;
-Warning: It will wipe all machines!&#13;
+  <description>&lt;b&gt;This job is managed by JJB! Changes must be done in
+&lt;a href='https://github.com/SUSE-Cloud/automation/tree/master/jenkins/ci.suse.de/'&gt;git&lt;/a&gt;
+&lt;/b&gt;
+
+This job will redeploy scenario-2a:
+  - total 7 nodes including admin node
+  - database: default, postgresql
+  - pacemaker: 3 clusters with 2 nodes (SBD)
+  - keystone UUID
+  - swift (allow public container, enable object versioning)
+  - glance (storage swift)
+  - nova: ssl, libvirt migration enabled, shared storage, kvm kernel samepage merging, 1 KVM
+  - cinder: Local file
+  - neutron: linuxbridge
+  - manila: NetApp backend (we expect that a vserver 'cloud-manila-svm' is available on the 'netapp-n1-e0m.cloud.suse.de' server)
+
+Warning: It will wipe all machines!
 &lt;!-- Managed by Jenkins Job Builder --&gt;</description>
   <keepDependencies>false</keepDependencies>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <concurrentBuild>false</concurrentBuild>
+  <assignedNode>cloud-mkphyscloud-gate-qa</assignedNode>
+  <canRoam>false</canRoam>
+  <logRotator>
+    <daysToKeep>-1</daysToKeep>
+    <numToKeep>15</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
   <properties>
-    <jenkins.model.BuildDiscarderProperty>
-      <strategy class="hudson.tasks.LogRotator">
-        <daysToKeep>-1</daysToKeep>
-        <numToKeep>15</numToKeep>
-        <artifactDaysToKeep>-1</artifactDaysToKeep>
-        <artifactNumToKeep>-1</artifactNumToKeep>
-      </strategy>
-    </jenkins.model.BuildDiscarderProperty>
-    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
-      <doNotScan>false</doNotScan>
-    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
-    <com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty plugin="gitlab-plugin@">
-      <gitLabConnection>https://gitlab.suse.de</gitLabConnection>
-    </com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty>
-    <org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty plugin="gitlab-logo@">
-      <repositoryName/>
-    </org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty>
-    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@">
-      <autoRebuild>false</autoRebuild>
-      <rebuildDisabled>false</rebuildDisabled>
-    </com.sonyericsson.rebuild.RebuildSettings>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
@@ -127,7 +117,7 @@ Warning: It will wipe all machines!&#13;
         <hudson.model.StringParameterDefinition>
           <name>clusterconfig</name>
           <description>HA configuration for clusters. Make sense only if hacloud=1</description>
-          <defaultValue>services=2,data=2</defaultValue>
+          <defaultValue>services=2,data=2,network=2</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>nodenumber</name>
@@ -156,18 +146,8 @@ Warning: It will wipe all machines!&#13;
         </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <hudson.plugins.heavy__job.HeavyJobProperty plugin="heavy-job@1.1">
-      <weight>1</weight>
-    </hudson.plugins.heavy__job.HeavyJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>cloud-mkphyscloud-gate-qa</assignedNode>
-  <canRoam>false</canRoam>
-  <disabled>false</disabled>
-  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
-  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers/>
-  <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
@@ -231,8 +211,8 @@ export nodenumber=$nodenumber ;
 export hacloud=$hacloud ;
 export clusterconfig=$clusterconfig ;
 export shared_storage_ip=$shared_storage_ip ;
-export want_node_aliases=controller=2,data=2,computekvm=3 ;
-export want_node_roles=controller=2,storage=2,compute=3 ;
+export want_node_aliases=controller=2,data=2,network=2,computekvm=1 ;
+export want_node_roles=controller=2,storage=2,network=2,compute=1 ;
 export scenario=\"/root/scenario.yml\" ;
 export netapp_password=$netapp_password ;
 export netapp_server=$netapp_server ;
@@ -269,7 +249,8 @@ if [ $ret == "0" ]; then
     ./scripts/iscsictl.py --service initiator --target_host \$(hostname) --host controller2 --no-key
     ./scripts/iscsictl.py --service initiator --target_host \$(hostname) --host data1 --no-key
     ./scripts/iscsictl.py --service initiator --target_host \$(hostname) --host data2 --no-key
-
+    ./scripts/iscsictl.py --service initiator --target_host \$(hostname) --host network1 --no-key
+    ./scripts/iscsictl.py --service initiator --target_host \$(hostname) --host network2 --no-key
     
     # preparation of SBD for services nodes
     SBD_DEV_SERVICES=\$(ssh controller1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
@@ -285,6 +266,12 @@ if [ $ret == "0" ]; then
     # take scenario yaml file and replace placeholders
     sed -i "s|@@sbd_device_data@@|\${SBD_DEV_DATA}|g" scenario.yml
 
+    # preparation of SBD for network nodes
+    SBD_DEV_NETWORK=\$(ssh network1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
+    ssh network1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV_NETWORK create"
+    ssh network2 "zypper --non-interactive install sbd"
+    # take scenario yaml file and replace placeholders
+    sed -i "s|@@sbd_device_network@@|\${SBD_DEV_NETWORK}|g" scenario.yml
 
     # watchdog configuration
     ssh controller1 modprobe softdog; echo softdog &gt; /etc/modules-load.d/watchdog.conf
@@ -293,6 +280,8 @@ if [ $ret == "0" ]; then
     ssh data1 modprobe softdog; echo softdog &gt; /etc/modules-load.d/watchdog.conf
     ssh data2 modprobe softdog; echo softdog &gt; /etc/modules-load.d/watchdog.conf
 
+    ssh network1 modprobe softdog; echo softdog &gt; /etc/modules-load.d/watchdog.conf
+    ssh network2 modprobe softdog; echo softdog &gt; /etc/modules-load.d/watchdog.conf
 
     # ----- End of SBD
 EOSCRIPT
@@ -304,7 +293,7 @@ EOSCRIPT
   # Check if zypper is used by other application
   ssh root@$admin '
     source scripts/qa_crowbarsetup.sh;
-    for node in $(crowbar machines aliases | grep -E "controller|data" | grep -oE "^.*[[:space:]]"); do
+    for node in $(crowbar machines aliases | grep -E "controller|data|network" | grep -oE "^.*[[:space:]]"); do
       wait_for 20 10 "ssh $node \"zypper refresh\" "
     done
   '
@@ -346,7 +335,7 @@ fi
 exit $ret
 </command>
     </hudson.tasks.Shell>
-    <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@">
+    <hudson.plugins.parameterizedtrigger.TriggerBuilder>
       <configs>
         <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
           <configs>
@@ -363,7 +352,7 @@ scenario_build_number=$BUILD_NUMBER
           <projects>cloud-mkphyscloud-qa-tests-trigger</projects>
           <condition>ALWAYS</condition>
           <triggerWithNoParameters>false</triggerWithNoParameters>
-          <triggerFromChildProjects>false</triggerFromChildProjects>
+          <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
           <block>
             <buildStepFailureThreshold>
               <name>FAILURE</name>
@@ -384,7 +373,6 @@ scenario_build_number=$BUILD_NUMBER
               <completeBuild>true</completeBuild>
             </failureThreshold>
           </block>
-          <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
         </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
       </configs>
     </hudson.plugins.parameterizedtrigger.TriggerBuilder>
@@ -392,19 +380,15 @@ scenario_build_number=$BUILD_NUMBER
   <publishers>
     <hudson.tasks.ArtifactArchiver>
       <artifacts>.artifacts/**</artifacts>
+      <latestOnly>false</latestOnly>
       <allowEmptyArchive>true</allowEmptyArchive>
-      <onlyIfSuccessful>false</onlyIfSuccessful>
-      <fingerprint>false</fingerprint>
       <defaultExcludes>true</defaultExcludes>
-      <caseSensitive>true</caseSensitive>
     </hudson.tasks.ArtifactArchiver>
   </publishers>
   <buildWrappers>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@"/>
-    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@">
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
       <template>#${BUILD_NUMBER}: ${ENV,var="cloudsource"}</template>
-      <runAtStart>true</runAtStart>
-      <runAtEnd>true</runAtEnd>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper/>
   </buildWrappers>
 </project>

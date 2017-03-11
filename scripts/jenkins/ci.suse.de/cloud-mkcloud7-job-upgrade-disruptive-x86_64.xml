@@ -32,11 +32,10 @@
               <properties>TESTHEAD=1
 cloudsource=develcloud6
 upgrade_cloudsource=develcloud7
-nodenumber=2
-want_nondisruptiveupgrade=1
-mkcloudtarget=plain_with_upgrade
+nodenumber=3
+mkcloudtarget=plain_with_upgrade testsetup
+want_nodesupgrade=1
 label=openstack-mkcloud-SLE12-x86_64
-want_postgresql=1
 job_name=cloud-mkcloud7-job-upgrade-disruptive-x86_64
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
