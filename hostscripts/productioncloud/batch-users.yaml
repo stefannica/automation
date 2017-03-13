@@ -15,3 +15,4 @@ proposals:
 - barclamp: horizon
   attributes:
     session_timeout: 1000
+    multi_domain_support: true
