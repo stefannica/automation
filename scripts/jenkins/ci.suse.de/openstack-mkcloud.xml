@@ -285,6 +285,11 @@ Currently only the 'batch' step uses such a file.
           <description>set to 0 to not deploy aodh</description>
           <defaultValue>1</defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>clusterconfig</name>
+          <description>the cluster configuration to pass to the mkcloud script</description>
+          <defaultValue/>
+        </hudson.model.StringParameterDefinition>
         <hudson.model.TextParameterDefinition>
           <name>custom_settings</name>
           <description>This holds shell code and will be executed before calling mkcloud. This should not be used by default or regularly. It is meant to test PRs with special configurations.
@@ -362,7 +367,8 @@ fi
 
 # HAcloud
 if [[ $hacloud == 1 ]] ; then
-  export clusterconfig="data+services+network=2"
+  : ${clusterconfig:=data+services+network=2}
+  export clusterconfig
   if [[ $nodenumber &lt; 4 ]] ; then
     export nodenumber=4
   fi
@@ -415,7 +421,6 @@ if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
 fi
 # fetch the latest automation updates
 ${automationrepo}/scripts/jenkins/update_automation #NO PARAMETERS HERE ANY MORE!!!
-
 
 function mkcloudgating_trap()
 {
@@ -471,6 +476,8 @@ if [[ $github_pr ]] ; then
     $ghs -a set-status -s "pending" -r $github_pr_repo -t $BUILD_URL -c $github_pr_sha --context $ghs_context -m "Started PR gating"
 
 fi
+
+cp ${automationrepo}/scripts/jenkins/log-parser/openstack-mkcloud-rules.txt log-parser-plugin-rules.txt
 
 echo "########################################################################"
 env
@@ -539,6 +546,13 @@ fi
     </hudson.tasks.Shell>
   </builders>
   <publishers>
+    <hudson.plugins.logparser.LogParserPublisher plugin="log-parser@">
+      <unstableOnWarning>true</unstableOnWarning>
+      <failBuildOnError>false</failBuildOnError>
+      <showGraphs>false</showGraphs>
+      <parsingRulesPath>log-parser-plugin-rules.txt</parsingRulesPath>
+      <useProjectRule>false</useProjectRule>
+    </hudson.plugins.logparser.LogParserPublisher>
     <hudson.tasks.ArtifactArchiver>
       <artifacts>.artifacts/**</artifacts>
       <latestOnly>false</latestOnly>
@@ -548,11 +562,6 @@ fi
       <defaultExcludes>true</defaultExcludes>
       <caseSensitive>true</caseSensitive>
     </hudson.tasks.ArtifactArchiver>
-    <hudson.tasks.Mailer plugin="mailer@">
-      <recipients/>
-      <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
-      <sendToIndividuals>false</sendToIndividuals>
-    </hudson.tasks.Mailer>
   </publishers>
   <buildWrappers>
     <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@"/>
