@@ -310,7 +310,13 @@ Currently only the 'batch' step uses such a file.
       <command>set -x
 shopt -s extglob
 
+echo $WORKSPACE
 pwd
+
+# emptying the workspace
+mkdir -p empty
+rsync -r --delete empty/ ./
+
 cat &lt;&lt;'EOF' &gt; log-parser-plugin-rules.txt
 start /^(===+&gt; MKCLOUD STEP START: |MKCLOUD step: )/
 start /^Starting proposal/
@@ -321,10 +327,6 @@ info /^Waiting for /
 error /Error/
 error /$h1!!/
 EOF
-
-# emptying the workspace
-mkdir -p empty
-rsync -r --delete empty/ ./
 
 export artifacts_dir=$WORKSPACE/.artifacts
 rm -rf $artifacts_dir
