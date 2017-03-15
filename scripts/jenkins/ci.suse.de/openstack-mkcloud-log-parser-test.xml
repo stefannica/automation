@@ -13447,8 +13447,8 @@ exit 1</command>
       <unstableOnWarning>false</unstableOnWarning>
       <failBuildOnError>true</failBuildOnError>
       <showGraphs>true</showGraphs>
-      <useProjectRule>true</useProjectRule>
-      <projectRulePath>log-parser-plugin-rules.txt</projectRulePath>
+      <parsingRulesPath>/var/lib/jenkins/logparser/default</parsingRulesPath>
+      <useProjectRule>false</useProjectRule>
     </hudson.plugins.logparser.LogParserPublisher>
     <hudson.tasks.Mailer plugin="mailer@">
       <recipients/>
