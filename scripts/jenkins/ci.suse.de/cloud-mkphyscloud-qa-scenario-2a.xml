@@ -1,47 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description>&lt;b&gt;This job is managed by JJB! Changes must be done in&#13;
-&lt;a href='https://github.com/SUSE-Cloud/automation/tree/master/jenkins/ci.suse.de/'&gt;git&lt;/a&gt;&#13;
-&lt;/b&gt;&#13;
-&#13;
-This job will redeploy scenario-2a:&#13;
-  - total 7 nodes including admin node&#13;
-  - database: default, postgresql&#13;
-  - pacemaker: 3 clusters with 2 nodes (SBD)&#13;
-  - keystone UUID&#13;
-  - swift (allow public container, enable object versioning)&#13;
-  - glance (storage swift)&#13;
-  - nova: ssl, libvirt migration enabled, shared storage, kvm kernel samepage merging, 1 KVM&#13;
-  - cinder: Local file&#13;
-  - neutron: linuxbridge&#13;
-  - manila: NetApp backend (we expect that a vserver 'cloud-manila-svm' is available on the 'netapp-n1-e0m.cloud.suse.de' server)&#13;
-&#13;
-Warning: It will wipe all machines!&#13;
+  <description>&lt;b&gt;This job is managed by JJB! Changes must be done in
+&lt;a href='https://github.com/SUSE-Cloud/automation/tree/master/jenkins/ci.suse.de/'&gt;git&lt;/a&gt;
+&lt;/b&gt;
+
+This job will redeploy scenario-2a:
+  - total 7 nodes including admin node
+  - database: default, postgresql
+  - pacemaker: 3 clusters with 2 nodes (SBD)
+  - keystone UUID
+  - swift (allow public container, enable object versioning)
+  - glance (storage swift)
+  - nova: ssl, libvirt migration enabled, shared storage, kvm kernel samepage merging, 1 KVM
+  - cinder: Local file
+  - neutron: linuxbridge or OVS 
+  - manila: NetApp backend (we expect that a vserver 'cloud-manila-svm' is available on the 'netapp-n1-e0m.cloud.suse.de' server)
+
+Warning: It will wipe all machines!
 &lt;!-- Managed by Jenkins Job Builder --&gt;</description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>-1</daysToKeep>
+    <numToKeep>15</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <jenkins.model.BuildDiscarderProperty>
-      <strategy class="hudson.tasks.LogRotator">
-        <daysToKeep>-1</daysToKeep>
-        <numToKeep>15</numToKeep>
-        <artifactDaysToKeep>-1</artifactDaysToKeep>
-        <artifactNumToKeep>-1</artifactNumToKeep>
-      </strategy>
-    </jenkins.model.BuildDiscarderProperty>
-    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
-      <doNotScan>false</doNotScan>
-    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
-    <com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty plugin="gitlab-plugin@">
-      <gitLabConnection>https://gitlab.suse.de</gitLabConnection>
-    </com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty>
-    <org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty plugin="gitlab-logo@">
-      <repositoryName/>
-    </org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty>
-    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@">
-      <autoRebuild>false</autoRebuild>
-      <rebuildDisabled>false</rebuildDisabled>
-    </com.sonyericsson.rebuild.RebuildSettings>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
@@ -130,6 +115,17 @@ Warning: It will wipe all machines!&#13;
           <defaultValue>services=2,data=2,network=2</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
+          <name>networkingplugin</name>
+          <description>networking plugin to be used by Neutron. Available options are: openvswitch:gre, vlan, vxlan / linuxbridge:vlan
+</description>
+          <defaultValue>linuxbridge</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>networkingmode</name>
+          <description>networking mode to be used by Neutron. Available options are gre, vlan, vxlan</description>
+          <defaultValue>vlan</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
           <name>nodenumber</name>
           <description>Number of nodes to use; is scenario specific</description>
           <defaultValue>7</defaultValue>
@@ -156,9 +152,9 @@ Warning: It will wipe all machines!&#13;
         </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <hudson.plugins.heavy__job.HeavyJobProperty plugin="heavy-job@1.1">
-      <weight>1</weight>
-    </hudson.plugins.heavy__job.HeavyJobProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>cloud-mkphyscloud-gate-qa</assignedNode>
@@ -171,7 +167,6 @@ Warning: It will wipe all machines!&#13;
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
-set -x
 admin=crowbar$hw_number
 cloud=qa$hw_number
 netapp_server=$netapp_server
@@ -218,7 +213,6 @@ scp -r ~/github.com/$repo_owner/automation/scripts mkcloud.config root@$admin:
 scp ~/github.com/$repo_owner/automation/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/$scenario_file \
     root@$admin:scenario.yml
 
-
 ret=0
 
 ssh root@$admin "
@@ -245,6 +239,8 @@ sed -i -e "s,##shared_nfs_for_rabbitmq##,$shared_storage_ip:/var/$cloud/ha-rabbi
 sed -i -e "s,##netapp_password##,$netapp_password," scenario.yml
 sed -i -e "s,##netapp_server##,$netapp_server," scenario.yml
 sed -i -e "s,##netapp_vserver##,$netapp_vserver," scenario.yml
+sed -i -e "s,##networkingplugin##,$networkingplugin," scenario.yml
+sed -i -e "s,##networkingmode##,$networkingmode," scenario.yml
 
 [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export updatesteps="addupdaterepo runupdate"
 
@@ -253,7 +249,7 @@ timeout --signal=ALRM 240m bash -x -c ". scripts/qa_crowbarsetup.sh ; onadmin_ru
 ' || ret=$?
 
 echo "mkphyscloud ret=$ret (before scenario and configuration)"
-sleep 300
+
 if [ $ret == "0" ]; then
   # ----- Prepare the SBD setup:
 
@@ -264,7 +260,7 @@ if [ $ret == "0" ]; then
     wget --no-check-certificate https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/iscsictl.py
 
     chmod +x scripts/iscsictl.py
-	echo "HOSTNAME!" $HOSTNAME
+
     ./scripts/iscsictl.py --service target --host \$(hostname) --no-key
     ./scripts/iscsictl.py --service initiator --target_host \$(hostname) --host controller1 --no-key
     ./scripts/iscsictl.py --service initiator --target_host \$(hostname) --host controller2 --no-key
@@ -402,6 +398,7 @@ scenario_build_number=$BUILD_NUMBER
   <publishers>
     <hudson.tasks.ArtifactArchiver>
       <artifacts>.artifacts/**</artifacts>
+      <latestOnly>false</latestOnly>
       <allowEmptyArchive>true</allowEmptyArchive>
       <onlyIfSuccessful>false</onlyIfSuccessful>
       <fingerprint>false</fingerprint>
@@ -410,9 +407,8 @@ scenario_build_number=$BUILD_NUMBER
     </hudson.tasks.ArtifactArchiver>
   </publishers>
   <buildWrappers>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@"/>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@">
-      <template>#${BUILD_NUMBER}: ${ENV,var="cloudsource"}</template>
+      <template>#${BUILD_NUMBER} ${ENV,var="cloudsource"} - qa${ENV,var="hw_number"} ${ENV,var="networkingplugin"}:${ENV,var="networkingmode"}</template>
       <runAtStart>true</runAtStart>
       <runAtEnd>true</runAtEnd>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
