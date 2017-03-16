@@ -2,32 +2,18 @@
 <project>
   <actions/>
   <description>&lt;!-- Managed by Jenkins Job Builder --&gt;</description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>7</daysToKeep>
+    <numToKeep>-1</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <jenkins.model.BuildDiscarderProperty>
-      <strategy class="hudson.tasks.LogRotator">
-        <daysToKeep>-1</daysToKeep>
-        <numToKeep>7</numToKeep>
-        <artifactDaysToKeep>-1</artifactDaysToKeep>
-        <artifactNumToKeep>-1</artifactNumToKeep>
-      </strategy>
-    </jenkins.model.BuildDiscarderProperty>
+    <com.synopsys.arc.jenkins.plugins.ownership.jobs.JobOwnerJobProperty plugin="ownership@"/>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
-    <com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty plugin="gitlab-plugin@">
-      <gitLabConnection>https://gitlab.suse.de</gitLabConnection>
-    </com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty>
-    <org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty plugin="gitlab-logo@">
-      <repositoryName/>
-    </org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty>
-    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@">
-      <autoRebuild>false</autoRebuild>
-      <rebuildDisabled>false</rebuildDisabled>
-    </com.sonyericsson.rebuild.RebuildSettings>
-    <hudson.plugins.heavy__job.HeavyJobProperty plugin="heavy-job@1.1">
-      <weight>1</weight>
-    </hudson.plugins.heavy__job.HeavyJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>cloud-trigger</assignedNode>
@@ -51,19 +37,20 @@
               <properties>TESTHEAD=1
 cloudsource=develcloud6
 upgrade_cloudsource=develcloud7
-nodenumber=5
+nodenumber=4
+mkcloudtarget=plain_with_upgrade testsetup
+want_nodesupgrade=1
 hacloud=1
-want_nondisruptiveupgrade=1
-mkcloudtarget=plain_with_upgrade
-label=openstack-mkcloud-SLE12-x86_64
-want_postgresql=0
-job_name=cloud-mkcloud7-job-upgrade-nondisruptive-ha-x86_64
+storage_method=swift
+label=openstack-mkcloud-ha-x86_64
+job_name=cloud-mkcloud7-job-upgrade-disruptive-ha-x86_64
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>openstack-mkcloud</projects>
           <condition>ALWAYS</condition>
           <triggerWithNoParameters>false</triggerWithNoParameters>
+          <triggerFromChildProjects>false</triggerFromChildProjects>
           <block>
             <buildStepFailureThreshold>
               <name>FAILURE</name>

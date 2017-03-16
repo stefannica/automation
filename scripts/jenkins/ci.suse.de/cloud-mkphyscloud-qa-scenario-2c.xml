@@ -11,7 +11,6 @@ This job will redeploy scenario-2c:
   - DRBD
   - ceph (3 nodes)
   - 2 kvm compute nodes
-  - Neutro: linuxbridge or OVS
 
 It will wipe all QA2 machines!
 &lt;!-- Managed by Jenkins Job Builder --&gt;</description>
@@ -101,17 +100,6 @@ It will wipe all QA2 machines!
           <defaultValue>services=2</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>networkingplugin</name>
-          <description>networking plugin to be used by Neutron. Available options are: openvswitch:gre, vlan, vxlan / linuxbridge:vlan
-</description>
-          <defaultValue>linuxbridge</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>networkingmode</name>
-          <description>networking mode to be used by Neutron. Available options are gre, vlan, vxlan</description>
-          <defaultValue>vlan</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
           <name>nodenumber</name>
           <description>Number of nodes to use; is scenario specific</description>
           <defaultValue>7</defaultValue>
@@ -196,9 +184,6 @@ export want_ceph=1 ;
 export cephvolumenumber=1 ;
 export scenario=\"/root/scenario.yml\" ;
 export commands=\"$commands\" "'
-
-sed -i -e "s,##networkingplugin##,$networkingplugin," scenario.yml
-sed -i -e "s,##networkingmode##,$networkingmode," scenario.yml
 
 [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export updatesteps="addupdaterepo runupdate"
 
@@ -338,9 +323,10 @@ scenario_build_number=$BUILD_NUMBER
   </publishers>
   <buildWrappers>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@">
-      <template>#${BUILD_NUMBER} ${ENV,var="cloudsource"} - qa${ENV,var="hw_number"} ${ENV,var="networkingplugin"}:${ENV,var="networkingmode"}</template>
+      <template>#${BUILD_NUMBER}: ${ENV,var="cloudsource"}</template>
       <runAtStart>true</runAtStart>
       <runAtEnd>true</runAtEnd>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@"/>
   </buildWrappers>
 </project>
