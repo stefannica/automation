@@ -193,6 +193,8 @@ export clusterconfig=$clusterconfig ;
 export want_node_aliases=controller=2,compute=2,ceph=3 ;
 export want_node_roles=controller=2,compute=2,storage=3 ;
 export want_ceph=1 ;
+export networkingplugin=$networking_plugin ;
+export networkingmode=$networkingmode ;
 export cephvolumenumber=1 ;
 export scenario=\"/root/scenario.yml\" ;
 export commands=\"$commands\" "'
