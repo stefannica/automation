@@ -1,25 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description>&lt;b&gt;This job is managed by JJB! Changes must be done in
-&lt;a href='https://github.com/SUSE-Cloud/automation/tree/master/jenkins/ci.suse.de/'&gt;git&lt;/a&gt;
-&lt;/b&gt;
-Scenario details:
-  - 7 nodes
-  - HA with IPMI (3 controllers)
-  - shared device for DB and rabbit
-  - swift
-
-It will wipe all machines in the selected cloud!
+  <description>&lt;b&gt;This job is managed by JJB! Changes must be done in&#13;
+&lt;a href='https://github.com/SUSE-Cloud/automation/tree/master/jenkins/ci.suse.de/'&gt;git&lt;/a&gt;&#13;
+&lt;/b&gt;&#13;
+&#13;
+This job will redeploy scenario-2a:&#13;
+  - total 7 nodes including admin node&#13;
+  - database: default, postgresql&#13;
+  - pacemaker: 3 clusters with 2 nodes (SBD)&#13;
+  - keystone UUID&#13;
+  - swift (allow public container, enable object versioning)&#13;
+  - glance (storage swift)&#13;
+  - nova: ssl, libvirt migration enabled, shared storage, kvm kernel samepage merging, 1 KVM&#13;
+  - cinder: Local file&#13;
+  - neutron: linuxbridge or OVS &#13;
+  - manila: NetApp backend (we expect that a vserver 'cloud-manila-svm' is available on the 'netapp-n1-e0m.cloud.suse.de' server)&#13;
+&#13;
+Warning: It will wipe all machines!&#13;
 &lt;!-- Managed by Jenkins Job Builder --&gt;</description>
-  <logRotator class="hudson.tasks.LogRotator">
-    <daysToKeep>-1</daysToKeep>
-    <numToKeep>15</numToKeep>
-    <artifactDaysToKeep>-1</artifactDaysToKeep>
-    <artifactNumToKeep>-1</artifactNumToKeep>
-  </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>-1</daysToKeep>
+        <numToKeep>15</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty plugin="gitlab-plugin@">
+      <gitLabConnection>https://gitlab.suse.de</gitLabConnection>
+    </com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty>
+    <org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty plugin="gitlab-logo@">
+      <repositoryName/>
+    </org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty>
+    <com.synopsys.arc.jenkins.plugins.ownership.jobs.JobOwnerJobProperty plugin="ownership@"/>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
@@ -53,6 +76,16 @@ It will wipe all machines in the selected cloud!
           <defaultValue>master</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
+          <name>netapp_server</name>
+          <description>Mandatory, the name of the NetApp Storage backend server</description>
+          <defaultValue>netapp-n1-e0m.cloud.suse.de</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>netapp_vserver</name>
+          <description>Mandatory, the name of the NetApp Storage backend vserver</description>
+          <defaultValue>cloud-manila-svm</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
           <name>tempest</name>
           <description>Optional, specify what tempest test(s) to run, e.g. smoke, smoke|full or smoke|defcore</description>
           <defaultValue>smoke</defaultValue>
@@ -62,16 +95,6 @@ It will wipe all machines in the selected cloud!
           <description>Optional, specify cct tests to run</description>
           <defaultValue>features:base</defaultValue>
         </hudson.model.StringParameterDefinition>
-        <hudson.model.BooleanParameterDefinition>
-          <name>trigger_upgrade</name>
-          <description>Trigger the upgrade process for this cloud in a separate job</description>
-          <defaultValue>false</defaultValue>
-        </hudson.model.BooleanParameterDefinition>
-        <hudson.model.BooleanParameterDefinition>
-          <name>horizon-tests</name>
-          <description>Optional, Run horizon integration tests.</description>
-          <defaultValue>false</defaultValue>
-        </hudson.model.BooleanParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>ssl_type</name>
           <description>Mandatory, set the SSL configuration for the cloud, available options: no-ssl, ssl-insecure, ssl</description>
@@ -84,8 +107,8 @@ It will wipe all machines in the selected cloud!
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>scenario_file</name>
-          <description>Scenario yaml file name</description>
-          <defaultValue>qa-scenario-1a.yaml</defaultValue>
+          <description>Scenario YAML file name</description>
+          <defaultValue>qa-scenario-2a.yaml</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>cloudsource</name>
@@ -93,13 +116,8 @@ It will wipe all machines in the selected cloud!
           <defaultValue>develcloud$cloud_version</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>upgrade_cloudsource</name>
-          <description/>
-          <defaultValue>develcloud$(($cloud_version + 1))</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
           <name>TESTHEAD</name>
-          <description>if non-empty, test latest version from Devel:Cloud Stagin</description>
+          <description>if non-empty, test latest version from Devel:Cloud:Staging</description>
           <defaultValue>1</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -110,7 +128,18 @@ It will wipe all machines in the selected cloud!
         <hudson.model.StringParameterDefinition>
           <name>clusterconfig</name>
           <description>HA configuration for clusters. Make sense only if hacloud=1</description>
-          <defaultValue>services=3</defaultValue>
+          <defaultValue>services=2,data=2,network=2</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>networkingplugin</name>
+          <description>networking plugin to be used by Neutron. Available options are: openvswitch:gre, vlan, vxlan / linuxbridge:vlan
+</description>
+          <defaultValue>linuxbridge</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>networkingmode</name>
+          <description>networking mode to be used by Neutron. Available options are gre, vlan, vxlan</description>
+          <defaultValue>vlan</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>nodenumber</name>
@@ -119,13 +148,13 @@ It will wipe all machines in the selected cloud!
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>want_ipmi</name>
-          <description/>
+          <description>Boolean. If 'true' nodes will be rebooted via IPMI</description>
           <defaultValue>true</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>commands</name>
           <description>All the steps that needs to be completed to have cloud installed</description>
-          <defaultValue>addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases batch</defaultValue>
+          <defaultValue>addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.TextParameterDefinition>
           <name>UPDATEREPOS</name>
@@ -139,9 +168,9 @@ It will wipe all machines in the selected cloud!
         </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
-      <doNotScan>false</doNotScan>
-    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <hudson.plugins.heavy__job.HeavyJobProperty plugin="heavy-job@1.1">
+      <weight>1</weight>
+    </hudson.plugins.heavy__job.HeavyJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>cloud-mkphyscloud-gate-qa</assignedNode>
@@ -156,6 +185,8 @@ It will wipe all machines in the selected cloud!
       <command>#!/bin/bash
 admin=crowbar$hw_number
 cloud=qa$hw_number
+netapp_server=$netapp_server
+netapp_password=`cat /home/jenkins/passwords/netapp_password`
 
 if [ ! -z "$UPDATEREPOS" ] ; then
   export UPDATEREPOS=${UPDATEREPOS//$'\n'/+}
@@ -165,13 +196,22 @@ export artifacts_dir=$WORKSPACE/.artifacts
 rm -rf $artifacts_dir
 mkdir -p $artifacts_dir
 touch $artifacts_dir/.ignore
+  
+# check that netapp backend server is available
+ping -c 3 $netapp_server || ret=$?
+
+if [ $ret != 0 ] ; then 
+  echo "netapp server is unavailable!"
+  exit 1
+fi
 
 # destroy the old admin VM if any and spawn a clean new admin VM afterwards
 # /usr/local/sbin/freshadminvm
 freshadminvm $admin $admin_os
+
 sleep 100 # time for the admin VM to boot
 
-# wipe out shared NFS that are being used by this deployment:
+# wipe out shared NFS that are being used by this deployment
 # /usr/local/sbin/wipe_nfs_shares
 ssh root@localhost "wipe_nfs_shares qa$hw_number"
 
@@ -180,9 +220,9 @@ ssh root@localhost "wipe_nfs_shares qa$hw_number"
 update_automation
 
 # put variables needed during the build process into mkcloud.config file
-env | grep -e networking -e libvirt -e cloud -e upgrade -e cct -e TESTHEAD &gt; mkcloud.config
+env | grep -e networking -e libvirt -e cloud &gt; mkcloud.config
 
-# copy scripts/ dir onto the admin node in /root/scripts
+# copy scripts/ directory onto the admin  node in /root/scripts
 scp -r ~/github.com/$repo_owner/automation/scripts mkcloud.config root@$admin:
 
 # copy scenario file onto the admin node in /root/scenario.yml
@@ -201,37 +241,72 @@ export cloudsource=$cloudsource ;
 export nodenumber=$nodenumber ;
 export hacloud=$hacloud ;
 export clusterconfig=$clusterconfig ;
-export shared_storage_ip=$shared_storage_ip
-export want_node_aliases=controller=3,compute-kvm=2,storage-swift=2 ;
+export shared_storage_ip=$shared_storage_ip ;
+export want_node_aliases=controller=2,data=2,network=2,computekvm=1 ;
+export want_node_roles=controller=2,storage=2,network=2,compute=1 ;
 export scenario=\"/root/scenario.yml\" ;
-export commands=\"$commands\" "'
+export netapp_password=$netapp_password ;
+export netapp_server=$netapp_server ;
+export netapp_vserver=$netapp_vserver ;
+export commands=\"$commands\" "' 
 
 sed -i -e "s,##shared_nfs_for_database##,$shared_storage_ip:/var/$cloud/ha-database," scenario.yml
 sed -i -e "s,##shared_nfs_for_rabbitmq##,$shared_storage_ip:/var/$cloud/ha-rabbitmq," scenario.yml
-sed -i -e "s,##cinder-storage-shares##,$shared_storage_ip:/var/$cloud/cinder-storage/," scenario.yml
+sed -i -e "s,##netapp_password##,$netapp_password," scenario.yml
+sed -i -e "s,##netapp_server##,$netapp_server," scenario.yml
+sed -i -e "s,##netapp_vserver##,$netapp_vserver," scenario.yml
+sed -i -e "s,##networkingplugin##,$networkingplugin," scenario.yml
+sed -i -e "s,##networkingmode##,$networkingmode," scenario.yml
 
 [ $UPDATEBEFOREINSTALL == "true" ] &amp;&amp; export updatesteps="addupdaterepo runupdate"
 
+# first install the nodes and wait until the cloud is ready for further configuration steps
 timeout --signal=ALRM 240m bash -x -c ". scripts/qa_crowbarsetup.sh ; onadmin_runlist $commands"
 ' || ret=$?
 
+echo "mkphyscloud ret=$ret (before scenario and configuration)"
 
-if [ $ret != 0 ] ; then
-  ssh $sshopts root@$admin '
-  set -x
-  for node in $(crowbar machines list | grep ^d) ; do
-    (
-    echo "Collecting supportconfig from $node"
-    timeout 400 ssh $node supportconfig | wc
-    timeout 300 scp $node:/var/log/\*tbz /var/log/
-    )&amp;
-  done
-  timeout 500 supportconfig | wc &amp;
-  wait
+
+
+  # Check if zypper is used by other application
+  ssh root@$admin '
+    source scripts/qa_crowbarsetup.sh;
+    for node in $(crowbar machines aliases | grep -E "controller|data|network" | grep -oE "^.*[[:space:]]"); do
+      wait_for 20 10 "ssh $node \"zypper refresh\" "
+    done
   '
 
-  scp root@$admin:/var/log/*tbz $artifacts_dir/
-fi &gt;&amp;2
+  ssh root@$admin  "
+  export cloud=$cloud ;
+  export TESTHEAD=$TESTHEAD ;
+  export cloudsource=$cloudsource ;
+  export nodenumber=$nodenumber ;
+  export hacloud=$hacloud ;
+  export clusterconfig=$clusterconfig ;
+  export want_ceph=1 ;
+  export cephvolumenumber=0;
+  export scenario=scenario.yml "'
+
+
+  crowbar batch --timeout 2400 build scenario.yml' || ret=$?
+
+  if [ $ret != 0 ] ; then
+    ssh root@$admin '
+    set -x
+    for node in $(crowbar machines list | grep ^d) ; do
+      (
+      echo "Collecting supportconfig from $node"
+      timeout 400 ssh $node supportconfig | wc
+      timeout 300 scp $node:/var/log/\*tbz /var/log/
+      )&amp;
+    done
+    timeout 500 supportconfig | wc &amp;
+    wait
+    '
+
+    scp root@$admin:/var/log/*tbz $artifacts_dir/
+  fi &gt;&amp;2
+fi
 
 exit $ret
 </command>
@@ -244,12 +319,9 @@ exit $ret
               <properties>hw_number=$hw_number
 tempest=$tempest
 cct_tests=$cct
-horizon-tests=$horizon-tests
-trigger_upgrade=$trigger_upgrade
-scenario_name=1a
+scenario_name=2a
 scenario_job_name=$JOB_NAME
 scenario_build_number=$BUILD_NUMBER
-TESTHEAD=$TESTHEAD
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
@@ -285,7 +357,6 @@ TESTHEAD=$TESTHEAD
   <publishers>
     <hudson.tasks.ArtifactArchiver>
       <artifacts>.artifacts/**</artifacts>
-      <latestOnly>false</latestOnly>
       <allowEmptyArchive>true</allowEmptyArchive>
       <onlyIfSuccessful>false</onlyIfSuccessful>
       <fingerprint>false</fingerprint>
@@ -295,10 +366,9 @@ TESTHEAD=$TESTHEAD
   </publishers>
   <buildWrappers>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@">
-      <template>#${BUILD_NUMBER}: ${ENV,var="cloudsource"}</template>
+      <template>#${BUILD_NUMBER} ${ENV,var="cloudsource"} - qa${ENV,var="hw_number"} ${ENV,var="networkingplugin"}:${ENV,var="networkingmode"}</template>
       <runAtStart>true</runAtStart>
       <runAtEnd>true</runAtEnd>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@"/>
   </buildWrappers>
 </project>
