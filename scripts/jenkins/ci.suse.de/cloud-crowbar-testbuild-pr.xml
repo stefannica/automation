@@ -3,31 +3,26 @@
   <actions/>
   <description>&lt;!-- Managed by Jenkins Job Builder --&gt;
 &lt;!-- Managed by Jenkins Job Builder --&gt;</description>
-  <keepDependencies>false</keepDependencies>
-  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
-  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <concurrentBuild>true</concurrentBuild>
-  <assignedNode>cloud-testbuild-pr</assignedNode>
-  <canRoam>false</canRoam>
-  <logRotator>
+  <logRotator class="hudson.tasks.LogRotator">
     <daysToKeep>300</daysToKeep>
     <numToKeep>300</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
     <artifactNumToKeep>-1</artifactNumToKeep>
   </logRotator>
+  <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
-      <permission>hudson.model.Item.Build:cloud</permission>
       <permission>hudson.model.Item.Cancel:cloud</permission>
-      <permission>hudson.model.Item.Configure:cloud</permission>
       <permission>hudson.model.Item.Delete:cloud</permission>
-      <permission>hudson.model.Item.Discover:cloud</permission>
       <permission>hudson.model.Item.Read:cloud</permission>
-      <permission>hudson.model.Item.Workspace:cloud</permission>
-      <permission>hudson.model.Run.Delete:cloud</permission>
-      <permission>hudson.model.Run.Update:cloud</permission>
-      <permission>hudson.scm.SCM.Tag:cloud</permission>
       <permission>hudson.model.Item.Read:anonymous</permission>
+      <permission>hudson.model.Run.Delete:cloud</permission>
+      <permission>hudson.model.Item.Workspace:cloud</permission>
+      <permission>hudson.model.Item.Build:cloud</permission>
+      <permission>hudson.scm.SCM.Tag:cloud</permission>
+      <permission>hudson.model.Item.Configure:cloud</permission>
+      <permission>hudson.model.Item.Discover:cloud</permission>
+      <permission>hudson.model.Run.Update:cloud</permission>
     </hudson.security.AuthorizationMatrixProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
@@ -53,8 +48,18 @@
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>cloud-testbuild-pr</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
       <command>#####
@@ -108,11 +113,13 @@ trap "-" ERR
   </builders>
   <publishers/>
   <buildWrappers>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper/>
-    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@"/>
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@">
       <template>#${BUILD_NUMBER}: ${ENV,var="job_name"}</template>
+      <runAtStart>true</runAtStart>
+      <runAtEnd>true</runAtEnd>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
-    <hudson.plugins.build__timeout.BuildTimeoutWrapper>
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.18">
       <strategy class="hudson.plugins.build_timeout.impl.NoActivityTimeOutStrategy">
         <timeoutSecondsString>3600</timeoutSecondsString>
       </strategy>
