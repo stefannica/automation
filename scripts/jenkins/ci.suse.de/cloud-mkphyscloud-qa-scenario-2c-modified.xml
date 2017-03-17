@@ -1,28 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <actions/>
-  <description>&lt;b&gt;This job is managed by JJB! Changes must be done in
-&lt;a href='https://github.com/SUSE-Cloud/automation/tree/master/jenkins/ci.suse.de/'&gt;git&lt;/a&gt;
-&lt;/b&gt;
-
-This job will redeploy scenario-2c:
-  - 7 nodes
-  - HA with SBD (2 nodes)
-  - DRBD
-  - ceph (3 nodes)
-  - 2 kvm compute nodes
-  - Neutro: linuxbridge or OVS
-
-It will wipe all QA2 machines!
+  <description>&lt;b&gt;This job is managed by JJB! Changes must be done in&#13;
+&lt;a href='https://github.com/SUSE-Cloud/automation/tree/master/jenkins/ci.suse.de/'&gt;git&lt;/a&gt;&#13;
+&lt;/b&gt;&#13;
+&#13;
+This job will redeploy scenario-2c:&#13;
+  - 7 nodes&#13;
+  - HA with SBD (2 nodes)&#13;
+  - DRBD&#13;
+  - ceph (3 nodes)&#13;
+  - 2 kvm compute nodes&#13;
+  - Neutro: linuxbridge or OVS&#13;
+&#13;
+It will wipe all QA2 machines!&#13;
 &lt;!-- Managed by Jenkins Job Builder --&gt;</description>
-  <logRotator class="hudson.tasks.LogRotator">
-    <daysToKeep>-1</daysToKeep>
-    <numToKeep>15</numToKeep>
-    <artifactDaysToKeep>-1</artifactDaysToKeep>
-    <artifactNumToKeep>-1</artifactNumToKeep>
-  </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>-1</daysToKeep>
+        <numToKeep>15</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty plugin="gitlab-plugin@">
+      <gitLabConnection>https://gitlab.suse.de</gitLabConnection>
+    </com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty>
+    <org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty plugin="gitlab-logo@">
+      <repositoryName/>
+    </org.jenkinsci.plugins.gitlablogo.GitlabLogoProperty>
+    <com.synopsys.arc.jenkins.plugins.ownership.jobs.JobOwnerJobProperty plugin="ownership@"/>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
@@ -133,10 +149,9 @@ It will wipe all QA2 machines!
         </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
-      <doNotScan>false</doNotScan>
-    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
-    <com.synopsys.arc.jenkins.plugins.ownership.jobs.JobOwnerJobProperty plugin="ownership@"/>
+    <hudson.plugins.heavy__job.HeavyJobProperty plugin="heavy-job@1.1">
+      <weight>1</weight>
+    </hudson.plugins.heavy__job.HeavyJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>cloud-mkphyscloud-gate-qa</assignedNode>
@@ -213,6 +228,8 @@ echo "mkphyscloud ret=$ret (before scenario)"
 if [ "$ret" = "0" ]; then
   # ----- Prepare the SBD setup:
   cat &gt; /tmp/sbd_prepare_$admin &lt;&lt;EOSCRIPT
+    controller1=$(ssh -T root@$admin 'crowbarctl node show controller1 | grep crowbar_wall.network.addrs.public | cut -d "|" -f3 | cut -d " " -f2 | cut -d "/" -f1')
+    controller2=$(ssh -T root@$admin 'crowbarctl node show controller2 | grep crowbar_wall.network.addrs.public | cut -d "|" -f3 | cut -d " " -f2 | cut -d "/" -f1')
     # preparaton of iSCSI
     export ZYPP_LOCK_TIMEOUT=120
     zypper --gpg-auto-import-keys -p http://download.opensuse.org/repositories/devel:/languages:/python/SLE_12_SP2/ --non-interactive install python-sh
@@ -220,22 +237,26 @@ if [ "$ret" = "0" ]; then
     wget --no-check-certificate https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/iscsictl.py
     chmod +x iscsictl.py
     ./iscsictl.py --service target --host \$(hostname) --no-key
-    ./iscsictl.py --service initiator --target_host \$(hostname) --host controller1 --no-key
-    ./iscsictl.py --service initiator --target_host \$(hostname) --host controller2 --no-key
+    ./iscsictl.py --service initiator --target_host \$(hostname) --host \$(controller1) --no-key
+    ./iscsictl.py --service initiator --target_host \$(hostname) --host \$(controller2) --no-key
     # preparation of SBD
     SBD_DEV=\$(ssh controller1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
-    ssh controller1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV create"
-    ssh controller2 "zypper --non-interactive install sbd"
+    ssh $controller1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV create"
+    ssh $controller2 "zypper --non-interactive install sbd"
     # watchdog configuration
-    ssh controller1 modprobe softdog; echo softdog &gt; /etc/modules-load.d/watchdog.conf
-    ssh controller2 modprobe softdog; echo softdog &gt; /etc/modules-load.d/watchdog.conf
+    ssh $controller1 modprobe softdog; echo softdog &gt; /etc/modules-load.d/watchdog.conf
+    ssh $controller2 modprobe softdog; echo softdog &gt; /etc/modules-load.d/watchdog.conf
     # take scenario yaml file and replace /dev/sda with the right thing:
+    ssh -T root@$admin "bash -s $SBD_DEV" &lt;&lt;'EOF'
+    SBD_DEV=$1
     sed -i "s|/dev/sda|\${SBD_DEV}|g" scenario.yml
+    EOF
     # ----- End of SBD
 EOSCRIPT
 
   chmod +x /tmp/sbd_prepare_$admin
-  scp /tmp/sbd_prepare_$admin root@$admin:sbd_prepare
+  . /tmp/sbd_prepare_$admin
+  #scp /tmp/sbd_prepare_$admin root@$admin:sbd_prepare
 
   # Check if zypper is used by other application
   ssh root@$admin '
@@ -245,7 +266,7 @@ EOSCRIPT
     done
   '
 
-  ssh root@$admin './sbd_prepare
+  #ssh root@$admin './sbd_prepare
   ' || ret=$?
 fi
 
@@ -331,7 +352,6 @@ scenario_build_number=$BUILD_NUMBER
   <publishers>
     <hudson.tasks.ArtifactArchiver>
       <artifacts>.artifacts/**</artifacts>
-      <latestOnly>false</latestOnly>
       <allowEmptyArchive>true</allowEmptyArchive>
       <onlyIfSuccessful>false</onlyIfSuccessful>
       <fingerprint>false</fingerprint>
