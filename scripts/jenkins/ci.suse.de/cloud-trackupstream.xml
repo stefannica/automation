@@ -1,30 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<matrix-project plugin="matrix-project@1.8">
-  <actions/>
-  <description>&lt;!-- Managed by Jenkins Job Builder --&gt;</description>
-  <logRotator class="hudson.tasks.LogRotator">
-    <daysToKeep>30</daysToKeep>
-    <numToKeep>-1</numToKeep>
-    <artifactDaysToKeep>-1</artifactDaysToKeep>
-    <artifactNumToKeep>-1</artifactNumToKeep>
-  </logRotator>
-  <keepDependencies>false</keepDependencies>
-  <properties>
-    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@">
-      <doNotScan>false</doNotScan>
-    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
-  </properties>
-  <scm class="hudson.scm.NullSCM"/>
-  <canRoam>true</canRoam>
-  <disabled>false</disabled>
-  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
-  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers>
-    <hudson.triggers.TimerTrigger>
-      <spec>H 5,19 * * *</spec>
-    </hudson.triggers.TimerTrigger>
-  </triggers>
-  <concurrentBuild>false</concurrentBuild>
+<matrix-project>
+  <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
+    <runSequentially>true</runSequentially>
+  </executionStrategy>
+  <combinationFilter>!(
+  (
+    [
+      "Devel:Cloud:5:Staging"
+    ].contains(project) &amp;&amp;
+    [
+      "openstack-dashboard-theme-SUSE",
+      "crowbar-core",
+      "crowbar-openstack",
+      "crowbar-ha",
+      "crowbar-hyperv",
+      "crowbar-ceph",
+      "release-notes-suse-openstack-cloud",
+      "crowbar-ui"
+    ].contains(component)
+  )
+  ||
+  (
+    (
+      ! [
+        "Devel:Cloud:5:Staging"
+      ].contains(project) ) &amp;&amp;
+     component.startsWith('crowbar-barclamp-') ||
+     [
+       "suse-cloud-upgrade"
+     ].contains(component)
+  )
+  ||
+  (
+    [
+      "Devel:Cloud:5:Staging",
+      "Devel:Cloud:6:Staging"
+    ].contains(project) &amp;&amp;
+    [
+      "crowbar-init"
+    ].contains(component)
+  )
+  ||
+  (
+    [
+      "Devel:Cloud:6:SAP:Staging"
+    ].contains(project) &amp;&amp;
+    [
+      "crowbar-ui",
+      "crowbar-hyperv",
+      "crowbar-init",
+      "openstack-dashboard-theme-SUSE",
+      "release-notes-suse-openstack-cloud"
+    ].contains(component)
+  )
+)</combinationFilter>
   <axes>
     <hudson.matrix.TextAxis>
       <name>component</name>
@@ -91,57 +120,26 @@
       </values>
     </hudson.matrix.LabelAxis>
   </axes>
-  <combinationFilter>!(
-  (
-    [
-      "Devel:Cloud:5:Staging"
-    ].contains(project) &amp;&amp;
-    [
-      "openstack-dashboard-theme-SUSE",
-      "crowbar-core",
-      "crowbar-openstack",
-      "crowbar-ha",
-      "crowbar-hyperv",
-      "crowbar-ceph",
-      "release-notes-suse-openstack-cloud",
-      "crowbar-ui"
-    ].contains(component)
-  )
-  ||
-  (
-    (
-      ! [
-        "Devel:Cloud:5:Staging"
-      ].contains(project) ) &amp;&amp;
-     component.startsWith('crowbar-barclamp-') ||
-     [
-       "suse-cloud-upgrade"
-     ].contains(component)
-  )
-  ||
-  (
-    [
-      "Devel:Cloud:5:Staging",
-      "Devel:Cloud:6:Staging"
-    ].contains(project) &amp;&amp;
-    [
-      "crowbar-init"
-    ].contains(component)
-  )
-  ||
-  (
-    [
-      "Devel:Cloud:6:SAP:Staging"
-    ].contains(project) &amp;&amp;
-    [
-      "crowbar-ui",
-      "crowbar-hyperv",
-      "crowbar-init",
-      "openstack-dashboard-theme-SUSE",
-      "release-notes-suse-openstack-cloud"
-    ].contains(component)
-  )
-)</combinationFilter>
+  <actions/>
+  <description>&lt;!-- Managed by Jenkins Job Builder --&gt;</description>
+  <keepDependencies>false</keepDependencies>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <concurrentBuild>false</concurrentBuild>
+  <canRoam>true</canRoam>
+  <logRotator>
+    <daysToKeep>30</daysToKeep>
+    <numToKeep>-1</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
+  <properties/>
+  <scm class="hudson.scm.NullSCM"/>
+  <triggers class="vector">
+    <hudson.triggers.TimerTrigger>
+      <spec>H 5,19 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
   <builders>
     <hudson.tasks.Shell>
       <command>PROJECTSOURCE=IBS/${project}
@@ -249,7 +247,4 @@ exit $ret
   </builders>
   <publishers/>
   <buildWrappers/>
-  <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
-    <runSequentially>true</runSequentially>
-  </executionStrategy>
 </matrix-project>
