@@ -26,19 +26,19 @@
       gateway-ip: 192.168.110.1
       network-group: CLM
 
-    - name: EXTERNAL-API-NET
+    - name: MANAGEMENT-NET
       vlanid: 101
-      tagged-vlan: true
+      tagged-vlan: false
       cidr: 192.168.111.0/24
       gateway-ip: 192.168.111.1
-      network-group: EXTERNAL-API
+      network-group: MANAGEMENT
 
-    - name: MANAGEMENT-NET
+    - name: EXTERNAL-API-NET
       vlanid: 102
-      tagged-vlan: false
+      tagged-vlan: true
       cidr: 192.168.112.0/24
       gateway-ip: 192.168.112.1
-      network-group: MANAGEMENT
+      network-group: EXTERNAL-API
 
     - name: NEUTRON-EXT-NET
       vlanid: 103

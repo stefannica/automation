@@ -21,6 +21,6 @@
   server-roles:
 {% for server_group in scenario.clusters + scenario.resources %}
     - name: {{ server_group.name|upper }}-ROLE
-      interface-model: ARDANA-INTERFACES
+      interface-model: {{ server_group.name|upper }}-INTERFACES
       disk-model: {{ server_group.name|upper }}-DISKS
 {% endfor %}
