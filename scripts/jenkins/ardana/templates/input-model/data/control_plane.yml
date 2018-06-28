@@ -40,21 +40,26 @@
         - logging-producer
 {% endif %}
 
-      clusters:
-{% for cluster in scenario.clusters %}
-        - name: {{ cluster.name }}
-          cluster-prefix: {{ cluster.prefix }}
-          server-role: {{ cluster.name|upper }}-ROLE
-          member-count: {{ cluster['member-count'] }}
+{% for service_group_type in ['cluster', 'resource'] %}
+      {{ service_group_type }}s:
+{%   for service_group in scenario['service-groups'] if service_group.type == service_group_type %}
+        - name: {{ service_group.name }}
+          {{ service_group_type }}-prefix: {{ service_group.prefix }}
+          server-role: {{ service_group.name|upper }}-ROLE
+{%     if service_group_type == 'cluster' %}
+          member-count: {{ service_group['member-count'] }}
+{%     else %}
+          min-count: {{ service_group['min-count'] }}
+{%     endif %}
           allocation-policy: strict
           service-components:
-  {% if 'CORE' in cluster['service-components'] %}
+{%     if 'CORE' in service_group['service-components'] %}
             - ntp-server
-  {% else %}
+{%     else %}
             - ntp-client
-  {% endif  %}
-  {% for service_component in cluster['service-components'] %}
-    {% if service_component == 'CLM' %}
+{%     endif  %}
+{%     for service_component in service_group['service-components'] %}
+{%       if service_component == 'CLM' %}
             - lifecycle-manager
             - tempest
             # Required for testing in (run-test.sh)
@@ -72,10 +77,10 @@
             - neutron-client
             - nova-client
             - swift-client
-    {% elif service_component == 'DBMQ' %}
+{%       elif service_component == 'DBMQ' %}
             - mysql
             - rabbitmq
-    {% elif service_component == 'CORE' %}
+{%       elif service_component == 'CORE' %}
             - ip-cluster
             - bind
             - memcached
@@ -115,12 +120,12 @@
             - octavia-api
             - octavia-health-manager
             - ops-console-web
-    {% elif service_component == 'NEUTRON' %}
+{%       elif service_component == 'NEUTRON' %}
             - neutron-vpn-agent
             - neutron-dhcp-agent
             - neutron-metadata-agent
             - neutron-openvswitch-agent
-    {% elif service_component == 'MTRMON' %}
+{%       elif service_component == 'MTRMON' %}
             - ntp-client
             - ceilometer-api
             - ceilometer-polling
@@ -144,38 +149,26 @@
             #- monasca-client
             - monasca-transform
             - zookeeper
-    {% elif service_component == 'SWPAC' %}
+{%       elif service_component == 'SWPAC' %}
             - swift-proxy
             - swift-account
             - swift-container
             - swift-ring-builder
             #- swift-client
-    {% elif service_component == 'SWOBJ' %}
+{%       elif service_component == 'SWOBJ' %}
             - swift-object
-    {% else %}
-            - {{ service_component }}
-    {% endif %}
-  {% endfor %}
-{% endfor %}
-      resources:
-{% for resource in scenario.resources %}
-        - name: {{ resource.name }}
-          resource-prefix: {{ resource.prefix }}
-          server-role: {{ resource['server-role'] }}
-          allocation-policy: any
-          min-count: {{ resource['min-count'] }}
-          service-components:
-            - ntp-client
-  {% for service_component in resource['service-components'] %}
-    {% if service_component == 'COMPUTE' %}
+{%       elif service_component == 'COMPUTE' %}
             - nova-compute-kvm
             - nova-compute
             - neutron-l3-agent
             - neutron-metadata-agent
             - neutron-openvswitch-agent
             - neutron-lbaasv2-agent
-    {% else %}
+{%       else %}
             - {{ service_component }}
-    {% endif %}
-  {% endfor %}
+{%       endif %}
+{%     endfor %}
+
+{%   endfor %}
+
 {% endfor %}

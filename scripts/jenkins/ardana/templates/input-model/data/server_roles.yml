@@ -19,8 +19,9 @@
     version: 2
 
   server-roles:
-{% for server_group in scenario.clusters + scenario.resources %}
-    - name: {{ server_group.name|upper }}-ROLE
-      interface-model: {{ server_group.name|upper }}-INTERFACES
-      disk-model: {{ server_group.name|upper }}-DISKS
+{% for service_group in scenario['service-groups'] %}
+    - name: {{ service_group.name|upper }}-ROLE
+      interface-model: {{ service_group.name|upper }}-INTERFACES
+      disk-model: {{ service_group.name|upper }}-DISKS
+
 {% endfor %}

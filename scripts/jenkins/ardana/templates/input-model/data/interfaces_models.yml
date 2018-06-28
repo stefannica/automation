@@ -19,64 +19,41 @@
 
   interface-models:
 
-{% for server_group in scenario.clusters + scenario.resources %}
-    - name: {{ server_group.name|upper }}-INTERFACES
+{% for service_group in scenario['service-groups'] %}
+    - name: {{ service_group.name|upper }}-INTERFACES
       network-interfaces:
+{%   set ns = namespace(intf_id=0) %}
+{%   for network_group in scenario['network-groups'] %}
+{%     if 'CLM' in network_group['component-endpoints'] or
+          'MANAGEMENT' in network_group['component-endpoints'] or
 
-        - name: hed1
+          ('EXTERNAL-API' in network_group['component-endpoints'] and
+            'CORE' in service_group['service-components']) or
+
+          ('INTERNAL-API' in network_group['component-endpoints'] and
+           ('CORE' in service_group['service-components'] or
+            'SWPAC' in service_group['service-components'] or
+            'SWOBJ' in service_group['service-components'])) or
+
+          (('NEUTRON-VLAN' in network_group['component-endpoints'] or
+            'NEUTRON-VXLAN' in network_group['component-endpoints'] or
+            'NEUTRON-EXT' in network_group['component-endpoints']) and
+           ('CORE' in service_group['service-components'] or
+            'NEUTRON' in service_group['service-components'] or
+            'COMPUTE' in service_group['service-components'])) or
+
+          ('SWIFT' in network_group['component-endpoints'] and
+           ('CORE' in service_group['service-components'] or
+            'SWPAC' in service_group['service-components'] or
+            'SWOBJ' in service_group['service-components']))
+        %}
+{%       set ns.intf_id = ns.intf_id+1 %}
+        - name: hed{{ ns.intf_id }}
           device:
-              name: hed1
+              name: hed{{ ns.intf_id }}
           network-groups:
-            - CLM
+            - {{ network_group.name|upper }}
 
-        - name: hed2
-          device:
-            name: hed2
-          network-groups:
-            - MANAGEMENT
-
-  {% if 'CORE' in server_group['service-components'] %}
-        - name: hed3
-          device:
-            name: hed3
-          network-groups:
-            - EXTERNAL-API
-  {% endif  %}
-
-  {% if 'NEUTRON' in server_group['service-components'] or 'COMPUTE' in server_group['service-components'] %}
-        - name: hed4
-          device:
-            name: hed4
-          network-groups:
-            - NEUTRON-EXT
-
-        - name: hed5
-          device:
-            name: hed5
-          network-groups:
-            - NEUTRON-VLAN
-
-        - name: hed6
-          device:
-            name: hed6
-          network-groups:
-            - NEUTRON-VXLAN
-  {% endif  %}
-
-  {% if 'SWPAC' in server_group['service-components'] or 'SWOBJ' in server_group['service-components'] %}
-        - name: hed7
-          device:
-            name: hed7
-          network-groups:
-            - SWIFT
-  {% endif  %}
-
-  {% if scenario['ses-enabled'] and ('CORE' in server_group['service-components'] or 'COMPUTE' in server_group['service-components']) %}
-        - name: hed8
-          device:
-            name: hed8
-          network-groups:
-            - STORAGE
-  {% endif  %}
-
+{%     endif %}
+{%   endfor %}
 {% endfor %}

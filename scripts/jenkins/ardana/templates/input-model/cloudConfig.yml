@@ -43,4 +43,14 @@
     audit-settings:
        audit-dir: /var/audit
        default: {{ 'enabled' if scenario['audit-enabled'] else 'disabled' }}
-
+       #enabled-services:
+       #  - keystone
+       #  - barbican
+       #disabled-services:
+       #  - nova
+       #  - barbican
+       #  - keystone
+       #  - cinder
+       #  - ceilometer
+       #  - neutron
+       #  - swift

@@ -31,25 +31,14 @@
 
   firewall-rules:
 
-    - name: SSH
-      # network-groups is a list of all the network group names
-      # that the rules apply to
-      network-groups:
-      - MANAGEMENT
-      rules:
-      - type: allow
-        # range of remote addresses in CIDR format that this
-        # rule applies to
-        remote-ip-prefix:  0.0.0.0/0
-        port-range-min: 22
-        port-range-max: 22
-        # protocol must be one of: null, tcp, udp or icmp
-        protocol: tcp
-
     - name: PING
       network-groups:
-      - MANAGEMENT
-      - ARDANA
+{% for network_group in scenario['network-groups']
+  if 'CLM' in network_group['component-endpoints'] or
+     'MANAGEMENT' in network_group['component-endpoints'] %}
+        - {{ network_group.name|upper }}
+{% endfor  %}
+
       rules:
       # open ICMP echo request (ping)
       - type: allow
@@ -63,7 +52,11 @@
 
     - name: NETCAT
       network-groups:
-      - MANAGEMENT
+{% for network_group in scenario['network-groups']
+  if 'MANAGEMENT' in network_group['component-endpoints'] %}
+        - {{ network_group.name|upper }}
+{% endfor  %}
+
       rules:
       - type: allow
         remote-ip-prefix:  0.0.0.0/0

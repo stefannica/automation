@@ -30,14 +30,9 @@
         - AZ2
         - AZ3
       networks:
-        - CLM-NET
-        - EXTERNAL-API-NET
-        - MANAGEMENT-NET
-        - NEUTRON-EXT-NET
-        - NEUTRON-VLAN-NET
-        - NEUTRON-VXLAN-NET
-        - SWIFT-NET
-        - STORAGE-NET
+{% for network_group in scenario['network-groups'] %}
+        - {{ network_group.name|upper }}-NET
+{% endfor %}
 
     #
     # Create a group for each failure zone
