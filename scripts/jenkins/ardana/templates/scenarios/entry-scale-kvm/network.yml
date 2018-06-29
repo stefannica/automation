@@ -14,18 +14,29 @@
 # under the License.
 #
 ---
+network-groups:
+  - name: EXTERNAL-API
+    hostname-suffix: extapi
+    tagged-vlan: true
+    component-endpoints:
+      - EXTERNAL-API
 
-- name: Generate heat openstack template
-  hosts: localhost
-  gather_facts: False
-  vars:
-    input_model: ''
+  - name: MANAGEMENT
+    hostname-suffix: mgmt
+    tagged-vlan: false
+    component-endpoints:
+      - MANAGEMENT
+      - INTERNAL-API
+      - NEUTRON-VLAN
 
-  tasks:
+  - name: EXTERNAL-VM
+    hostname-suffix: extvm
+    tagged-vlan: false
+    component-endpoints:
+      - NEUTRON-EXT
 
-  - include_vars:
-      dir: '{{ input_model }}'
-      name: input_model
-
-  - name:
-.... enhance the input mode with info otherwise calculated through long jinja code blocks (e.g. the cidr of networks, number/size of disks)
+  - name: GUEST
+    hostname-suffix: guest
+    tagged-vlan: true
+    component-endpoints:
+      - NEUTRON-VXLAN
