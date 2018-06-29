@@ -9,38 +9,47 @@ parameters:
     label: Key Name
     description: Name of key-pair to be used for compute instance
     default: engcloud-cloud-ci
-  image_id_controller:
+  image_id:
     type: string
     label: Image ID
-    description: Image to be used for compute instance (controller)
+    description: Image to be used for compute instance
     default: cleanvm-jeos-SLE12SP3
-  instance_type_controller:
+  instance_type:
     type: string
     label: Instance Type
-    description: Type of instance (flavor) to be used for the controller
-    default: cloud-ardana-job-controller
-  index:
-    type: number
-    description: controller index suffix
-    default: 1
-
-  networks:
-    type: json
-    description: Networks to configure on controller
+    description: Type of instance (flavor) to be used for the compute instance
+    default: cloud-ardana-job-compute
 
 resources:
-  controller:
+
+{% set ns = namespace(disk_model=null, interface_model=null) %}
+{% for server_role in input_model['server-roles'] if server_role.name == server['server-role'] %}
+{%   for disk_model in input_model['disk-models'] if disk_model.name == server_role['disk-model'] %}
+{%     set ns.disk_model = disk_model  %}
+{%   endfor }
+{%   for interface_model in input_model['interface-models'] if interface_model.name == server_role['interface-model'] %}
+{%     set ns.interface_model = interface_model  %}
+{%   endfor }
+{% endfor }
+
+  server:
     type: OS::Nova::Server
     properties:
-      name:
-        str_replace:
-          template: controller$index
-          params:
-            $index: {get_param: index}
+      name: {{ server.name }}
       key_name: { get_param: key_name }
-      image: { get_param: image_id_controller }
+      image: { get_param: image_id }
       flavor: { get_param: instance_type_controller }
       networks: { get_param: networks }
+
+  deployer_mgmt_port:
+    type: OS::Neutron::Port
+    properties:
+      network: { get_resource: network_mgmt }
+      fixed_ips:
+        - subnet_id: { get_resource: subnet_mgmt }
+
+
+{% set disk_model = ns.disk_model  %}
 
   # disks
   controller_vdb:

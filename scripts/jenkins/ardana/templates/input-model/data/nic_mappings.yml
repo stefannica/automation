@@ -36,10 +36,6 @@
   # - enclose the bus address in quotation marks so yaml does not
   #   misinterpret the embedded colon (:) characters
 
----
-  product:
-    version: 2
-
   nic-mappings:
     - name: HEAT
       physical-ports:

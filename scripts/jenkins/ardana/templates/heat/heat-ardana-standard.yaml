@@ -41,117 +41,37 @@ parameters:
     default: 1
 
 resources:
-  # networks
-  network_clm:
-    type: OS::Neutron::Net
-    properties:
-      port_security_enabled: False
-  network_mgmt:
-    type: OS::Neutron::Net
-    properties:
-      port_security_enabled: False
-  network_external_vm:
-    type: OS::Neutron::Net
-    properties:
-      port_security_enabled: False
-  network_guest:
-    type: OS::Neutron::Net
-    properties:
-      port_security_enabled: False
-  network_iscsi:
-    type: OS::Neutron::Net
-    properties:
-      port_security_enabled: False
-  network_tenant:
-    type: OS::Neutron::Net
-    properties:
-      port_security_enabled: False
-  network_hostname_and_external_api:
+
+  # networks and subnets
+{% for network in input_model.networks %}
+{%   set network_name = network.name|lower|replace('-','_')|re_replace('-net$', '') %}
+  network_{{ network_name }}:
     type: OS::Neutron::Net
     properties:
       port_security_enabled: False
 
-  # subnet
-  subnet_mgmt:
+  subnet_{{ network_name }}:
     type: OS::Neutron::Subnet
     properties:
-      network_id: { get_resource: network_mgmt }
-      cidr: "192.168.245.0/24"
+      network_id: { get_resource: network_{{ network_name }} }
+{%   if network.cidr|defined %}
+      cidr: "{{ network.cidr }}"
       allocation_pools:
-          - start: "192.168.245.2"
-            end: "192.168.245.100"
+        - start: "{{ network.cidr | ipaddr('net') | ipaddr(1) }}"
+          end: "{{ network.cidr | ipaddr('net') | ipaddr(-2) }}"
+{%   else %}
+      cidr: "{{ dummy_cidr }}"
+      allocation_pools:
+        - start: "{{ dummy_cidr | ipaddr('net') | ipaddr(1) }}"
+          end: "{{ dummy_cidr | ipaddr('net') | ipaddr(-2) }}"
+{%   endif %}
       ip_version: 4
-      gateway_ip: 192.168.245.1
-  subnet_ardana:
-    type: OS::Neutron::Subnet
-    properties:
-      network_id: { get_resource: network_ardana }
-      cidr: "192.168.110.0/24"
-      allocation_pools:
-          - start: "192.168.110.2"
-            end: "192.168.110.100"
-      ip_version: 4
-      gateway_ip: null
-  subnet_external_api:
-    type: OS::Neutron::Subnet
-    properties:
-      network_id: { get_resource: network_hostname_and_external_api }
-      allocation_pools:
-          - start: "192.168.114.100"
-            end: "192.168.114.200"
-      cidr: "192.168.114.0/24"
+{%   if network['gateway-ip']|defined %}
+      gateway_ip: "{{ network['gateway-ip'] }}"
+{%   endif %}
+{%   if network.name not in dhcp_enabled_networks %}
       enable_dhcp: False
-      gateway_ip: 192.168.114.1
-  subnet_external_vm:
-    type: OS::Neutron::Subnet
-    properties:
-      network_id: { get_resource: network_external_vm }
-      allocation_pools:
-          - start: "172.31.0.2"
-            end: "172.31.255.154"
-      cidr: "172.31.0.0/16"
-      enable_dhcp: False
-      gateway_ip: 172.31.0.1
-  subnet_mgmt2:
-    type: OS::Neutron::Subnet
-    properties:
-      network_id: { get_resource: network_mgmt2 }
-      allocation_pools:
-          - start: "172.32.0.2"
-            end: "172.32.0.127"
-      cidr: "172.32.0.0/24"
-      enable_dhcp: False
-  subnet_guest:
-    type: OS::Neutron::Subnet
-    properties:
-      network_id: { get_resource: network_guest }
-      enable_dhcp: False
-      allocation_pools:
-          - start: "192.168.115.2"
-            end: "192.168.115.250"
-      cidr: "192.168.115.0/24"
-      enable_dhcp: False
-      gateway_ip: 192.168.115.1
-  subnet_iscsi:
-    type: OS::Neutron::Subnet
-    properties:
-      network_id: { get_resource: network_iscsi }
-      enable_dhcp: False
-      allocation_pools:
-          - start: "192.168.113.2"
-            end: "192.168.113.250"
-      cidr: "192.168.113.0/24"
-      enable_dhcp: False
-      gateway_ip: 192.168.113.1
-  subnet_tenant:
-    type: OS::Neutron::Subnet
-    properties:
-      network_id: { get_resource: network_tenant }
-      allocation_pools:
-          - start: "172.30.0.2"
-            end: "172.30.0.127"
-      cidr: "172.30.0.0/24"
-      enable_dhcp: False
+{%   endif %}
 
   # router
   router_mgmt:

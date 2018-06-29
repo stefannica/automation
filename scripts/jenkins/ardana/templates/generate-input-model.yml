@@ -23,7 +23,9 @@
 
   tasks:
 
-  - include_vars: scenarios/{{ scenario_name }}.yml
+  - include_vars:
+      dir: scenarios/{{ scenario_name }}
+      name: scenario
 
   - name: Create directories
     file:
