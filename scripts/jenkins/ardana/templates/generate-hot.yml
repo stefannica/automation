@@ -19,13 +19,41 @@
   hosts: localhost
   gather_facts: False
   vars:
-    input_model: ''
+    input_model_path: ''
 
   tasks:
 
-  - include_vars:
-      dir: '{{ input_model }}'
-      name: input_model
+  - name: Initialize facts
+    set_fact:
+      input_model: {}
 
-  - name:
-.... enhance the input mode with info otherwise calculated through long jinja code blocks (e.g. the cidr of networks, number/size of disks)
+  - name: Import input model
+    include_vars:
+      file: '{{ item.src }}'
+      name: _input_model_vars
+    with_filetree: '{{ input_model_path }}'
+    when: item.state == 'file'
+    register: import_result
+
+  - name: Merge input model
+    set_fact:
+      input_model: '{{ input_model | combine(item.ansible_facts._input_model_vars) }}'
+    with_items: '{{ import_result.results }}'
+    when: item.ansible_facts is defined
+
+  - name: Create directories
+    file:
+      path: output/{{ item.path }}
+      state: directory
+      mode: '{{ item.mode }}'
+    with_filetree: heat
+    when: item.state == 'directory'
+
+  - name: Template files
+    template:
+      src: '{{ item.src }}'
+      dest: output/heat/{{ item.path }}
+      mode: '{{ item.mode }}'
+    with_filetree: heat/
+    when: item.state == 'file'
+

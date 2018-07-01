@@ -14,22 +14,19 @@
 # under the License.
 #
 ---
-server-metadata:
+virtual:
+  dummy-cidr: 192.168.100.0/24
+  images:
 {% for service_group in scenario['service-groups'] %}
 {%   for idx in range(service_group['member-count']) %}
 {%     set server_id = "%s-%04d"|format(service_group.name, idx+1) %}
-{%     set ns.server_idx = ns.server_idx+1 %}
-
-    - id: {{ server_id }}
-      hostname: {{ scenario['cloud-name'] }}-{{ server_id }}
-      ip-addr: 192.168.{{ ns.clm_net_id }}.{{ ns.server_idx }}
-      role: {{ service_group.name|upper }}-ROLE
-      server-group: RACK{{ (idx%3)+1 }}
-      mac-addr: ff:ff:ff:ff:ff:ff
-      ilo-ip: 255.255.255.255
-      ilo-password: password
-      ilo-user: admin
-      nic-mapping: HEAT
-
+    {{ server_id }}: {{ service_group['heat-image-id'] }}
+{%   endfor %}
+{% endfor %}
+  flavors:
+{% for service_group in scenario['service-groups'] %}
+{%   for idx in range(service_group['member-count']) %}
+{%     set server_id = "%s-%04d"|format(service_group.name, idx+1) %}
+    {{ server_id }}: {{ service_group['heat-flavor-id'] }}
 {%   endfor %}
 {% endfor %}
