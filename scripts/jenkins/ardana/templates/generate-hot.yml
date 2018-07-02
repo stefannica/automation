@@ -20,30 +20,18 @@
   gather_facts: False
   vars:
     input_model_path: ''
+    heat_path: 'output/heat/'
 
   tasks:
 
-  - name: Initialize facts
-    set_fact:
-      input_model: {}
-
   - name: Import input model
-    include_vars:
-      file: '{{ item.src }}'
-      name: _input_model_vars
-    with_filetree: '{{ input_model_path }}'
-    when: item.state == 'file'
+    load_input_model:
+      path: '{{ input_model_path }}'
     register: import_result
-
-  - name: Merge input model
-    set_fact:
-      input_model: '{{ input_model | combine(item.ansible_facts._input_model_vars) }}'
-    with_items: '{{ import_result.results }}'
-    when: item.ansible_facts is defined
 
   - name: Create directories
     file:
-      path: output/{{ item.path }}
+      path: '{{ heat_path }}/{{ item.path }}'
       state: directory
       mode: '{{ item.mode }}'
     with_filetree: heat
@@ -52,8 +40,10 @@
   - name: Template files
     template:
       src: '{{ item.src }}'
-      dest: output/heat/{{ item.path }}
+      dest: '{{ heat_path }}/{{ item.path }}'
       mode: '{{ item.mode }}'
     with_filetree: heat/
     when: item.state == 'file'
+    vars:
+      input_model: '{{ import_result.input_model }}'
 

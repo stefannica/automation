@@ -73,7 +73,7 @@ resources:
 #  - neutron provider networks:
 #    - identification: tagged with neutron.networks.<vlan/vxlan/...>
 #    - a CIDR and gateway are usually configured for the input model network if needed by underlay (vxlan/gre)
-#    - TBD: how are routes configured ?
+#    Q: what happens when this is shared (e.g. with the "management" network) ?
 #  - the "management" network:
 #    - the CIDR must be the same as configured in the baremetal settings
 #    - DHCP must be enabled and the IP addresses allocated to VMs must correspond to those configured in the server settings
@@ -82,6 +82,17 @@ resources:
 #    NOTE: can be different than the CONF network and the MANAGEMENT network, especially if it must be shielded from external access
 #  - the Ardana VMs need access to the "external API" network via the neutron external networks and vice-versa
 #    - the "external API" network must be added to the external router
+#  - networks-groups with routes configured. The route can point to either:
+#    - default: this network needs external access (needs to be added to the external router)
+#    - one of the other global networks: both global networks need to be added to the same router
+#    (not the external router, if at least one of them doesn't need external access)
+#    NOTE: this means that there's another route configured for the other network, or that its
+#    default route leads to this network
+#    - one of the neutron networks: both this network and the one used to implement the
+#    neutron network need to be added to the same router (not the external router, if at least one of them
+#    doesn't need external access)
+#    NOTE: this means that there's another route configured for the other network, or that its
+#    default route leads to this network
 
 # CIDRs for networks that don't have one specified:
 #  - the external network (tagged with neutron.l3_agent.external_network_bridge): taken from the neutron configuration
