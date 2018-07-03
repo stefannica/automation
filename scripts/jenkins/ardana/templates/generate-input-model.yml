@@ -23,6 +23,8 @@
 
   tasks:
 
+  - include_vars: input-model-vars.yml
+
   - include_vars:
       dir: scenarios/{{ scenario_name }}
       name: scenario
