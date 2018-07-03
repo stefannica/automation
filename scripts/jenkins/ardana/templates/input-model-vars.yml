@@ -15,7 +15,7 @@
 #
 ---
 
-service-component-groups:
+service_component_groups:
   CLM:
     - lifecycle-manager
     - tempest
@@ -34,10 +34,8 @@ service-component-groups:
     - neutron-client
     - nova-client
     - swift-client
-  DBMQ:
-    - mysql
-    - rabbitmq
   CORE:
+    - ntp-server
     - ip-cluster
     - bind
     - memcached
@@ -52,10 +50,11 @@ service-component-groups:
     - designate-pool-manager
     - designate-zone-manager
     - designate-mdns
-    - glance-api:
-        ha_mode: false
-        glance_stores: 'file'
-        glance_default_store: 'file'
+    - glance-api
+    #- glance-api:
+    #    ha_mode: false
+    #    glance_stores: 'file'
+    #    glance_default_store: 'file'
     - glance-registry
     - horizon
     - heat-api
@@ -77,12 +76,15 @@ service-component-groups:
     - octavia-api
     - octavia-health-manager
     - ops-console-web
+  DBMQ:
+    - mysql
+    - rabbitmq
   NEUTRON-NETWORK:
     - neutron-vpn-agent
     - neutron-dhcp-agent
     - neutron-metadata-agent
     - neutron-openvswitch-agent
-  MTRMON:
+  LMM:
     - ntp-client
     - ceilometer-api
     - ceilometer-polling

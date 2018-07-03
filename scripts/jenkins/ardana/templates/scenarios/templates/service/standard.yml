@@ -13,7 +13,17 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
+#
+# Standard scenario service template with dedicated CLM node: all services enabled
+# and variable number of controller, SLES compute and RHEL compute nodes.
+#
+# Template parameters:
+#   controllers: number of controller nodes (default: 3)
+#   sles_computes: number of SLES compute nodes (default: 1)
+#   rhel_computes: number of RHEL compute nodes (default: 1)
+#
 ---
+
 service-groups:
   - name: clm
     type: cluster
@@ -30,21 +40,31 @@ service-groups:
     distro-id: sles12sp3-x86_64
     heat-image-id: cleanvm-jeos-SLE12SP3
     heat-flavor-id: cloud-ardana-job-controller
-    member-count: 3
+    member-count: '{{ controllers|default(3) }}'
     service-components:
       - CORE
-      - MTRMON
+      - LMM
       - DBMQ
       - SWPAC
       - NEUTRON
       - SWOBJ
-  - name: compute
+  - name: sles-compute
     type: resource
     prefix: comp
     distro-id: sles12sp3-x86_64
     heat-image-id: cleanvm-jeos-SLE12SP3
     heat-flavor-id: cloud-ardana-job-compute
-    member-count: 2
+    member-count: '{{ sles_computes|default(1) }}'
+    min-count: 0
+    service-components:
+      - COMPUTE
+  - name: rhel-compute
+    type: resource
+    prefix: comp
+    distro-id: rhel73-x86_64
+    heat-image-id: centos73
+    heat-flavor-id: cloud-ardana-job-compute
+    member-count: '{{ rhel_computes|default(1) }}'
     min-count: 0
     service-components:
       - COMPUTE

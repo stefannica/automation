@@ -42,7 +42,19 @@
 
 {% for service_group_type in ['cluster', 'resource'] %}
       {{ service_group_type }}s:
-{%   for service_group in scenario['service-groups'] if service_group.type == service_group_type %}
+{%   for service_group in scenario['service-groups'] if service_group.type == service_group_type and service_group['member-count'] %}
+{%     set ns = namespace(service_components=[]) %}
+{%     for service_component_group in service_group['service-components'] %}
+{%       if service_component_group in service_component_groups %}
+{%         set ns.service_components = ns.service_components+service_component_groups[service_component_group] %}
+{%       else %}
+{%         set ns.service_components = ns.service_components+[service_component_group] %}
+{%       endif %}
+{%     endfor %}
+{%     if 'ntp-server' not in ns.service_components %}
+{%       set ns.service_components = ns.service_components+['ntp-client'] %}
+{%     endif %}
+
         - name: {{ service_group.name }}
           {{ service_group_type }}-prefix: {{ service_group.prefix }}
           server-role: {{ service_group.name|upper }}-ROLE
@@ -53,122 +65,9 @@
 {%     endif %}
           allocation-policy: strict
           service-components:
-{%     if 'CORE' in service_group['service-components'] %}
-            - ntp-server
-{%     else %}
-            - ntp-client
-{%     endif  %}
-{%     for service_component in service_group['service-components'] %}
-{%       if service_component == 'CLM' %}
-            - lifecycle-manager
-            - tempest
-            # Required for testing in (run-test.sh)
-            - openstack-client
-            - barbican-client
-            - ceilometer-client
-            - cinder-client
-            - designate-client
-            - glance-client
-            - heat-client
-            - ironic-client
-            - keystone-client
-            - magnum-client
-            - monasca-client
-            - neutron-client
-            - nova-client
-            - swift-client
-{%       elif service_component == 'DBMQ' %}
-            - mysql
-            - rabbitmq
-{%       elif service_component == 'CORE' %}
-            - ip-cluster
-            - bind
-            - memcached
-            - barbican-api
-            - barbican-worker
-            - cinder-api
-            - cinder-scheduler
-            - cinder-volume
-            - cinder-backup
-            - designate-api
-            - designate-central
-            - designate-pool-manager
-            - designate-zone-manager
-            - designate-mdns
-            - glance-api:
-                ha_mode: false
-                glance_stores: 'file'
-                glance_default_store: 'file'
-            - glance-registry
-            - horizon
-            - heat-api
-            - heat-api-cfn
-            - heat-api-cloudwatch
-            - heat-engine
-            - keystone-api
-            - keystone-client
-            - magnum-api
-            - magnum-conductor
-            - nova-api
-            - nova-placement-api
-            - nova-scheduler
-            - nova-conductor
-            - nova-console-auth
-            - nova-novncproxy
-            - neutron-server
-            - neutron-ml2-plugin
-            - octavia-api
-            - octavia-health-manager
-            - ops-console-web
-{%       elif service_component == 'NEUTRON' %}
-            - neutron-vpn-agent
-            - neutron-dhcp-agent
-            - neutron-metadata-agent
-            - neutron-openvswitch-agent
-{%       elif service_component == 'MTRMON' %}
-            - ntp-client
-            - ceilometer-api
-            - ceilometer-polling
-            - ceilometer-agent-notification
-            - ceilometer-common
-            #- ceilometer-client
-            - cassandra
-            - kafka
-            - spark
-
-            # Freezer-api need to be installed on same node as logging-server
-            # as they share elasticsearch
-            - freezer-api
-            - logging-server
-
-            - storm
-            - monasca-api
-            - monasca-persister
-            - monasca-notifier
-            - monasca-threshold
-            #- monasca-client
-            - monasca-transform
-            - zookeeper
-{%       elif service_component == 'SWPAC' %}
-            - swift-proxy
-            - swift-account
-            - swift-container
-            - swift-ring-builder
-            #- swift-client
-{%       elif service_component == 'SWOBJ' %}
-            - swift-object
-{%       elif service_component == 'COMPUTE' %}
-            - nova-compute-kvm
-            - nova-compute
-            - neutron-l3-agent
-            - neutron-metadata-agent
-            - neutron-openvswitch-agent
-            - neutron-lbaasv2-agent
-{%       else %}
+{%     for service_component in ns.service_components|unique|sort %}
             - {{ service_component }}
-{%       endif %}
 {%     endfor %}
-
 {%   endfor %}
 
 {% endfor %}

@@ -14,37 +14,49 @@
 # under the License.
 #
 ---
+#
+# Standard scenario service template with integrated CLM: all services enabled
+# and variable number of controller, SLES compute and RHEL compute nodes.
+#
+# Template parameters:
+#   controllers: number of controller nodes (default: 3)
+#   sles_computes: number of SLES compute nodes (default: 1)
+#   rhel_computes: number of RHEL compute nodes (default: 1)
+#
+
 service-groups:
-  - name: clm
-    type: cluster
-    prefix: clm
-    distro-id: sles12sp3-x86_64
-    heat-image-id: cleanvm-jeos-SLE12SP3
-    heat-flavor-id: cloud-ardana-job-compute
-    member-count: 1
-    service-components:
-      - CLM
   - name: controller
     type: cluster
     prefix: ctrl
     distro-id: sles12sp3-x86_64
     heat-image-id: cleanvm-jeos-SLE12SP3
     heat-flavor-id: cloud-ardana-job-controller
-    member-count: 3
+    member-count: '{{ controllers|default(3) }}'
     service-components:
-      - DBMQ
       - CORE
-      - NEUTRON
+      - LMM
+      - DBMQ
       - SWPAC
+      - NEUTRON
       - SWOBJ
-      - MTRMON
-  - name: compute
+      - CLM
+  - name: sles-compute
     type: resource
     prefix: comp
     distro-id: sles12sp3-x86_64
     heat-image-id: cleanvm-jeos-SLE12SP3
     heat-flavor-id: cloud-ardana-job-compute
-    member-count: 2
+    member-count: '{{ sles_computes|default(1) }}'
+    min-count: 0
+    service-components:
+      - COMPUTE
+  - name: rhel-compute
+    type: resource
+    prefix: comp
+    distro-id: rhel73-x86_64
+    heat-image-id: centos73
+    heat-flavor-id: cloud-ardana-job-compute
+    member-count: '{{ rhel_computes|default(1) }}'
     min-count: 0
     service-components:
       - COMPUTE

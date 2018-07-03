@@ -13,7 +13,27 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
+#
+# Multi-cluster scenario with dedicated CLM node and services fully spread
+# across individual clusters:
+#   - all services enabled
+#   - individual clusters with configurable size for: core, database/rabbitmq,
+#   neutron network agents, swift proxy/account/container and LMM services
+#   - swift object nodes configured as a resource group of variable size
+#   - configurable number of SLES compute and RHEL compute nodes
+#
+# Template parameters:
+#   core_nodes: number of core service nodes (default: 2)
+#   lmm_nodes: number of logging/metering/monitoring nodes (default: 3)
+#   dbmq_nodes: number of database/rabbitmq nodes (default: 3)
+#   swpac_nodes: number of swift proxy/account/container nodes (default: 3)
+#   neutron_nodes: number of neutron network nodes (default: 2)
+#   swobj_nodes: maximum number of swift object nodes (default: 3)
+#   sles_computes: maximum number of SLES compute nodes (default: 1)
+#   rhel_computes: maximum number of RHEL compute nodes (default: 1)
+#
 ---
+
 service-groups:
   - name: clm
     type: cluster
@@ -30,25 +50,25 @@ service-groups:
     distro-id: sles12sp3-x86_64
     heat-image-id: cleanvm-jeos-SLE12SP3
     heat-flavor-id: cloud-ardana-job-controller
-    member-count: 2
+    member-count: '{{ core_nodes|default(2) }}'
     service-components:
       - CORE
-  - name: mtrmon
+  - name: lmm
     type: cluster
-    prefix: mtrmon
+    prefix: lmm
     distro-id: sles12sp3-x86_64
     heat-image-id: cleanvm-jeos-SLE12SP3
     heat-flavor-id: cloud-ardana-job-controller
-    member-count: 3
+    member-count: '{{ lmm_nodes|default(3) }}'
     service-components:
-      - MTRMON
+      - LMM
   - name: dmbq
     type: cluster
     prefix: dmbq
     distro-id: sles12sp3-x86_64
     heat-image-id: cleanvm-jeos-SLE12SP3
     heat-flavor-id: cloud-ardana-job-controller
-    member-count: 3
+    member-count: '{{ dbmq_nodes|default(3) }}'
     service-components:
       - DBMQ
   - name: swpac
@@ -57,7 +77,7 @@ service-groups:
     distro-id: sles12sp3-x86_64
     heat-image-id: cleanvm-jeos-SLE12SP3
     heat-flavor-id: cloud-ardana-job-controller
-    member-count: 3
+    member-count: '{{ swpac_nodes|default(3) }}'
     service-components:
       - SWPAC
   - name: neutron
@@ -66,16 +86,26 @@ service-groups:
     distro-id: sles12sp3-x86_64
     heat-image-id: cleanvm-jeos-SLE12SP3
     heat-flavor-id: cloud-ardana-job-controller
-    member-count: 2
+    member-count: '{{ neutron_nodes|default(3) }}'
     service-components:
       - NEUTRON
-  - name: compute
+  - name: sles-compute
     type: resource
     prefix: comp
     distro-id: sles12sp3-x86_64
     heat-image-id: cleanvm-jeos-SLE12SP3
     heat-flavor-id: cloud-ardana-job-compute
-    member-count: 2
+    member-count: '{{ sles_computes|default(1) }}'
+    min-count: 0
+    service-components:
+      - COMPUTE
+  - name: rhel-compute
+    type: resource
+    prefix: comp
+    distro-id: rhel73-x86_64
+    heat-image-id: centos73
+    heat-flavor-id: cloud-ardana-job-compute
+    member-count: '{{ rhel_computes|default(1) }}'
     min-count: 0
     service-components:
       - COMPUTE
@@ -85,7 +115,7 @@ service-groups:
     distro-id: sles12sp3-x86_64
     heat-image-id: cleanvm-jeos-SLE12SP3
     heat-flavor-id: cloud-ardana-job-compute
-    member-count: 3
-    min-count: 3
+    member-count: '{{ swobj_nodes|default(3) }}'
+    min-count: '{{ 3 if swobj_nodes|default(3) >= 3 else swobj_nodes|default(3) }}'
     service-components:
       - SWOBJ

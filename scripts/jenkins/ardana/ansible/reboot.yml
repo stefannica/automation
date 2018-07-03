@@ -10,6 +10,14 @@
 
   - include: _get_ansible_hosts.yml
 
+  - name: Turn off the Keystone Fernet Token-Signing Key Rotation
+    shell: |
+      ansible-playbook -vvv -i hosts/verb_hosts keystone-stop-fernet-auto-rotation.yml
+    args:
+      chdir: /var/lib/ardana/scratch/ansible/next/ardana/ansible
+    become: true
+    become_user: ardana
+
   - name: Reboot deployer node
     include: reboot-node.yml
     vars:

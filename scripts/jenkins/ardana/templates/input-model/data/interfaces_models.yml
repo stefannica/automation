@@ -19,7 +19,7 @@
 
   interface-models:
 
-{% for service_group in scenario['service-groups'] %}
+{% for service_group in scenario['service-groups'] if service_group['member-count'] %}
     - name: {{ service_group.name|upper }}-INTERFACES
       network-interfaces:
 {%   set ns = namespace(intf_id=0) %}

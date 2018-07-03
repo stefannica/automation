@@ -28,7 +28,7 @@
 
   servers:
 
-{% for service_group in scenario['service-groups'] %}
+{% for service_group in scenario['service-groups'] if service_group['member-count'] %}
 {%   for idx in range(service_group['member-count']) %}
 {%     set server_id = "%s-%04d"|format(service_group.name, idx+1) %}
 {%     set ns.server_idx = ns.server_idx+1 %}

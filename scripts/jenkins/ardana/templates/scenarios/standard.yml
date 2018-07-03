@@ -14,17 +14,16 @@
 # under the License.
 #
 ---
-name: mid-scale
-cloud-name: mid-scale
+name: standard
+cloud-name: standard
 description: >
-  Multi-cluster scenario with all services enabled, dedicated CLM node, dedicated
-  clusters for: core, database/rabbitmq, neutron agents, swift proxy/account/container,
-  swift object, MML and 3 SLES compute nodes.
+  Standard scenario with all services enabled, dedicated CLM node, 3 controller nodes
+  and 2 SLES compute nodes.
 mml-enabled: True
-audit-enabled: True
+audit-enabled: False
 ses-enabled: False
-use-cinder-volume-disk: True
-use-glance-cache-disk: True
+use-cinder-volume-disk: False
+use-glance-cache-disk: False
 ntp-servers:
   - 'ntp.suse.de'
 
@@ -33,4 +32,14 @@ nameservers:
   - 192.168.245.3
   - 192.168.245.4
   - 192.168.245.2
+
+service-template:
+  name: standard
+  params:
+    controllers: 3
+    sles_computes: 3
+    rhel_computes: 0
+
+network-template:
+  name: standard
 

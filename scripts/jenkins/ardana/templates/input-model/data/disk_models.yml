@@ -19,7 +19,7 @@
 
   disk-models:
 {% set drive_letters = 'abcdefghijklmnopqrstuvwxyz' %}
-{% for service_group in scenario['service-groups'] %}
+{% for service_group in scenario['service-groups'] if service_group['member-count'] %}
 {%   set ns = namespace(drive_idx=0) %}
   - name: {{ service_group.name|upper }}-DISKS
     volume-groups:
@@ -132,10 +132,10 @@
               name: rabbitmq
               rabbitmq_env: home
 
-{%     elif service_component == 'MTRMON' %}
+{%     elif service_component == 'LMM' %}
 {%       set ns.drive_idx = ns.drive_idx+1 %}
 
-      - name: ardana-mtrmon
+      - name: ardana-lmm
         physical-volumes:
           - /dev/sd{{ drive_letters[ns.drive_idx] }}
         logical-volumes:

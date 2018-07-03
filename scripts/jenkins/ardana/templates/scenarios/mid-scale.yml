@@ -14,15 +14,17 @@
 # under the License.
 #
 ---
-name: entry-scale-kvm
-cloud-name: entry-scale
+name: mid-scale
+cloud-name: mid-scale
 description: >
-  Some description
+  Multi-cluster scenario with all services enabled, dedicated CLM node, dedicated
+  clusters for: core, database/rabbitmq, neutron agents, swift proxy/account/container,
+  swift object, MML and 3 SLES compute nodes.
 mml-enabled: True
-audit-enabled: False
+audit-enabled: True
 ses-enabled: False
-use-cinder-volume-disk: False
-use-glance-cache-disk: False
+use-cinder-volume-disk: True
+use-glance-cache-disk: True
 ntp-servers:
   - 'ntp.suse.de'
 
@@ -32,3 +34,11 @@ nameservers:
   - 192.168.245.4
   - 192.168.245.2
 
+service-template:
+  name: full-spread
+  params:
+    sles_computes: 1
+    rhel_computes: 0
+
+network-template:
+  name: full-spread
