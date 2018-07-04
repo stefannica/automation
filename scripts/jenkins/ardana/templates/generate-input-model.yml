@@ -26,19 +26,20 @@
   - include_vars: input-model-vars.yml
 
   - include_vars: scenarios/{{ scenario_name }}.yml
-    name: scenario
+
+  - set_fact:
+      rendered_template: "{{ lookup('template', 'scenarios/templates/service/{{ scenario[\"service-template\"].name }}.yml') | from_yaml }}"
+    with_items:
+      - 'scenarios/templates/service/{{ scenario["service-template"].name }}.yml'
+
 
   - include_vars:
       file: scenarios/templates/service/{{ scenario['service-template'].name }}.yml
       name: scenario
-    vars:
-      - "{{ scenario['service-template'].params }}"
 
   - include_vars:
       file: scenarios/templates/network/{{ scenario['network-template'].name }}.yml
       name: scenario
-    vars:
-      - "{{ scenario['network-template'].params }}"
 
   - name: Create directories
     file:
