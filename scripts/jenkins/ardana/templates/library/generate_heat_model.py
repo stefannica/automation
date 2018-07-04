@@ -57,23 +57,31 @@ def enhance_input_model(input_model):
         else:
             element[attr_name] = OrderedDict()
 
-    def link_attr_to_element(element, attr_name, target_map, ref_list='refs'):
+    def link_attr_to_element(element, attr_name, target_map, ref_list_attr=None):
         key = element.setdefault(attr_name)
         if isinstance(key, basestring) and key in target_map:
             element[attr_name] = target_map[key]
-            target_map[key].setdefault(ref_list, OrderedDict())[element.get('name', element.get('id'))] = element
+            if ref_list_attr:
+                target_map[key].setdefault(ref_list_attr, OrderedDict())[element.get('name', element.get('id'))] = element
 
-    def link_attr_list_to_element(element, attr_name, target_map, ref_list='refs'):
+    def link_attr_list_to_element(element, attr_name, target_map, ref_list_attr=None):
         key_list = element.setdefault(attr_name, [])
         for idx, key in enumerate(key_list):
             if isinstance(key, basestring) and key in target_map:
                 key_list[idx] = target_map[key]
-                target_map[key].setdefault(ref_list, OrderedDict())[element.get('name', element.get('id'))] = element
+                if ref_list_attr:
+                    target_map[key].setdefault(ref_list_attr, OrderedDict())[element.get('name', element.get('id'))] = element
 
-    def prune_unused_items(element_map, ref_list='refs'):
+    def prune_unused_items(element_map, ref_list_attrs):
         for name, element in element_map.items():
-            if not element.get(ref_list):
-                del element_map[name]
+            for ref_list_attr in ref_list_attrs:
+                if element.get(ref_list_attr):
+                    break
+            else:
+                continue
+            break
+        else:
+            del element_map[name]
 
     input_model = deepcopy(input_model)
 
@@ -93,49 +101,47 @@ def enhance_input_model(input_model):
         convert_list_attr_to_map(input_model, top_level_list,
                                  'id' if top_level_list == 'servers' else 'name')
 
-    load_balancers = OrderedDict()
     for cp in input_model['control-planes'].itervalues():
         convert_list_attr_to_map(cp, 'load-balancers')
         convert_list_attr_to_map(cp, 'clusters')
         convert_list_attr_to_map(cp, 'resources')
-        link_attr_list_to_element(cp, 'configuration-data', input_model['configuration-data'])
-        load_balancers.update(cp['load-balancers'])
+        link_attr_list_to_element(cp, 'configuration-data', input_model['configuration-data'], ref_list_attr='control-planes')
         for cluster in cp['clusters'].itervalues():
-            link_attr_to_element(cluster, 'server-role', input_model['server-roles'])
-            link_attr_list_to_element(cluster, 'configuration-data', input_model['configuration-data'])
+            link_attr_to_element(cluster, 'server-role', input_model['server-roles'], ref_list_attr='clusters')
+            link_attr_list_to_element(cluster, 'configuration-data', input_model['configuration-data'], ref_list_attr='clusters')
         for resource in cp['resources'].itervalues():
-            link_attr_to_element(resource, 'server-role', input_model['server-roles'])
-            link_attr_list_to_element(cluster, 'configuration-data', input_model['configuration-data'])
+            link_attr_to_element(resource, 'server-role', input_model['server-roles'], ref_list_attr='resources')
+            link_attr_list_to_element(resource, 'configuration-data', input_model['configuration-data'], ref_list_attr='resources')
 
     # Delete configuration elements that aren't referenced by
     # control planes, clusters or resources
-    prune_unused_items(input_model['configuration-data'])
+    prune_unused_items(input_model['configuration-data'], ['control-planes', 'clusters', 'resources'])
 
     # Delete server roles that aren't referenced by clusters or resources
-    prune_unused_items(input_model['server-roles'])
+    prune_unused_items(input_model['server-roles'], ['clusters', 'resources'])
 
     for server_role in input_model['server-roles'].itervalues():
-        link_attr_to_element(server_role, 'interface-model', input_model['interface-models'])
-        link_attr_to_element(server_role, 'disk-model', input_model['disk-models'])
+        link_attr_to_element(server_role, 'interface-model', input_model['interface-models'], ref_list_attr='server-roles')
+        link_attr_to_element(server_role, 'disk-model', input_model['disk-models'], ref_list_attr='server-roles')
 
     # Delete interface models and disk models that aren't referenced by server roles
-    prune_unused_items(input_model['interface-models'])
-    prune_unused_items(input_model['disk-models'])
+    prune_unused_items(input_model['interface-models'], ['server-roles'])
+    prune_unused_items(input_model['disk-models'], ['server-roles'])
 
     for interface_model in input_model['interface-models'].itervalues():
         convert_list_attr_to_map(interface_model, 'network-interfaces')
         for interface in interface_model['network-interfaces'].itervalues():
-            link_attr_list_to_element(interface, 'network-groups', input_model['network-groups'])
-            link_attr_list_to_element(interface, 'forced-network-groups', input_model['network-groups'])
+            link_attr_list_to_element(interface, 'network-groups', input_model['network-groups'], ref_list_attr='interface-models')
+            link_attr_list_to_element(interface, 'forced-network-groups', input_model['network-groups'], ref_list_attr='interface-models')
 
     # Delete network groups that aren't referenced by interface models
-    prune_unused_items(input_model['network-groups'])
+    prune_unused_items(input_model['network-groups'], ['interface-models'])
 
     for network_group in input_model['network-groups'].itervalues():
-        link_attr_list_to_element(network_group, 'load-balancers', load_balancers)
+        #link_attr_list_to_element(network_group, 'load-balancers', network_group, ref_list_attr='network-groups')
         # TBD: include neutron networks here (i.e. iterate through neutron config networks
         # and call the same function) !
-        link_attr_list_to_element(network_group, 'routes', input_model['network-groups'])
+        link_attr_list_to_element(network_group, 'routes', input_model['network-groups'], ref_list_attr='network-group-routes')
 
     # Delete networks that reference a non-existing network group
     input_model['networks'] = \
@@ -143,7 +149,7 @@ def enhance_input_model(input_model):
                            input_model['networks'].items()))
 
     for network in input_model['networks'].itervalues():
-        link_attr_to_element(network, 'network-group', input_model['network-groups'])
+        link_attr_to_element(network, 'network-group', input_model['network-groups'], ref_list_attr='networks')
 
     # Delete firewall rules that reference a non-existing network group
     input_model['firewall-rules'] = \
@@ -151,26 +157,26 @@ def enhance_input_model(input_model):
                            input_model['firewall-rules'].items()))
 
     for firewall_rule in input_model['firewall-rules'].itervalues():
-        link_attr_list_to_element(firewall_rule, 'network-groups', input_model['network-groups'])
+        link_attr_list_to_element(firewall_rule, 'network-groups', input_model['network-groups'], ref_list_attr='firewall-rules')
 
     # Delete servers that reference a non-existing server role
     input_model['servers'] = filter(lambda server: server['role'] in input_model['server-roles'],
                                     input_model['servers'])
 
     for server in input_model['servers']:
-        link_attr_to_element(server, 'role', input_model['server-roles'])
-        link_attr_to_element(server, 'nic-mapping', input_model['nic-mappings'])
-        link_attr_to_element(server, 'server-group', input_model['server-groups'])
+        link_attr_to_element(server, 'role', input_model['server-roles'], ref_list_attr='servers')
+        link_attr_to_element(server, 'nic-mapping', input_model['nic-mappings'], ref_list_attr='servers')
+        link_attr_to_element(server, 'server-group', input_model['server-groups'], ref_list_attr='servers')
 
     # Delete NIC mappings that aren't referenced by servers
-    prune_unused_items(input_model['nic-mappings'])
+    prune_unused_items(input_model['nic-mappings'], ['servers'])
 
     for server_group in input_model['server-groups'].itervalues():
-        link_attr_list_to_element(server_group, 'networks', input_model['networks'])
-        link_attr_list_to_element(server_group, 'server-groups', input_model['server-groups'])
+        link_attr_list_to_element(server_group, 'networks', input_model['networks'], ref_list_attr='server-groups')
+        link_attr_list_to_element(server_group, 'server-groups', input_model['server-groups'], ref_list_attr='server-group-parents')
 
     # Delete server groups that aren't referenced by servers or other server groups
-    prune_unused_items(input_model['server-groups'])
+    prune_unused_items(input_model['server-groups'], ['servers', 'server-group-parents'])
 
     return input_model
 
@@ -251,24 +257,26 @@ def generate_heat_model(input_model):
     clm_cidr = IPNetwork(input_model['baremetal']['subnet'],
                          input_model['baremetal']['netmask'])
     networks = heat_template['networks'] = OrderedDict()
-    subnets = heat_template['subnets'] = OrderedDict()
     for network in input_model['networks'].itervalues():
+
         net_name = re.sub('_net$', '', network['name'].lower().replace('-', '_').replace('_net$', ''))
-        cidr = IPNetwork(network['cidr']) if network.get('cidr') else None
+        if network.get('cidr'):
+            cidr = IPNetwork(network['cidr'])
+        elif 'neutron.l3_agent.external_network_bridge' in network['network-group'].get('tags', []):
+            pass
         gateway = IPAddress(network['gateway-ip']) if network.get('gateway-ip') else None
 
         heat_network = OrderedDict({
-            'name': net_name+'_network'
-        })
-        heat_subnet = OrderedDict({
-            'name': net_name+'_subnet',
-            'cidr': str(cidr),
-            'gateway': str(gateway),
+            'name': net_name,
             'enable_dhcp': cidr == clm_cidr
         })
 
+        if cidr:
+            heat_network['cidr'] = str(cidr)
+        if gateway:
+            heat_network['gateway'] = str(gateway)
+
         networks[heat_network['name']] = heat_network
-        subnets[heat_subnet['name']] = heat_subnet
 
     return heat_template
 

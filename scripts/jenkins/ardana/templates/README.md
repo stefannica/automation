@@ -243,3 +243,110 @@ General implementation:
        * solution 1: determine the image distro based on the *servers/distro-id* attribute and a predefined set of images associated with each distro
        * solution 2: use additional input info from user, as an extension to the input model, for some/all of the *servers* elements or *service-roles* elements
        * solution 3: combination of 1. and 2.
+
+
+###Reusable test automation tasks/modules
+
+    1. bootstrapping the CLM VM (hardware scenarios)
+    
+    Inputs:
+        - host hypervisor (e.g. the QE setup "gate")
+        - image:
+            - base SLES image file location or
+            - snapshot image created from previous CLM installation
+        - some network connectivity parameters specific to the QE setup
+            - management IP address
+            - TBD
+        
+    Outputs:
+        - running VM
+        
+    Process:
+    
+    2. CLM installation (universal)
+    
+    Inputs:
+        - CLM management IP
+        - media/repositories
+        
+    Output:
+        - base OS updated/rebooted to reflect the configured repos
+        - CLM installed on the target machine
+        
+    Process:
+    
+    3. create CLM snapshot 
+    
+    
+    4. generate input model
+    
+    Inputs:
+        - scenario
+            - service model
+            - network model
+            - disk model
+            - scenario parameters (e.g. number of nodes in each cluster)
+        - target resources
+            - virtual model
+                - flavors
+            - hardware setup:
+                - server list
+                - h/w network layout
+                - disk layout ?
+                - NIC mappings
+                
+     Outputs:
+        - complete input model
+        - virtual configuration (virtual case):
+            - flavors
+            - images
+                - SLES base image
+                - RHEL base image
+                - CLM snapshot
+        
+    5. generate heat template
+    
+    Inputs:
+        - imput model (e.g. from 4, or existing input model from the ardana-input-model repo, QA setup or from a customer deployment, etc.
+        - virtual configuration
+            - external network (e.g. floating)
+            - flavors
+            - volume sizes
+        
+    Outputs:
+        - heat template
+     
+    6. create virtual environment
+    
+    Inputs:
+        - heat template from 5.
+        
+    Output:
+        - virtual setup
+    
+    7. cloud installation (universal)
+     
+     Inputs:
+        - CLM management IP
+        - input model
+        
+     Output:
+        - fully deployed cloud
+     
+     Process:
+        - 
+     
+    8. update workflow
+    
+    9. tests (tempest, etc)
+    
+    TODO: SES
+        - configure CLM (NOTE: new or existing deployment)
+        - configure SES cluster
+        - deploy SES (virtual)
+        
+    TODO: RHEL
+    
+    TODO: update input model on existing cloud (e.g. scale out an existing cluster or resource)
+    
+    TODO: scale setup

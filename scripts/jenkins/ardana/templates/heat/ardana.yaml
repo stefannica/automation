@@ -14,92 +14,30 @@ resources:
 
   # networks and subnets
 {% set virt_config = input_model.virtual %}
-{% set ns = namespace(mgmt_network_name='', extapi_network_name='', extvm_network_name='', in_use=False, cp={}) %}
 
-{% set mgmt_cidr = '%s/%s'.format(input_model.baremetal.subnet, input_model.baremetal.netmask) | ipaddr('net') %}
+{% for network in heat_template.networks.values() %}
 
-{% for network in input_model.networks %}
-
-
-
-{%   if ns.in_use %}
-
-{%     set network_name = network.name|lower|replace('-','_')|regex_replace('-net$', '') %}
-{%     set ns.default_cidr = virt_config['dummy-cidr'] %}
-
-# Get default CIDR for external neutron networks
-{%     for network_group in input_model['network-groups'] if network['network-group'] == network_group.name and
-         'neutron.l3_agent.external_network_bridge' in network_group.tags|default([]) %}
-{%       for config_data in ns.cp['configuration-data'] if 'neutron' in input_model['configuration-data'][config_data] %}
-{%         for ext_net in input_model['configuration-data'][config_data].data.neutron_external_networks|default([]) %}
-{%           set ns.default_cidr = ext_net.cidr %}
-{%           set ns.default_gateway = ext_net.gateway %}
-{%         endfor %}
-{%       endfor %}
-{%     endfor %}
-
-{%     set cidr = network.cidr|default(ns.default_cidr) %}
-
-# the "management" network is the network that (is in use and) has the same CIDR as that used in the baremetal settings
-{%     if network.cidr|default('') == mgmt_cidr %}
-{%       set ns.mgmt_network_name = network_name %}
-{%     endif %}
-
-# networks that require special handling:
-#  - neutron external networks:
-#    - identification: tagged with neutron.l3_agent.external_network_bridge
-#    - the CIDR and gateway configured for Ardana neutron must be the same as that configured for the OS subnet
-#    - the OS subnet must be connected to the external router
-#    - all this is needed to make the network behave like an external network
-#  - neutron provider networks:
-#    - identification: tagged with neutron.networks.<vlan/vxlan/...>
-#    - a CIDR and gateway are usually configured for the input model network if needed by underlay (vxlan/gre)
-#    Q: what happens when this is shared (e.g. with the "management" network) ?
-#  - the "management" network:
-#    - the CIDR must be the same as configured in the baremetal settings
-#    - DHCP must be enabled and the IP addresses allocated to VMs must correspond to those configured in the server settings
-#    - the OS subnet must be connected to the external router
-#    - floating IP is associated with "management" IP of the CLM node
-#    NOTE: can be different than the CONF network and the MANAGEMENT network, especially if it must be shielded from external access
-#  - the Ardana VMs need access to the "external API" network via the neutron external networks and vice-versa
-#    - the "external API" network must be added to the external router
-#  - networks-groups with routes configured. The route can point to either:
-#    - default: this network needs external access (needs to be added to the external router)
-#    - one of the other global networks: both global networks need to be added to the same router
-#    (not the external router, if at least one of them doesn't need external access)
-#    NOTE: this means that there's another route configured for the other network, or that its
-#    default route leads to this network
-#    - one of the neutron networks: both this network and the one used to implement the
-#    neutron network need to be added to the same router (not the external router, if at least one of them
-#    doesn't need external access)
-#    NOTE: this means that there's another route configured for the other network, or that its
-#    default route leads to this network
-
-# CIDRs for networks that don't have one specified:
-#  - the external network (tagged with neutron.l3_agent.external_network_bridge): taken from the neutron configuration
-
-  network_{{ network_name }}:
+  {{ network['name'] }}_network:
     type: OS::Neutron::Net
     properties:
       port_security_enabled: False
 
-  subnet_{{ network_name }}:
+  {{ network['name'] }}_subnet:
     type: OS::Neutron::Subnet
     properties:
-      network_id: { get_resource: network_{{ network_name }} }
-      cidr: "{{ cidr }}"
+      network_id: { get_resource: {{ network.name }}_network }
+{%     if network['cidr'] is defined %}
+      cidr: "{{ network['cidr'] }}"
       allocation_pools:
-        - start: "{{ cidr | ipaddr('net') | ipaddr(2) }}"
-          end: "{{ cidr | ipaddr('net') | ipaddr(-2) }}"
+        - start: "{{ network['cidr'] | ipaddr('net') | ipaddr(2) }}"
+          end: "{{ network['cidr'] | ipaddr('net') | ipaddr(-2) }}"
+{%     endif %}
       ip_version: 4
-{%     if network['gateway-ip'] is defined %}
-      gateway_ip: "{{ network['gateway-ip'] }}"
+{%     if network['gateway'] is defined %}
+      gateway_ip: "{{ network['gateway'] }}"
 {%     endif %}
-{%     if network.cidr|default('') != mgmt_cidr %}
-      enable_dhcp: False
-{%     endif %}
+      enable_dhcp: "{{ network['enable_dhcp'] }}"
 
-{%   endif %}
 {% endfor %}
   # router
   router_ext:

@@ -32,23 +32,24 @@
   - name: Generate heat model
     generate_heat_model:
       input_model: '{{ import_result.input_model }}'
-    register: import_result
+    register: heat_result
 
-#  - name: Create directories
-#    file:
-#      path: '{{ heat_path }}/{{ item.path }}'
-#      state: directory
-#      mode: '{{ item.mode }}'
-#    with_filetree: heat
-#    when: item.state == 'directory'
-#
-#  - name: Template files
-#    template:
-#      src: '{{ item.src }}'
-#      dest: '{{ heat_path }}/{{ item.path }}'
-#      mode: '{{ item.mode }}'
-#    with_filetree: heat/
-#    when: item.state == 'file'
-#    vars:
-#      input_model: '{{ import_result.input_model }}'
+  - name: Create directories
+    file:
+      path: '{{ heat_path }}/{{ item.path }}'
+      state: directory
+      mode: '{{ item.mode }}'
+    with_filetree: heat
+    when: item.state == 'directory'
+
+  - name: Template files
+    template:
+      src: '{{ item.src }}'
+      dest: '{{ heat_path }}/{{ item.path }}'
+      mode: '{{ item.mode }}'
+    with_filetree: heat/
+    when: item.state == 'file'
+    vars:
+      input_model: '{{ import_result.input_model }}'
+      heat_template: '{{ heat_result.heat_template }}'
 
