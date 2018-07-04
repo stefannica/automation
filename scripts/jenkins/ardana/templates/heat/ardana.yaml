@@ -20,25 +20,6 @@ resources:
 
 {% for network in input_model.networks %}
 
-# determine if network is in use
-
-{%   set ns.in_use = False %}
-{%   for cp in input_model['control-planes'] %}
-{%     for service_group in (cp['clusters']|default([]) + cp['resources']|default([])) %}
-{%       for server in input_model.servers if server.role == service_group['server-role'] %}
-{%         for server_role in input_model['server-roles'] if server.role == server_role.name %}
-{%           for interface_model in input_model['interface-models'] if interface_model.name == server_role['interface-model'] %}
-{%             for interface in interface_model['network-interfaces'] %}
-{%                if network['network-group'] in (interface['network-groups']|default([]) + interface['forced-network-groups']|default([])) %}
-{%                  set ns.in_use = True %}
-{%                  set ns.cp = cp %}
-{%                endif %}
-{%             endfor %}
-{%           endfor %}
-{%         endfor %}
-{%       endfor %}
-{%     endfor %}
-{%   endfor %}
 
 
 {%   if ns.in_use %}
