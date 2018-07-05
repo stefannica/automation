@@ -86,10 +86,7 @@ def enhance_input_model(input_model):
                 if element.get(ref_list_attr):
                     break
             else:
-                continue
-            break
-        else:
-            del element_map[name]
+                del element_map[name]
 
     input_model = deepcopy(input_model)
 
@@ -109,19 +106,37 @@ def enhance_input_model(input_model):
         list_attr_to_map(input_model, top_level_list,
                                  'id' if top_level_list == 'servers' else 'name')
 
+    neutron_config_data = []
+
     for cp in input_model['control-planes'].itervalues():
         list_attr_to_map(cp, 'load-balancers')
         list_attr_to_map(cp, 'clusters')
         list_attr_to_map(cp, 'resources')
-        foreign_key_list_attr_to_ref_list(cp, 'configuration-data', input_model['configuration-data'], ref_list_attr='control-planes')
+        foreign_key_list_attr_to_ref_list(cp, 'configuration-data',
+                                          input_model['configuration-data'], ref_list_attr='control-planes')
+
         for cluster in cp['clusters'].itervalues():
-            foreign_key_attr_to_ref(cluster, 'server-role', input_model['server-roles'], ref_list_attr='clusters')
-            foreign_key_list_attr_to_ref_list(cluster, 'configuration-data', input_model['configuration-data'], ref_list_attr='clusters')
             cluster['control-plane'] = cp
+            foreign_key_attr_to_ref(cluster, 'server-role',
+                                    input_model['server-roles'], ref_list_attr='clusters')
+            foreign_key_list_attr_to_ref_list(cluster, 'configuration-data',
+                                              input_model['configuration-data'], ref_list_attr='clusters')
+            neutron_config_data += filter(lambda config_data: 'neutron' in config_data['services'],
+                                          cluster['configuration-data'])
         for resource in cp['resources'].itervalues():
-            foreign_key_attr_to_ref(resource, 'server-role', input_model['server-roles'], ref_list_attr='resources')
-            foreign_key_list_attr_to_ref_list(resource, 'configuration-data', input_model['configuration-data'], ref_list_attr='resources')
             resource['control-plane'] = cp
+            foreign_key_attr_to_ref(resource, 'server-role',
+                                    input_model['server-roles'], ref_list_attr='resources')
+            foreign_key_list_attr_to_ref_list(resource, 'configuration-data',
+                                              input_model['configuration-data'], ref_list_attr='resources')
+            neutron_config_data += filter(lambda config_data: 'neutron' in config_data['services'],
+                                          resource['configuration-data'])
+
+        neutron_config_data += filter(lambda config_data: 'neutron' in config_data['services'],
+                                      cp['configuration-data'])
+
+    input_model['neutron-config-data'] = neutron_config_data
+    list_attr_to_map(input_model, 'neutron-config-data')
 
     # Delete configuration elements that aren't referenced by
     # control planes, clusters or resources
@@ -131,12 +146,13 @@ def enhance_input_model(input_model):
     prune_unused_items(input_model['server-roles'], ['clusters', 'resources'])
 
     for server_role in input_model['server-roles'].itervalues():
-        for cluster in server_role['clusters'].itervalues():
-            link_element(server_role, 'control-planes', cp)
-        for resource in server_role['resources'].itervalues():
-            link_element(server_role, 'control-planes', cp)
-        foreign_key_attr_to_ref(server_role, 'interface-model', input_model['interface-models'], ref_list_attr='server-roles')
-        foreign_key_attr_to_ref(server_role, 'disk-model', input_model['disk-models'], ref_list_attr='server-roles')
+        # NOTE: for now assume there is a single control plane
+        server_role['control-plane'] = server_role.get('clusters', server_role.get('resources')).values()[0][
+            'control-plane']
+        foreign_key_attr_to_ref(server_role, 'interface-model',
+                                input_model['interface-models'], ref_list_attr='server-roles')
+        foreign_key_attr_to_ref(server_role, 'disk-model',
+                                input_model['disk-models'], ref_list_attr='server-roles')
 
     # Delete interface models and disk models that aren't referenced by server roles
     prune_unused_items(input_model['interface-models'], ['server-roles'])
@@ -145,17 +161,30 @@ def enhance_input_model(input_model):
     for interface_model in input_model['interface-models'].itervalues():
         list_attr_to_map(interface_model, 'network-interfaces')
         for interface in interface_model['network-interfaces'].itervalues():
-            foreign_key_list_attr_to_ref_list(interface, 'network-groups', input_model['network-groups'], ref_list_attr='interface-models')
-            foreign_key_list_attr_to_ref_list(interface, 'forced-network-groups', input_model['network-groups'], ref_list_attr='interface-models')
+            interface['interface-model'] = interface_model
+            foreign_key_list_attr_to_ref_list(interface, 'network-groups',
+                                              input_model['network-groups'], ref_list_attr='network-interfaces')
+            foreign_key_list_attr_to_ref_list(interface, 'forced-network-groups',
+                                              input_model['network-groups'], ref_list_attr='network-interfaces')
 
-    # Delete network groups that aren't referenced by interface models
-    prune_unused_items(input_model['network-groups'], ['interface-models'])
+    # Delete network groups that aren't referenced by network interfaces
+    prune_unused_items(input_model['network-groups'], ['network-interfaces'])
 
     for network_group in input_model['network-groups'].itervalues():
-        #foreign_key_list_attr_to_ref_list(network_group, 'load-balancers', network_group, ref_list_attr='network-groups')
+        tags = network_group.get('tags', [])
+        '''
+        if 'neutron.networks.vlan' in tags or 'neutron.networks.flat' in tags:
+            provider_net = ... ['provider-physical-network']
+        elif 'neutron.networks.vxlan' in tags:
+        elif 'neutron.l3_agent.external_network_bridge' in tags:
+        '''
+
+
+            #foreign_key_list_attr_to_ref_list(network_group, 'load-balancers', network_group, ref_list_attr='network-groups')
         # TBD: include neutron networks here (i.e. iterate through neutron config networks
         # and call the same function) !
-        foreign_key_list_attr_to_ref_list(network_group, 'routes', input_model['network-groups'], ref_list_attr='network-group-routes')
+        foreign_key_list_attr_to_ref_list(network_group, 'routes',
+                                          input_model['network-groups'], ref_list_attr='network-group-routes')
 
     # Delete networks that reference a non-existing network group
     input_model['networks'] = \
@@ -312,5 +341,6 @@ def main():
 
 
 from ansible.module_utils.basic import AnsibleModule
+
 if __name__ == '__main__':
     main()
