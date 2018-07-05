@@ -51,26 +51,34 @@ def enhance_input_model(input_model):
     :param input_model: the input model loaded from disk
     """
 
-    def convert_list_attr_to_map(element, attr_name, key='name'):
+    def list_attr_to_map(element, attr_name, key='name'):
         if attr_name in element:
             element[attr_name] = OrderedDict({item[key]: item for item in element[attr_name]})
         else:
             element[attr_name] = OrderedDict()
 
-    def link_attr_to_element(element, attr_name, target_map, ref_list_attr=None):
-        key = element.setdefault(attr_name)
-        if isinstance(key, basestring) and key in target_map:
-            element[attr_name] = target_map[key]
-            if ref_list_attr:
-                target_map[key].setdefault(ref_list_attr, OrderedDict())[element.get('name', element.get('id'))] = element
+    def link_element(element, attr_name, target_element, target_key_attr='name'):
+        element_map = element.setdefault(attr_name, {})
+        element_map.setdefault(target_element[target_key_attr], target_element)
 
-    def link_attr_list_to_element(element, attr_name, target_map, ref_list_attr=None):
-        key_list = element.setdefault(attr_name, [])
-        for idx, key in enumerate(key_list):
-            if isinstance(key, basestring) and key in target_map:
-                key_list[idx] = target_map[key]
+    def link_element_list(element, attr_name, target_element_list, target_key_attr='name'):
+        for target_element in target_element_list:
+            link_element(element, attr_name, target_element, target_key_attr)
+
+    def foreign_key_attr_to_ref(element, attr_name, target_map, ref_list_attr=None, key_attr='name'):
+        foreign_key = element.setdefault(attr_name)
+        if isinstance(foreign_key, basestring) and foreign_key in target_map:
+            element[attr_name] = target_map[foreign_key]
+            if ref_list_attr:
+                target_map[foreign_key].setdefault(ref_list_attr, OrderedDict())[element[key_attr]] = element
+
+    def foreign_key_list_attr_to_ref_list(element, attr_name, target_map, ref_list_attr=None, key_attr='name'):
+        foreign_key_list = element.setdefault(attr_name, [])
+        for idx, foreign_key in enumerate(foreign_key_list):
+            if isinstance(foreign_key, basestring) and foreign_key in target_map:
+                foreign_key_list[idx] = target_map[foreign_key]
                 if ref_list_attr:
-                    target_map[key].setdefault(ref_list_attr, OrderedDict())[element.get('name', element.get('id'))] = element
+                    target_map[foreign_key].setdefault(ref_list_attr, OrderedDict())[element[key_attr]] = element
 
     def prune_unused_items(element_map, ref_list_attrs):
         for name, element in element_map.items():
@@ -98,20 +106,22 @@ def enhance_input_model(input_model):
                            # 'servers',
                            'server-groups',
                            'firewall-rules']:
-        convert_list_attr_to_map(input_model, top_level_list,
+        list_attr_to_map(input_model, top_level_list,
                                  'id' if top_level_list == 'servers' else 'name')
 
     for cp in input_model['control-planes'].itervalues():
-        convert_list_attr_to_map(cp, 'load-balancers')
-        convert_list_attr_to_map(cp, 'clusters')
-        convert_list_attr_to_map(cp, 'resources')
-        link_attr_list_to_element(cp, 'configuration-data', input_model['configuration-data'], ref_list_attr='control-planes')
+        list_attr_to_map(cp, 'load-balancers')
+        list_attr_to_map(cp, 'clusters')
+        list_attr_to_map(cp, 'resources')
+        foreign_key_list_attr_to_ref_list(cp, 'configuration-data', input_model['configuration-data'], ref_list_attr='control-planes')
         for cluster in cp['clusters'].itervalues():
-            link_attr_to_element(cluster, 'server-role', input_model['server-roles'], ref_list_attr='clusters')
-            link_attr_list_to_element(cluster, 'configuration-data', input_model['configuration-data'], ref_list_attr='clusters')
+            foreign_key_attr_to_ref(cluster, 'server-role', input_model['server-roles'], ref_list_attr='clusters')
+            foreign_key_list_attr_to_ref_list(cluster, 'configuration-data', input_model['configuration-data'], ref_list_attr='clusters')
+            cluster['control-plane'] = cp
         for resource in cp['resources'].itervalues():
-            link_attr_to_element(resource, 'server-role', input_model['server-roles'], ref_list_attr='resources')
-            link_attr_list_to_element(resource, 'configuration-data', input_model['configuration-data'], ref_list_attr='resources')
+            foreign_key_attr_to_ref(resource, 'server-role', input_model['server-roles'], ref_list_attr='resources')
+            foreign_key_list_attr_to_ref_list(resource, 'configuration-data', input_model['configuration-data'], ref_list_attr='resources')
+            resource['control-plane'] = cp
 
     # Delete configuration elements that aren't referenced by
     # control planes, clusters or resources
@@ -121,27 +131,31 @@ def enhance_input_model(input_model):
     prune_unused_items(input_model['server-roles'], ['clusters', 'resources'])
 
     for server_role in input_model['server-roles'].itervalues():
-        link_attr_to_element(server_role, 'interface-model', input_model['interface-models'], ref_list_attr='server-roles')
-        link_attr_to_element(server_role, 'disk-model', input_model['disk-models'], ref_list_attr='server-roles')
+        for cluster in server_role['clusters'].itervalues():
+            link_element(server_role, 'control-planes', cp)
+        for resource in server_role['resources'].itervalues():
+            link_element(server_role, 'control-planes', cp)
+        foreign_key_attr_to_ref(server_role, 'interface-model', input_model['interface-models'], ref_list_attr='server-roles')
+        foreign_key_attr_to_ref(server_role, 'disk-model', input_model['disk-models'], ref_list_attr='server-roles')
 
     # Delete interface models and disk models that aren't referenced by server roles
     prune_unused_items(input_model['interface-models'], ['server-roles'])
     prune_unused_items(input_model['disk-models'], ['server-roles'])
 
     for interface_model in input_model['interface-models'].itervalues():
-        convert_list_attr_to_map(interface_model, 'network-interfaces')
+        list_attr_to_map(interface_model, 'network-interfaces')
         for interface in interface_model['network-interfaces'].itervalues():
-            link_attr_list_to_element(interface, 'network-groups', input_model['network-groups'], ref_list_attr='interface-models')
-            link_attr_list_to_element(interface, 'forced-network-groups', input_model['network-groups'], ref_list_attr='interface-models')
+            foreign_key_list_attr_to_ref_list(interface, 'network-groups', input_model['network-groups'], ref_list_attr='interface-models')
+            foreign_key_list_attr_to_ref_list(interface, 'forced-network-groups', input_model['network-groups'], ref_list_attr='interface-models')
 
     # Delete network groups that aren't referenced by interface models
     prune_unused_items(input_model['network-groups'], ['interface-models'])
 
     for network_group in input_model['network-groups'].itervalues():
-        #link_attr_list_to_element(network_group, 'load-balancers', network_group, ref_list_attr='network-groups')
+        #foreign_key_list_attr_to_ref_list(network_group, 'load-balancers', network_group, ref_list_attr='network-groups')
         # TBD: include neutron networks here (i.e. iterate through neutron config networks
         # and call the same function) !
-        link_attr_list_to_element(network_group, 'routes', input_model['network-groups'], ref_list_attr='network-group-routes')
+        foreign_key_list_attr_to_ref_list(network_group, 'routes', input_model['network-groups'], ref_list_attr='network-group-routes')
 
     # Delete networks that reference a non-existing network group
     input_model['networks'] = \
@@ -149,7 +163,7 @@ def enhance_input_model(input_model):
                            input_model['networks'].items()))
 
     for network in input_model['networks'].itervalues():
-        link_attr_to_element(network, 'network-group', input_model['network-groups'], ref_list_attr='networks')
+        foreign_key_attr_to_ref(network, 'network-group', input_model['network-groups'], ref_list_attr='networks')
 
     # Delete firewall rules that reference a non-existing network group
     input_model['firewall-rules'] = \
@@ -157,23 +171,23 @@ def enhance_input_model(input_model):
                            input_model['firewall-rules'].items()))
 
     for firewall_rule in input_model['firewall-rules'].itervalues():
-        link_attr_list_to_element(firewall_rule, 'network-groups', input_model['network-groups'], ref_list_attr='firewall-rules')
+        foreign_key_list_attr_to_ref_list(firewall_rule, 'network-groups', input_model['network-groups'], ref_list_attr='firewall-rules')
 
     # Delete servers that reference a non-existing server role
     input_model['servers'] = filter(lambda server: server['role'] in input_model['server-roles'],
                                     input_model['servers'])
 
     for server in input_model['servers']:
-        link_attr_to_element(server, 'role', input_model['server-roles'], ref_list_attr='servers')
-        link_attr_to_element(server, 'nic-mapping', input_model['nic-mappings'], ref_list_attr='servers')
-        link_attr_to_element(server, 'server-group', input_model['server-groups'], ref_list_attr='servers')
+        foreign_key_attr_to_ref(server, 'role', input_model['server-roles'], ref_list_attr='servers', key_attr='id')
+        foreign_key_attr_to_ref(server, 'nic-mapping', input_model['nic-mappings'], ref_list_attr='servers', key_attr='id')
+        foreign_key_attr_to_ref(server, 'server-group', input_model['server-groups'], ref_list_attr='servers', key_attr='id')
 
     # Delete NIC mappings that aren't referenced by servers
     prune_unused_items(input_model['nic-mappings'], ['servers'])
 
     for server_group in input_model['server-groups'].itervalues():
-        link_attr_list_to_element(server_group, 'networks', input_model['networks'], ref_list_attr='server-groups')
-        link_attr_list_to_element(server_group, 'server-groups', input_model['server-groups'], ref_list_attr='server-group-parents')
+        foreign_key_list_attr_to_ref_list(server_group, 'networks', input_model['networks'], ref_list_attr='server-groups')
+        foreign_key_list_attr_to_ref_list(server_group, 'server-groups', input_model['server-groups'], ref_list_attr='server-group-parents')
 
     # Delete server groups that aren't referenced by servers or other server groups
     prune_unused_items(input_model['server-groups'], ['servers', 'server-group-parents'])
