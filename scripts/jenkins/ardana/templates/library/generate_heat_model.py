@@ -302,7 +302,6 @@ def generate_heat_model(input_model):
     networks = heat_template['networks'] = OrderedDict()
     for network in input_model['networks'].itervalues():
 
-        net_name = re.sub('_net$', '', network['name'].lower().replace('-', '_').replace('_net$', ''))
         if network.get('cidr'):
             cidr = IPNetwork(network['cidr'])
         elif 'neutron.l3_agent.external_network_bridge' in network['network-group'].get('tags', []):
@@ -310,7 +309,7 @@ def generate_heat_model(input_model):
         gateway = IPAddress(network['gateway-ip']) if network.get('gateway-ip') else None
 
         heat_network = OrderedDict({
-            'name': net_name,
+            'name': network['name'],
             'enable_dhcp': cidr == clm_cidr
         })
 
@@ -319,7 +318,58 @@ def generate_heat_model(input_model):
         if gateway:
             heat_network['gateway'] = str(gateway)
 
-        networks[heat_network['name']] = heat_network
+        networks[network['name']] = heat_network
+
+    interface_models = OrderedDict()
+
+    for interface_model in input_model['interface-models'].itervalues():
+        heat_interface_model = interface_models[interface_model['name']] = OrderedDict({
+            'name': interface_model['name'],
+            'ports': OrderedDict()
+        })
+        for interface in interface_model['network-interfaces'].itervalues():
+            devices = interface['bond-data']['devices'] if 'bond-data' in interface else [interface['device']]
+            for network_group in interface.get('network-groups', []) + interface.get('forced-network-groups', []):
+                for network in network_group['networks'].itervalues():
+                    for device in devices:
+                        heat_interface_model['ports'][device['name']] = OrderedDict({
+                            'name': device['name'],
+                            'network': networks[network['name']]
+                        })
+
+    disk_models = OrderedDict()
+
+    for disk_model in input_model['disk-models'].itervalues():
+        heat_disk_model = disk_models[disk_model['name']] = OrderedDict({
+            'name': disk_model['name'],
+            'volumes': OrderedDict()
+        })
+        devices = []
+        for volume_group in disk_model.get('volume-groups', []):
+            devices += volume_group['physical-volumes']
+        for device_group in disk_model.get('device-groups', []):
+            devices += [device['name'] for device in device_group['devices']]
+        for device in list(set(devices)):
+            if device == '/dev/sda_root': continue
+            volume_name = re.sub('^sd', 'vd', device.replace('/dev/', ''))
+            heat_disk_model['volumes'][volume_name] = OrderedDict({
+                'name': volume_name,
+                'mountpoint': device
+            })
+
+    servers = heat_template['servers'] = OrderedDict()
+
+    for server in input_model['servers']:
+
+        heat_server = OrderedDict({
+            'name': server['id'],
+            'ip_addr': server['ip-addr'],
+            'server_role': server['role']['name'],
+            'interface_model': interface_models[server['role']['interface-model']['name']],
+            'disk-model': disk_models[server['role']['disk-model']['name']]
+        })
+
+        servers[server['id']] = heat_server
 
     return heat_template
 

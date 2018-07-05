@@ -78,17 +78,6 @@ resources:
 
 # determine if server is in use
 
-{%   set ns.in_use = False %}
-{%   for cp in input_model['control-planes'] %}
-{%     for service_group in (cp['clusters']|default([]) + cp['resources']|default([])) %}
-{%       for server in input_model.servers if server.role == service_group['server-role'] %}
-{%         set ns.in_use = True %}
-{%       endfor %}
-{%     endfor %}
-{%   endfor %}
-
-{%   if ns.in_use %}
-
 
 {%     set server_name = server.id|lower|replace('-','_') %}
 {%     set image_id = virt_config.images[server.id]|default(virt_config.images[server['role']])|default(virt_config.images['default']) %}
