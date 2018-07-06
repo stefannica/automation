@@ -1,5 +1,6 @@
 #
-# (c) Copyright 2018 SUSE LLC
+# (c) Copyright 2015 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,17 +15,13 @@
 # under the License.
 #
 ---
-disk-models:
-  volume-groups:
-    - name: ardana-vg
-      disk-components:
-        - OS
-        - CINDER-IMAGE
-        - GLANCE-CACHE
-        - DBMQ
-        - LMM
-  device-groups:
-    - name: swiftobj
-      device-count: '{{ swobj_devices|default(2) }}'
-      disk-component: SWOBJ
+  product:
+    version: 2
 
+  server-roles:
+{% for service_group in scenario['service-groups'] if service_group['member-count']|int %}
+    - name: {{ service_group.name|upper }}-ROLE
+      interface-model: {{ service_group.name|upper }}-INTERFACES
+      disk-model: {{ service_group.name|upper }}-DISKS
+
+{% endfor %}

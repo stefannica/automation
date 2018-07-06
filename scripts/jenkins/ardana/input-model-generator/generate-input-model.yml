@@ -28,18 +28,15 @@
   - include_vars: scenarios/{{ scenario_name }}.yml
 
   - set_fact:
-      rendered_template: "{{ lookup('template', 'scenarios/templates/service/{{ scenario[\"service-template\"].name }}.yml') | from_yaml }}"
+      scenario: "{{ scenario|combine(lookup('template', 'scenarios/templates/{{ item }}') | from_yaml) }}"
     with_items:
-      - 'scenarios/templates/service/{{ scenario["service-template"].name }}.yml'
+      - "service/{{ scenario['service-template'] }}.yml"
+      - "network/{{ scenario['network-template'] }}.yml"
+      - "disk/{{ scenario['disk-template'] }}.yml"
 
 
-  - include_vars:
-      file: scenarios/templates/service/{{ scenario['service-template'].name }}.yml
-      name: scenario
-
-  - include_vars:
-      file: scenarios/templates/network/{{ scenario['network-template'].name }}.yml
-      name: scenario
+  - debug:
+      msg: "{{ scenario }}"
 
   - name: Create directories
     file:

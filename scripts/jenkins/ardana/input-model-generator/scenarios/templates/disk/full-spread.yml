@@ -34,9 +34,9 @@ disk-models:
         - LMM
   device-groups:
     - name: swiftobj
-      device-count: '{{ swobj_devices|default(3) }}'
+      device-count: '{{ scenario.swobj_devices|default(3) }}'
       component: SWOBJ
     - name: swiftpac
-      device-count: '{{ swpac_devices|default(1) }}'
+      device-count: '{{ scenario.swpac_devices|default(1) }}'
       component: SWPAC
 

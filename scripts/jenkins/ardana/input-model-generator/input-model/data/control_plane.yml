@@ -42,7 +42,7 @@
 
 {% for service_group_type in ['cluster', 'resource'] %}
       {{ service_group_type }}s:
-{%   for service_group in scenario['service-groups'] if service_group.type == service_group_type and service_group['member-count'] %}
+{%   for service_group in scenario['service-groups'] if service_group.type == service_group_type and service_group['member-count']|int %}
 {%     set ns = namespace(service_components=[]) %}
 {%     for service_component_group in service_group['service-components'] %}
 {%       if service_component_group in service_component_groups %}
@@ -59,7 +59,7 @@
           {{ service_group_type }}-prefix: {{ service_group.prefix }}
           server-role: {{ service_group.name|upper }}-ROLE
 {%     if service_group_type == 'cluster' %}
-          member-count: {{ service_group['member-count'] }}
+          member-count: {{ service_group['member-count']|int }}
 {%     else %}
           min-count: {{ service_group['min-count'] }}
 {%     endif %}

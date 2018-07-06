@@ -15,11 +15,10 @@
 #
 ---
 scenario:
-  name: standard
-  cloud-name: standard
+  name: entry-scale-kvm
+  cloud-name: entry-scale
   description: >
-    Standard scenario with all services enabled, dedicated CLM node, 3 controller nodes
-    and 2 SLES compute nodes.
+    Some description
   mml-enabled: True
   audit-enabled: False
   ses-enabled: False
@@ -34,13 +33,10 @@ scenario:
     - 192.168.245.4
     - 192.168.245.2
 
-  service-template:
-    name: standard
-    params:
-      controllers: 3
-      sles_computes: 3
-      rhel_computes: 0
+  controllers: 3
+  sles_computes: 1
+  rhel_computes: 0
 
-  network-template:
-    name: standard
-
+  service-template: standard-dac
+  network-template: compact
+  disk-template: compact

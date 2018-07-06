@@ -17,16 +17,16 @@
 virtual:
   dummy-cidr: 192.168.100.0/24
   images:
-{% for service_group in scenario['service-groups'] %}
-{%   for idx in range(service_group['member-count']) %}
+{% for service_group in scenario['service-groups'] if service_group['member-count']|int %}
+{%   for idx in range(service_group['member-count']|int) %}
 {%     set server_id = "%s-%04d"|format(service_group.name, idx+1) %}
-    {{ server_id }}: {{ service_group['heat-image-id'] }}
+    {{ server_id }}: {{ service_group['heat-image-id']|default('') }}
 {%   endfor %}
 {% endfor %}
   flavors:
-{% for service_group in scenario['service-groups'] %}
-{%   for idx in range(service_group['member-count']) %}
+{% for service_group in scenario['service-groups'] if service_group['member-count']|int %}
+{%   for idx in range(service_group['member-count']|int) %}
 {%     set server_id = "%s-%04d"|format(service_group.name, idx+1) %}
-    {{ server_id }}: {{ service_group['heat-flavor-id'] }}
+    {{ server_id }}: {{ service_group['heat-flavor-id']|default('') }}
 {%   endfor %}
 {% endfor %}

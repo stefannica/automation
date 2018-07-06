@@ -35,11 +35,9 @@ scenario:
     - 192.168.245.4
     - 192.168.245.2
 
-  service-template:
-    name: full-spread
-    params:
-      sles_computes: 1
-      rhel_computes: 0
+  sles_computes: 1
+  rhel_computes: 0
 
-  network-template:
-    name: full-spread
+  service-template: full-spread
+  network-template: full-spread
+  disk-template: full-spread

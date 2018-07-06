@@ -19,7 +19,7 @@
 
   disk-models:
 {% set drive_letters = 'abcdefghijklmnopqrstuvwxyz' %}
-{% for service_group in scenario['service-groups'] if service_group['member-count'] %}
+{% for service_group in scenario['service-groups'] if service_group['member-count']|int %}
 {%   set ns = namespace(drive_idx=0) %}
   - name: {{ service_group.name|upper }}-DISKS
     volume-groups:
