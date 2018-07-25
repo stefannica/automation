@@ -14,17 +14,26 @@
 # under the License.
 #
 ---
+scenario:
+  name: entry-scale-kvm
+  cloud-name: entry-scale-kvm
+  description: >
+    Base scenario for QE
+  mml-enabled: True
+  audit-enabled: True
+  ses-enabled: False
+  use-cinder-volume-disk: False
+  use-glance-cache-disk: False
+  ntp-servers:
+    - 'ntp.suse.de'
 
-- name: Generate input model
-  hosts: localhost
-  connection: local
-  gather_facts: False
+  nameservers:
+    - 147.2.2.2
 
-  vars_prompt:
-    - name: "scenario_name"
-      prompt: "Scenario name [standard, entry-scale-kvm, mid-scale]"
-      private: no
-      when: scenario_name not defined
+  controllers: 3
+  sles_computes: 2
+  rhel_computes: 0
 
-  roles:
-    - input_model_generator
+  service-template: standard
+  network-template: compact-bond
+  disk-template: compact

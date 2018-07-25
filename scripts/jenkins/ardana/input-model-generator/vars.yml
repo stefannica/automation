@@ -1,0 +1,113 @@
+---
+
+scenario_name: qe-entry-scale-kvm
+
+baremetal:
+  env: qe102
+  subnet: 24
+  subnet_start: 231
+  servers:
+    - id: lifecycle-manager
+      nic_mapping: MY-1PORT-SERVER
+    - id: controller1
+      nic_mapping: MY-4PORT-SERVER
+      mac_addr: "8c:dc:d4:b5:c6:5c"
+      ilo_ip: 192.168.10.108
+      ilo_user: HLM102
+      ilo_password: wnfJrcwP
+    - id: controller2
+      nic_mapping: MY-4PORT-SERVER
+      mac_addr: "8c:dc:d4:b5:f1:00"
+      ilo_ip: 192.168.10.122
+      ilo_user: HLM102
+      ilo_password: wnfJrcwP
+    - id: controller3
+      nic_mapping: MY-4PORT-SERVER
+      mac_addr: "8c:dc:d4:b6:37:40"
+      ilo_ip: 192.168.10.142
+      ilo_user: HLM102
+      ilo_password: wnfJrcwP
+    - id: compute1
+      nic_mapping: MY-2PORT-SERVER
+      mac_addr: "8c:dc:d4:b5:7d:b8"
+      ilo_ip: 192.168.11.1
+      ilo_user: HLM102
+      ilo_password: wnfJrcwP
+    - id: compute2
+      nic_mapping: MY-2PORT-SERVER
+      mac_addr: "5c:b9:01:89:ba:40"
+      ilo_ip: 192.168.10.48
+      ilo_user: HLM102
+      ilo_password: wnfJrcwP
+
+  nic_mappings:
+   - name: MY-4PORT-SERVER
+     physical_ports:
+       - logical_name: hed1
+         type: simple-port
+         bus_address: "0000:07:00.0"
+       - logical_name: hed2
+         type: simple-port
+         bus_address: "0000:08:00.0"
+       - logical_name: hed3
+         type: simple-port
+         bus_address: "0000:09:00.0"
+       - logical_name: hed4
+         type: simple-port
+         bus_address: "0000:0a:00.0"
+   - name: MY-2PORT-SERVER
+     physical_ports:
+       - logical_name: hed3
+         type: simple-port
+         bus_address: "0000:04:00.0"
+       - logical_name: hed4
+         type: simple-port
+         bus_address: "0000:04:00.1"
+   - name: MY-1PORT-SERVER
+     physical_ports:
+       - logical_name: hed3
+         type: simple-port
+         bus_address: "0000:00:04.0"
+
+  networks:
+   external-api:
+     vlanid: 1111
+     cidr: 10.84.81.112/28
+     gateway-ip: 10.84.81.126
+   management:
+     vlanid: 825
+     cidr: 192.168.24.0/24
+     gateway-ip: 192.168.24.254
+     addresses:
+       - 192.168.24.231-192.168.24.246
+   external-vm:
+     vlanid: 1112
+   guest:
+     vlanid: 1114
+     cidr: 10.1.2.0/24
+     gateway-ip: 10.1.2.254
+
+  neutron:
+   external_networks:
+     - name: ext-net
+       cidr: 10.84.84.0/22
+       gateway: 10.84.87.254
+       allocation_pools:
+         - start: 10.84.84.100
+           end: 10.84.84.200
+   provider_networks:
+     - name: OCTAVIA-MGMT-NET
+       provider:
+         - network_type: vlan
+           physical_network: physnet1
+           segmentation_id: 1113
+       cidr: 192.168.93.128/26
+       no_gateway:  True
+       enable_dhcp: True
+       allocation_pools:
+         - start: 192.168.93.130
+           end: 192.168.93.189
+       host_routes:
+         # route to MANAGEMENT-NET
+         - destination: 192.168.24.0/24
+           nexthop:  192.168.93.190

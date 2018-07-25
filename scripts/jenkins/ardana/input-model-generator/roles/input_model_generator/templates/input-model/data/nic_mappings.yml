@@ -37,6 +37,17 @@
   #   misinterpret the embedded colon (:) characters
 
   nic-mappings:
+{% if baremetal is defined %}
+{%   for map in baremetal.nic_mappings %}
+    - name: {{ map.name }}
+      physical-ports:
+{%     for port in map.physical_ports %}
+        - logical-name: {{ port.logical_name }}
+          buss-address: {{ port.bus_address }}
+          type: simple-port
+{%     endfor %}
+{%   endfor %}
+{% else %}
     - name: HEAT
       physical-ports:
         - logical-name: hed1
@@ -70,3 +81,4 @@
         - logical-name: hed8
           type: simple-port
           bus-address: "0000:00:0a.0"
+{% endif %}

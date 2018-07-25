@@ -19,7 +19,7 @@
   cloud:
     name: {{ scenario['cloud-name'] }}
     hostname-data:
-        host-prefix: ardana
+        host-prefix: {{ 'ardana-' ~ baremetal.env if baremetal is defined and 'env' in baremetal else 'ardana' }}
         member-prefix: -m
     ntp-servers:
 {% for server in scenario['ntp-servers'] %}

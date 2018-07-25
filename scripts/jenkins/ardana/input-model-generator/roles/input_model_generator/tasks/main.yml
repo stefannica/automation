@@ -1,0 +1,31 @@
+---
+
+- name: Gather variables for scenario '{{ scenario_name }}'
+  include_vars: "{{ scenario_name }}.yml"
+
+- set_fact:
+    scenario: "{{ scenario|combine(lookup('template', 'vars/templates/{{ item }}') | from_yaml) }}"
+  loop:
+    - "service/{{ scenario['service-template'] }}.yml"
+    - "network/{{ scenario['network-template'] }}.yml"
+    - "disk/{{ scenario['disk-template'] }}.yml"
+
+- name: Create directories
+  file:
+    path: output/{{ scenario_name }}/input-model/{{ item.path }}
+    state: directory
+    mode: '{{ item.mode }}'
+  with_filetree: templates/input-model/
+  when: item.state == 'directory'
+  loop_control:
+    label: "{{ item.root | relpath }}/{{ item.path }}"
+
+- name: Template files
+  template:
+    src: '{{ item.src }}'
+    dest: output/{{ scenario_name }}/input-model/{{ item.path }}
+    mode: '{{ item.mode }}'
+  with_filetree: templates/input-model/
+  when: item.state == 'file'
+  loop_control:
+    label: "{{ item.root | relpath }}/{{ item.path }}"

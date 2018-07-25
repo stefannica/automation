@@ -23,8 +23,10 @@
     - name: {{ service_group.name|upper }}-INTERFACES
       network-interfaces:
 {%   set ns = namespace(intf_id=0) %}
+{%   set processed_groups = [] %}
 {%   for network_group in scenario['network-groups'] %}
-{%     if 'CLM' in network_group['component-endpoints'] or
+{%     if network_group.name not in processed_groups and
+          ('CLM' in network_group['component-endpoints'] or
           'MANAGEMENT' in network_group['component-endpoints'] or
 
           ('EXTERNAL-API' in network_group['component-endpoints'] and
@@ -45,14 +47,35 @@
           ('SWIFT' in network_group['component-endpoints'] and
            ('CORE' in service_group['service-components'] or
             'SWPAC' in service_group['service-components'] or
-            'SWOBJ' in service_group['service-components']))
+            'SWOBJ' in service_group['service-components'])))
         %}
 {%       set ns.intf_id = ns.intf_id+1 %}
+{%       if 'bond' in network_group.keys() and 'CLM' not in service_group['service-components'] %}
+        - name: bond{{ ns.intf_id }}
+          device:
+            name: bond{{ ns.intf_id }}
+          bond-data:
+            options:
+              mode: {{ network_group.bond.mode | default ('active-backup') }}
+              miimon: 200
+              primary: hed{{ ns.intf_id }}
+            devices:
+              - name: hed{{ ns.intf_id }}
+{%          for intf_id in range(ns.intf_id, network_group.bond.num_interfaces) %}
+{%            set ns.intf_id = ns.intf_id+1 %}
+              - name: hed{{ ns.intf_id }}
+{%          endfor %}
+{%       else %}
         - name: hed{{ ns.intf_id }}
           device:
               name: hed{{ ns.intf_id }}
+{%       endif %}
           network-groups:
             - {{ network_group.name|upper }}
+{%       for ng in network_group.include_groups | default([]) if 'CLM' not in service_group['service-components'] %}
+            - {{ ng }}
+{{          processed_groups.append(ng) }}
+{%-        endfor %}
 
 {%     endif %}
 {%   endfor %}

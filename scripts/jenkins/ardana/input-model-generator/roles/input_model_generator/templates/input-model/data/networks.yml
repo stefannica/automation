@@ -22,12 +22,17 @@
 {% set ns = namespace(net_id=100) %}
 {% for network_group in scenario['network-groups'] %}
     - name: {{ network_group.name|upper }}-NET
+{%  if baremetal is defined %}
+      tagged-vlan: {{ network_group['tagged-vlan']|lower }}
+{{ baremetal.networks[network_group.name|lower] | to_nice_yaml(indent=2) | indent(6, True) }}
+{%-  else -%}
 {%   if network_group['tagged-vlan'] %}
       vlanid: {{ ns.net_id }}
 {%   endif %}
       tagged-vlan: {{ network_group['tagged-vlan']|lower }}
       cidr: 192.168.{{ ns.net_id }}.0/24
       gateway-ip: 192.168.{{ ns.net_id }}.1
+{%  endif %}
       network-group: {{ network_group.name|upper }}
 
 {%   set ns.net_id = ns.net_id+1 %}
