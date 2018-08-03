@@ -1,0 +1,164 @@
+/**
+ * The openstack-ardana Jenkins Pipeline
+ */
+
+//
+//def executeIn(String environment, String command) {
+//  sh "source ${environment}/bin/activate && " + command
+//}
+
+//def ansiblePlaybook(String environment, String args) {
+//  dir('automation-git/scripts/jenkins/ardana/ansible') {
+//    executeIn '/opt/ansible', args
+//  }
+//}
+
+pipeline {
+  // skip the default checkout, because we want to use a custom path
+  options { skipDefaultCheckout() }
+
+  agent {
+    node {
+      label 'cloud-ardana-ci'
+      customWorkspace "openstack-ardana-pipeline-${env.BUILD_ID}"
+    }
+  }
+
+  stages {
+    stage('clone automation repo') {
+      steps {
+        dir('automation-git') {
+          checkout scm
+        }
+      }
+    }
+    stage('clone input model repo') {
+      when {
+          expression { git_input_model_repo != '' }
+      }
+      steps {
+        dir('input-model-git') {
+          git(
+             url: "$git_input_model_repo",
+             branch: "$git_input_model_branch"
+          )
+          sh 'ln -s $WORKSPACE/input-model-git/$git_input_model_path/$model $WORKSPACE/input-model'
+        }
+      }
+    }
+    stage('generate heat') {
+      steps {
+        dir('automation-git/scripts/jenkins/ardana/ansible') {
+          //ansiColor('xterm') {
+            sh '''
+              /opt/ansible/bin/ansible-playbook -v generate-heat.yml \
+                -e input_model_path=$WORKSPACE/input-model \
+                -e heat_template_file=$WORKSPACE/heat-ardana-${model}.yaml
+            '''
+          //}
+        }
+      }
+    }
+    stage('create virtual env') {
+      steps {
+        script {
+          def heat_stack_name = "cloud-ci-openstack-ardana-${BUILD_NUMBER}"
+          if ("${job_name}" != '') {
+              heat_stack_name = heat_stack_name+"-${job_name}"
+          }
+          env.heat_stack_name = heat_stack_name
+        }
+        build job: 'openstack-ardana-heat', parameters: [
+          string(name: 'action', value: "create"),
+          string(name: 'build_pool_name', value: "$build_pool_name"),
+          string(name: 'build_pool_size', value: "$build_pool_size"),
+          string(name: 'heat_stack_name', value: "$heat_stack_name"),
+          string(name: 'heat_template_file', value: "$WORKSPACE/heat-ardana-${model}.yaml")
+        ], propagate: true, wait: true
+      }
+    }
+
+    stage('Build') {
+      steps {
+        echo 'Building artifacts...'
+        // generate build artifacts, unit tests and code analysis
+        sleep 2
+        // store build artifacts for consecutive stages (i.e. stash
+        // or versioned artifact repository)
+        echo 'Building artifacts finished'
+      }
+    }
+
+    // milestones are used to discard obsolete build, if a consecutive
+    // build passes a milestone, it will discard all older builds that
+    // have not yet passed the milestone
+    //milestone 1
+    stage('QA') {
+      // we only have one QA environment so to limit concurrency to
+      // a single build we can use locks
+      // if another build reaches a lock, it will "wait" until the
+      // resource is available again
+      // inversePrecedence instructs the lock to pick the most recent
+      // build first
+      // lock(resource: 'qaEnvironment', inversePrecedence: true) {
+        // this milestone in combination with the inversed lock above
+        // discards all queued superseded builds
+        //milestone 2
+        // run integration and performance testing in parallel
+      parallel('Tests') {
+        stage('Integration Tests') {
+          steps {
+              echo 'Running integration tests...'
+              // get build artifacts (i.e. from stash)
+              // setup test environment
+              // run integration tests
+              sleep 5
+              // store test results
+              echo 'Running integration tests finished'
+          }
+        }
+        stage('Performance Tests') {
+          steps {
+              echo 'Running performance tests...'
+              // setup and run performance tests
+              sleep 10
+              // store test results
+              echo 'Running performance tests finished'
+          }
+        }
+      }
+      //}
+    }
+
+    //milestone 3
+    stage('Staging') {
+      //lock(resource: 'stagingEnvironment', inversePrecedence: true) {
+        //milestone 4
+      // wait for user verification before pushing to production
+      input {
+          message "Deploy to production?"
+          ok "Deploy"
+      }
+      steps {
+          echo 'Deployment to staging environment...'
+          // setup and deploy staging environment
+          sleep 5
+          echo 'Deployment to staging environment finished'
+      }
+
+      //}
+    }
+
+    //milestone 5
+    stage ('Production') {
+      //lock(resource: 'productionEnvironment', inversePrecedence: true) {
+      steps {
+          echo 'Deployment to production environment...'
+          // setup and deploy production environment
+          sleep 5
+          echo 'Deployment to production environment finished'
+      }
+      //}
+    }
+  }
+}
