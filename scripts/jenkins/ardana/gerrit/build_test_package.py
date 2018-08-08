@@ -107,7 +107,7 @@ def create_test_project(develproject, testproject, repository):
 
 def wait_for_build(change, testproject):
     package_name = project_map()[change.project]
-    print("Waiting for  to build %s" % package_name)
+    print("Waiting for %s to build" % package_name)
     with cd('%s/%s' % (testproject, package_name)):
         while 'unknown' in sh.osc('results'):
             print("Waiting for build to be scheduled")
@@ -172,6 +172,7 @@ def main():
     testproject = create_test_project(develproject, testproject, repository)
 
     # Create the test packages to be built
+    # NOTE(jhesketh): If necessary this could be done in a threadpool
     for change in changes:
         change.prep_workspace()
         create_test_package(change, develproject, testproject)
