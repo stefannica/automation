@@ -1,0 +1,101 @@
+- job-template:
+    name: 'cloud-ardana{version}-gitlab-{model}'
+    node: cloud-ardana-ci
+    concurrent: true
+    workspace: "openstack-ardana-gitlab-$BUILD_ID"
+    wrappers:
+      - timestamps
+      - build-name:
+          name: '#$BUILD_NUMBER: $JOB_NAME (${{gitlabTargetRepoName}}/${{gitlabMergeRequestIid}})'
+
+      - timeout:
+          timeout: 300
+          type: no-activity
+          abort: true
+          write-description: "Job aborted due to 300 minutes of inactivity"
+
+    logrotate:
+      numToKeep: 2000
+      daysToKeep: 300
+
+    properties:
+       - gitlab:
+           connection: "https://gitlab.suse.de"
+
+    scm:
+       - git:
+           url: "gitlab@gitlab.suse.de:ArdanaDev/${{gitlabTargetRepoName}}.git"
+           refspec: "+refs/heads/*:refs/remotes/origin/* +refs/merge-requests/*/head:refs/remotes/origin/merge-requests/*"
+           branches:
+             - "origin/${{gitlabSourceBranch}}"
+
+    triggers:
+       - gitlab:
+           trigger-push: false
+           trigger-merge-request: true
+           trigger-open-merge-request-push: source
+           trigger-note: true
+           note-regex: "^recheck$"
+           cancel-builds-on-update: true
+           allow-all-branches: false
+           branch-filter-type: NameBasedFilter
+           include-branches:
+             - "{git_branch}"
+
+    builders:
+      - system-groovy:
+          command: |
+            // this script aborts jobs already pending or running for the same GitLab merge requests
+
+            import hudson.model.Result
+            import jenkins.model.CauseOfInterruption
+
+            def env = build.getEnvironment()
+            def repo_name= env.get('gitlabTargetRepoName')
+            def mr_id= env.get('gitlabMergeRequestIid')
+
+            //iterate through current project runs
+            build.getProject()._getRuns().each{{ run->
+              def exec = run.getExecutor()
+              def run_env = run.getEnvironment()
+              def run_repo_name = run_env.get('gitlabTargetRepoName')
+              def run_mr_id = run_env.get('gitlabMergeRequestIid')
+
+              //if the run is not a current build and it has executor (running) then abort it
+              if(run!=build && exec!=null && repo_name==run_repo_name && mr_id==run_mr_id){{
+                //prepare the cause of interruption
+                def cause = new CauseOfInterruption(){{
+                  public String getShortDescription(){{
+                    return "interrupted by build #${{build.getId()}}"
+                  }}
+                }}
+                exec.interrupt(Result.ABORTED, cause)
+              }}
+            }}
+
+      - trigger-builds:
+        - project: openstack-ardana
+          predefined-parameters: |
+            model={model}
+            cloudsource=stagingcloud{version}
+            tempest_run_filter={tempest_run_filter}
+            build_pool_name={build_pool_name}
+            build_pool_size={build_pool_size}
+            gitlab_project=${{gitlabTargetRepoName}}
+            gitlab_mr_id=${{gitlabMergeRequestIid}}
+            gitlab_source_branch=${{gitlabSourceBranch}}
+            gitlab_target_branch=${{gitlabTargetBranch}}
+            develproject={develproject}
+            repository={repository}
+          block: true
+
+    publishers:
+      - gitlab-notifier:
+           name: jenkins
+           mark-unstable-as-success: false
+      - workspace-cleanup:
+          clean-if:
+            - failure: false
+            - aborted: false
+            - unstable: false
+            - success: true

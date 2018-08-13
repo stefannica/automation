@@ -1,0 +1,13 @@
+- project:
+    name: cloud-ardana9-gitlab-std-min
+    version: 9
+    git_branch: master
+    arch: x86_64
+    tempest_run_filter: ci
+    build_pool_name: cloud-ardana-ci
+    build_pool_size: 5
+    develproject: 'Devel:Cloud:9'
+    repository: 'SLE_12_SP4'
+    model: std-min
+    jobs:
+        - 'cloud-ardana{version}-gitlab-{model}'

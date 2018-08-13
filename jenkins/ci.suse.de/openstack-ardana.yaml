@@ -13,7 +13,7 @@
           timeout: 300
           type: no-activity
           abort: true
-          write-description: "Job aborted due to 180 minutes of inactivity"
+          write-description: "Job aborted due to 300 minutes of inactivity"
 
     logrotate:
       numToKeep: 2000
@@ -155,6 +155,33 @@
             gerrit.suse.provo.cloud to test.
 
       - string:
+          name: gitlab_project
+          default:
+          description: >-
+            The name of the gitlab.suse.de project against which to test a change
+            requests.
+
+      - string:
+          name: gitlab_mr_id
+          default:
+          description: >-
+            The gitlab.suse.de merge request ID which to test.
+
+      - string:
+          name: gitlab_source_branch
+          default:
+          description: >-
+            The name of the gitlab.suse.de project source branch against which the
+            merge request is open.
+
+      - string:
+          name: gitlab_target_branch
+          default: master
+          description: >-
+            The name of the gitlab.suse.de project target branch against which the
+            merge request is open.
+
+      - string:
           name: develproject
           default: 'Devel:Cloud:8'
           description: >-
@@ -184,6 +211,24 @@
                 - project: cloud-ardana-testbuild-gerrit
                   predefined-parameters: |
                     gerrit_change_ids=${gerrit_change_ids}
+                    develproject=${develproject}
+                    homeproject=${homeproject}
+                    repository=${repository}
+                    git_automation_repo=${git_automation_repo}
+                    git_automation_branch=${git_automation_branch}
+                  block: true
+      - conditional-step:
+          condition-kind: shell
+          condition-command: |
+            test -n "${gitlab_mr_id}"
+          steps:
+              - trigger-builds:
+                - project: cloud-ardana-testbuild-gitlab
+                  predefined-parameters: |
+                    gitlab_project=${gitlab_project}
+                    gitlab_mr_id=${gitlab_mr_id}
+                    gitlab_source_branch=${gitlab_source_branch}
+                    gitlab_target_branch=${gitlab_target_branch}
                     develproject=${develproject}
                     homeproject=${homeproject}
                     repository=${repository}
@@ -311,19 +356,19 @@
           source /opt/ansible/bin/activate
 
           ansible-playbook -v -i hosts ssh-keys.yml
+
+          test_repository=
           if [ -n "$gerrit_change_ids" ] ; then
               test_repository=http://download.suse.de/ibs/${homeproject//:/:\/}:/ardana-ci-${gerrit_change_ids//,/-}/standard
-              ansible-playbook -v -i hosts -e "build_url=$BUILD_URL" \
-                                           -e "cloudsource=${cloudsource}" \
-                                           -e "repositories='${repositories}'" \
-                                           -e "test_repository_url=${test_repository}" \
-                                           repositories.yml
-          else
-              ansible-playbook -v -i hosts -e "build_url=$BUILD_URL" \
-                                           -e "cloudsource=${cloudsource}" \
-                                           -e "repositories='${repositories}'" \
-                                           repositories.yml
+          elif [ -n "$gitlab_mr_id" ] ; then
+              test_repository=http://download.suse.de/ibs/${homeproject//:/:\/}:/ardana-ci-${gitlab_project}-${gitlab_mr_id}/standard
           fi
+
+          ansible-playbook -v -i hosts -e "build_url=$BUILD_URL" \
+                                       -e "cloudsource=${cloudsource}" \
+                                       -e "repositories='${repositories}'" \
+                                       -e "test_repository_url='${test_repository}'" \
+                                       repositories.yml
           verification_temp_dir=$(ssh $sshargs root@$DEPLOYER_IP \
                                     "mktemp -d /tmp/ardana-job-rpm-verification.XXXXXXXX")
           ansible-playbook -v -i hosts -e "deployer_floating_ip=$DEPLOYER_IP" \
