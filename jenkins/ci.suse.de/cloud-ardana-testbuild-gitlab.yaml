@@ -1,0 +1,115 @@
+- job:
+    name: cloud-ardana-testbuild-gitlab
+    node: openstack-trackupstream
+    concurrent: true
+    workspace: "workspace/cloud-ardana-testbuild-gitlab-$BUILD_ID"
+    description: |
+      <!-- Managed by Jenkins Job Builder -->
+
+    logrotate:
+        numToKeep:  300
+        daysToKeep: 300
+
+    properties:
+      - authorization:
+          cloud:
+               - job-build
+               - job-cancel
+               - job-configure
+               - job-delete
+               - job-discover
+               - job-read
+               - job-workspace
+               - run-delete
+               - run-update
+               - scm-tag
+          anonymous:
+               - job-read
+
+    parameters:
+     - string:
+        name: gitlab_project
+        default:
+        description: >-
+          The name of the gitlab.suse.de project against which to test a change
+          requests.
+
+     - string:
+        name: gitlab_mr_id
+        default:
+        description: >-
+          The gitlab.suse.de merge request ID which to test.
+
+     - string:
+        name: gitlab_source_branch
+        default:
+        description: >-
+          The name of the gitlab.suse.de project source branch against which the
+          merge request is open.
+
+     - string:
+        name: gitlab_target_branch
+        default: master
+        description: >-
+          The name of the gitlab.suse.de project target branch against which the
+          merge request is open.
+
+     - string:
+        name: develproject
+        default: Devel:Cloud:8
+        description: The IBS development project that will be linked against.
+
+     - string:
+         name: repository
+         default: SLE_12_SP3
+         description: >-
+           Name of the repository in IBS against which to build the test packages.
+
+     - string:
+         name: homeproject
+         default: 'home:opensuseapibmw'
+         description: >-
+           Project in IBS that will act as the parent project for the newly
+           generated test project.
+
+     - string:
+        name: git_automation_repo
+        default: https://github.com/SUSE-Cloud/automation.git
+        description: The git automation repository to use
+
+     - string:
+         name: git_automation_branch
+         default: master
+         description: The git automation branch
+
+    wrappers:
+    - timestamps:
+    - build-name:
+         name: '#${BUILD_NUMBER}: ${gitlab_project}/${gitlab_branch}'
+    - timeout:
+        timeout: 20
+        type: no-activity
+        abort: true
+        write-description: "Job aborted due to 20 minutes of inactivity."
+
+    scm:
+       - git:
+           url: "https://gitlab.suse.de/ArdanaDev/${gitlab_project}.git"
+           refspec: "+refs/heads/*:refs/remotes/origin/* +refs/merge-requests/*/head:refs/remotes/origin/merge-requests/*"
+           branches:
+             - "origin/${gitlab_source_branch}"
+           basedir: "source/${gitlab_project}.git"
+
+    builders:
+      - shell: |
+          set -eux
+          rm -rf ./automation-git
+          git clone $git_automation_repo --branch $git_automation_branch automation-git
+          python automation-git/scripts/jenkins/ardana/gitlab/build_test_package.py
+
+    publishers:
+      - workspace-cleanup:
+          clean-if:
+            - failure: false
+            - aborted: false
+            - unstable: false
