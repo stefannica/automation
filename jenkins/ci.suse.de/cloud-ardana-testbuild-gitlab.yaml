@@ -85,7 +85,7 @@
     wrappers:
     - timestamps:
     - build-name:
-         name: '#${BUILD_NUMBER}: ${gitlab_project}/${gitlab_branch}'
+         name: '#${BUILD_NUMBER}: ${ENV,var="job_name"} (${gitlab_project}/${gitlab_mr_id})'
     - timeout:
         timeout: 20
         type: no-activity
@@ -105,7 +105,7 @@
           set -eux
           rm -rf ./automation-git
           git clone $git_automation_repo --branch $git_automation_branch automation-git
-          python automation-git/scripts/jenkins/ardana/gitlab/build_test_package.py
+          python -u automation-git/scripts/jenkins/ardana/gitlab/build_test_package.py
 
     publishers:
       - workspace-cleanup:
