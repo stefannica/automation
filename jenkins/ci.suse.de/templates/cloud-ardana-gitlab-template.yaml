@@ -22,6 +22,154 @@
        - gitlab:
            connection: "https://gitlab.suse.de"
 
+    parameters:
+      - string:
+          name: git_automation_repo
+          default: https://github.com/SUSE-Cloud/automation.git
+          description: >-
+            The git automation repository to use
+
+      - string:
+          name: git_automation_branch
+          default: master
+          description: >-
+            The git automation branch
+
+      - string:
+          name: git_input_model_repo
+          default: git://git.suse.provo.cloud/ardana/ardana-input-model
+          description: >-
+            The git repository to use for input models
+
+      - string:
+          name: git_input_model_branch
+          default: master
+          description: >-
+            The git repository branch to use for input models
+
+      - string:
+          name: git_input_model_path
+          default: 2.0/ardana-ci
+          description: >-
+            Relative path in the input model git repository where the input models are located
+
+      - string:
+          name: model
+          default: {model}
+          description: >-
+            The Input Model to use from the input model git repository / branch / path
+
+      - string:
+          name: job_name
+          default: ''
+          description: >-
+            This name reserves job environment and prevents deletion at the end.
+
+      - choice:
+          name: cloudsource
+          choices:
+            - stagingcloud{version}
+            - develcloud{version}
+            - GM{version}
+          description: >-
+            The cloud repository (from provo-clouddata) to be used for testing.
+            This value can take the following form:
+
+               stagingcloud<X> (Devel:Cloud:X:Staging)
+               develcloud<X> (Devel:Cloud:X)
+               GM<X> (official GM)
+
+      - extended-choice:
+          name: repositories
+          type: multi-select
+          value: SLES-Pool,SLES-Updates,SLES-Updates-test,Cloud-Pool,Cloud-Updates,Cloud-Updates-test
+          visible-items: 6
+          multi-select-delimiter: ','
+          default-value: SLES-Pool,SLES-Updates
+          description: >-
+            Set of zypper repositories (from provo-clouddata) to be configured during installation
+            in addition to that indicated by the cloudsource parameter.
+
+      - choice:
+          name: update_cloudsource
+          choices:
+            -
+            - stagingcloud{version}
+            - develcloud{version}
+            - GM{version}
+          description: >-
+            The cloud media (from provo-clouddata) to be used for update testing. Use a value different than
+            cloudsource to enable update testing.
+
+      - extended-choice:
+          name: update_repositories
+          type: multi-select
+          value: SLES-Pool,SLES-Updates,SLES-Updates-test,Cloud-Pool,Cloud-Updates,Cloud-Updates-test
+          visible-items: 6
+          multi-select-delimiter: ','
+          default-value: ''
+          description: >-
+            Set of repositories to be added after the initial installation and used
+            during update testing. Select one or more repositories to enable update testing.
+
+      - choice:
+          name: update_method
+          choices:
+            - update
+            - patch
+            - dist-upgrade
+          description: >-
+            The update method used for update testing.
+
+      - string:
+          name: tempest_run_filter
+          default: {tempest_run_filter}
+          description: >-
+            Name of the filter file to use for tempest. Possible values:
+            ci, compute, designate, lbaas, network, neutron-api, periodic,
+            periodic-virtual, refstack, smoke, swift, tests2skip, tests-ci,
+            upgrade-ci or upgrade
+
+      - string:
+          name: build_pool_name
+          default: {build_pool_name}
+          description: >-
+            Name of the build resource pool to be used for this job. When
+            supplied, the heat stack created by this job will be added to the
+            build pool and will be cleaned up automatically when the pool fills up.
+
+      - string:
+          name: build_pool_size
+          default: {build_pool_size}
+          description: >-
+            The maximum number of heat stacks in the build_pool_name build pool
+            that can be kept running at any given time. When this number is exceeded,
+            older stacks in the pool will be deleted to make place for new ones.
+
+      - string:
+          name: develproject
+          default: {develproject}
+          description: >-
+            Project in IBS to link against when creating a test project for a
+            change proposal.
+
+      - string:
+          name: homeproject
+          default: 'home:opensuseapibmw'
+          description: >-
+            Project in IBS that will act as the parent project for the newly
+            generated test project.
+
+      - string:
+          name: repository
+          default: {repository}
+          description: >-
+            Name of the repository in IBS against which to build the test packages.
+
+    # NOTE: this is needed only to support the GitLab trigger's ability to detect
+    # if a previous build has been previously used to test the same code changes
+    # and to avoid retriggering builds when there's no code change since the last
+    # build (see https://github.com/jenkinsci/gitlab-plugin/issues/361)
     scm:
        - git:
            url: "gitlab@gitlab.suse.de:ArdanaDev/${{gitlabTargetRepoName}}.git"
@@ -76,11 +224,28 @@
       - trigger-builds:
         - project: openstack-ardana
           predefined-parameters: |
-            model={model}
-            cloudsource=stagingcloud{version}
-            tempest_run_filter={tempest_run_filter}
-            build_pool_name={build_pool_name}
-            build_pool_size={build_pool_size}
+            git_automation_repo=${{git_automation_repo}}
+            git_automation_branch=${{git_automation_branch}}
+            git_input_model_repo=${{git_input_model_repo}}
+            git_input_model_branch=${{git_input_model_branch}}
+            git_input_model_path=${{git_input_model_path}}
+            git_automation_repo=${{git_automation_repo}}
+            git_automation_repo=${{git_automation_repo}}
+            git_automation_repo=${{git_automation_repo}}
+            git_automation_repo=${{git_automation_repo}}
+            model=${{model}}
+            job_name=${{job_name}}
+            cloudsource=${{cloudsource}}
+            repositories=${{repositories}}
+            update_cloudsource=${{update_cloudsource}}
+            update_repositories=${{update_repositories}}
+            update_method=${{update_method}}
+            tempest_run_filter=${{tempest_run_filter}}
+            build_pool_name=${{build_pool_name}}
+            build_pool_size=${{build_pool_size}}
+            develproject=${{develproject}}
+            homeproject=${{homeproject}}
+            repository=${{repository}}
             gitlab_project=${{gitlabTargetRepoName}}
             gitlab_mr_id=${{gitlabMergeRequestIid}}
             gitlab_source_branch=${{gitlabSourceBranch}}
