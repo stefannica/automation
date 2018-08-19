@@ -64,38 +64,61 @@
             The Input Model to use from the input model git repository / branch / path
 
       - string:
+          name: scenario
+          default: ''
+          description: >-
+            The scenario used to generate the input model
+
+      - string:
           name: job_name
           default: ''
           description: >-
             This name reserves job environment and prevents deletion at the end.
 
-      - string:
+      - choice:
           name: cloudsource
-          default: 'SUSE-OpenStack-Cloud-8-devel-staging'
+          choices:
+            - stagingcloud8
+            - develcloud8
+            - GM8
+            - stagingcloud9
+            - develcloud9
           description: >-
-            This is used as input repository (from provo-clouddata) for testing
+            The cloud repository (from provo-clouddata) to be used for testing.
+            This value can take the following form:
+
+               stagingcloud<X> (Devel:Cloud:X:Staging)
+               develcloud<X> (Devel:Cloud:X)
+               GM<X> (official GM)
 
       - extended-choice:
           name: repositories
           type: multi-select
-          value: SLES12-SP3-Pool,SLES12-SP3-Updates,SLES12-SP3-Updates-test,SUSE-OpenStack-Cloud-8-Pool,SUSE-OpenStack-Cloud-8-Updates,SUSE-OpenStack-Cloud-8-Updates-test
+          value: SLES-Pool,SLES-Updates,SLES-Updates-test,Cloud-Pool,Cloud-Updates,Cloud-Updates-test
           visible-items: 6
           multi-select-delimiter: ','
-          default-value: SLES12-SP3-Pool,SLES12-SP3-Updates
+          default-value: SLES-Pool,SLES-Updates
           description: >-
-            Set of zypper repositories (from provo-clouddata) to be used during installation
+            Set of zypper repositories (from provo-clouddata) to be configured during installation
+            in addition to that indicated by the cloudsource parameter.
 
-      - string:
+      - choice:
           name: update_cloudsource
-          default: ''
+          choices:
+            -
+            - stagingcloud8
+            - develcloud8
+            - GM8
+            - stagingcloud9
+            - develcloud9
           description: >-
-            Repository to be used for update testing. Use a value different than
+            The cloud media (from provo-clouddata) to be used for update testing. Use a value different than
             cloudsource to enable update testing.
 
       - extended-choice:
           name: update_repositories
           type: multi-select
-          value: SLES12-SP3-Pool,SLES12-SP3-Updates,SLES12-SP3-Updates-test,SUSE-OpenStack-Cloud-8-Pool,SUSE-OpenStack-Cloud-8-Updates,SUSE-OpenStack-Cloud-8-Updates-test
+          value: SLES-Pool,SLES-Updates,SLES-Updates-test,Cloud-Pool,Cloud-Updates,Cloud-Updates-test
           visible-items: 6
           multi-select-delimiter: ','
           default-value: ''
@@ -146,7 +169,7 @@
 
       - string:
           name: develproject
-          default: 'Devel:Cloud:8'
+          default: 'Devel:Cloud:8:Staging'
           description: >-
             Project in IBS to link against when creating a test project for a
             change proposal.
@@ -158,6 +181,12 @@
             Project in IBS that will act as the parent project for the newly
             generated test project.
 
+      - string:
+          name: repository
+          default: 'SLE_12_SP3'
+          description: >-
+            Name of the repository in IBS against which to build the test packages.
+
     pipeline-scm:
       scm:
         - git:
@@ -166,232 +195,4 @@
               - ${git_automation_branch}
             browser: auto
       script-path: ${jenkinsfile_path}
-      lightweight-checkout: true
-
-#    builders:
-#      - conditional-step:
-#          condition-kind: shell
-#          condition-command: |
-#            test -n "${gerrit_change_ids}"
-#          steps:
-#              - trigger-builds:
-#                - project: cloud-ardana-testbuild-gerrit
-#                  predefined-parameters: |
-#                    gerrit_change_ids=${gerrit_change_ids}
-#                    develproject=${develproject}
-#                    homeproject=${homeproject}
-#                    git_automation_repo=${git_automation_repo}
-#                    git_automation_branch=${git_automation_branch}
-#                  block: true
-#      - shell: |
-#          set +x
-#
-#          cloudsource_url=http://provo-clouddata.cloud.suse.de/repos/x86_64/$cloudsource
-#          cloudsource_media_build=$( curl -s $cloudsource_url/media.1/build )
-#          image_mirror_url=http://provo-clouddata.cloud.suse.de/images/openstack/x86_64
-#          echo cloudsource=$cloudsource
-#          echo cloudsource URL is $cloudsource_url
-#          echo media build version is $cloudsource_media_build
-#          echo
-#
-#          set -ex
-#          STACK_NAME=cloud-ci-openstack-ardana-${BUILD_NUMBER}
-#          if [ -n "${JOB_NAME}" ]; then
-#              STACK_NAME=${STACK_NAME}-${JOB_NAME}
-#          fi
-#          CLOUD_CONFIG_NAME=engcloud-cloud-ci
-#          cat - > stack_env <<EOF
-#          BUILD_POOL_NAME="$build_pool_name"
-#          BUILD_POOL_SIZE="$build_pool_size"
-#          STACK_NAME="$STACK_NAME"
-#          CLOUD_CONFIG_NAME="$CLOUD_CONFIG_NAME"
-#          EOF
-#
-#          export ANSIBLE_KEEP_REMOTE_FILES=1
-#          # the name for the cloud defined in ~./config/openstack/clouds.yaml
-#
-#          # init the git tree
-#          git clone $git_automation_repo --branch $git_automation_branch automation-git
-#          if [ "$git_automation_repo" != "$git_input_model_repo" ]; then
-#              git clone $git_input_model_repo --branch $git_input_model_branch ardana-input-model-git
-#              input_model_path="$PWD/ardana-input-model-git/${git_input_model_path}/${model}"
-#          else
-#              input_model_path="$PWD/automation-git/${git_input_model_path}/${model}"
-#          fi
-#
-#          pushd automation-git/scripts/jenkins/ardana/ansible
-#          source /opt/ansible/bin/activate
-#
-#          # generate the heat template
-#          ansible-playbook -v generate-heat.yml \
-#            -e input_model_path="$input_model_path" \
-#            -e heat_template_file="./heat-ardana-${model}.yaml"
-#
-#          # Simple build pool management
-#          if [[ -n $build_pool_name ]]; then
-#              keep_no_old_stacks=$(( build_pool_size-1 ))
-#              # NOTE: cannot use --property status=SUSPEND_COMPLETE as a filter when --tags is also present
-#              old_stacks_to_delete=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack list \
-#                                      --tags "$build_pool_name" \
-#                                      -f value -c 'Stack Name' -c 'Stack Status' \
-#                                      --sort 'creation_time:desc' |
-#                                      grep SUSPEND_COMPLETE | cut -d' ' -f1 |
-#                                      awk 'NR > '$keep_no_old_stacks' {print $1}')
-#              if [[ -n $old_stacks_to_delete ]]; then
-#                  for old_stack in $old_stacks_to_delete
-#                  do
-#                      # Need to resume the stack before deleting it, otherwise deletion will fail
-#                      openstack --os-cloud $CLOUD_CONFIG_NAME stack resume --wait $old_stack || :
-#                      openstack --os-cloud $CLOUD_CONFIG_NAME stack delete --wait $old_stack || :
-#                  done
-#              fi
-#          fi
-#
-#          openstack --os-cloud $CLOUD_CONFIG_NAME stack create --timeout 5 --wait \
-#              -t heat-ardana-${model}.yaml  \
-#              --tags "$build_pool_name" \
-#              $STACK_NAME
-#
-#          DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME admin-floating-ip -c output_value -f value)
-#          NETWORK_MGMT_ID=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME mgmt-network-id -c output_value -f value)
-#          sshargs="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
-#          # FIXME: Use cloud-init in the used image
-#          sshpass -p linux ssh-copy-id -o ConnectionAttempts=120 $sshargs root@${DEPLOYER_IP}
-#          cat << EOF > hosts
-#          [hosts]
-#          $DEPLOYER_IP ansible_user=root
-#          EOF
-#
-#          cat hosts
-#
-#          cat << EOF > ardana_net_vars.yml
-#          ---
-#          input_model_path: "$input_model_path"
-#          deployer_mgmt_ip: $(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME admin-mgmt-ip -c output_value -f value)
-#          EOF
-#
-#          controller_mgmt_ips=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME controller-mgmt-ips -c output_value -f value|grep -o '[0-9.]*')
-#          if [ -n "$controller_mgmt_ips" ]; then
-#            echo "controller_mgmt_ips:" >> ardana_net_vars.yml
-#            for ip in $controller_mgmt_ips; do
-#                cat << EOF >> ardana_net_vars.yml
-#              - $ip
-#          EOF
-#            done
-#          fi
-#
-#          compute_mgmt_ips=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME compute-mgmt-ips -c output_value -f value|grep -o '[0-9.]*')
-#          if [ -n "$compute_mgmt_ips" ]; then
-#            echo "compute_mgmt_ips:" >> ardana_net_vars.yml
-#            for ip in $compute_mgmt_ips; do
-#                cat << EOF >> ardana_net_vars.yml
-#              - $ip
-#          EOF
-#            done
-#          fi
-#
-#          # Get the IP addresses of the dns servers from the mgmt network
-#          echo "mgmt_dnsservers:" >> ardana_net_vars.yml
-#          openstack --os-cloud $CLOUD_CONFIG_NAME port list --network $NETWORK_MGMT_ID \
-#                    --device-owner network:dhcp -f value -c 'Fixed IP Addresses' | \
-#              sed -e "s/^ip_address='\(.*\)', .*$/\1/" | \
-#              while read line; do echo "  - $line" >> ardana_net_vars.yml; done;
-#
-#          cat ardana_net_vars.yml
-#
-#          ansible-playbook -v -i hosts ssh-keys.yml
-#          if [ -n "$gerrit_change_id" ] ; then
-#              test_repository=http://download.suse.de/ibs/${homeproject//:/:\/}:/ardana-ci-${gerrit_change_ids//,/-}/standard
-#              ansible-playbook -v -i hosts -e "build_url=$BUILD_URL" \
-#                                           -e "cloudsource=${cloudsource}" \
-#                                           -e "repositories='${repositories}'" \
-#                                           -e "test_repository_url=${test_repository}" \
-#                                           repositories.yml
-#          else
-#              ansible-playbook -v -i hosts -e "build_url=$BUILD_URL" \
-#                                           -e "cloudsource=${cloudsource}" \
-#                                           -e "repositories='${repositories}'" \
-#                                           repositories.yml
-#          fi
-#          verification_temp_dir=$(ssh $sshargs root@$DEPLOYER_IP \
-#                                    "mktemp -d /tmp/ardana-job-rpm-verification.XXXXXXXX")
-#          ansible-playbook -v -i hosts -e "deployer_floating_ip=$DEPLOYER_IP" \
-#                                       -e "verification_temp_dir=$verification_temp_dir" \
-#                                       init.yml
-#
-#          # Run site.yml outside ansible for output streaming
-#          ssh $sshargs ardana@$DEPLOYER_IP "cd ~/scratch/ansible/next/ardana/ansible ; \
-#               ansible-playbook -v -i hosts/verb_hosts site.yml"
-#
-#          # Run Update if required
-#          if [ -n "$update_cloudsource" -a "$update_cloudsource" != "$cloudsource" -o -n "$update_repositories" ]; then
-#
-#              # Run pre-update checks
-#              ansible-playbook -v -i hosts \
-#                  -e "image_mirror_url=${image_mirror_url}" \
-#                  -e "tempest_run_filter=${tempest_run_filter}" \
-#                  pre-update-checks.yml
-#
-#              ansible-playbook -v -i hosts \
-#                  -e "build_url=$BUILD_URL" \
-#                  -e "cloudsource=${update_cloudsource}" \
-#                  -e "repositories='${update_repositories}'" \
-#                  repositories.yml
-#
-#              ansible-playbook -v -i hosts \
-#                  -e "cloudsource=${update_cloudsource}" \
-#                  -e "update_method=${update_method}" \
-#                  update.yml
-#          fi
-#
-#          # Run post-deploy checks
-#          ansible-playbook -v -i hosts \
-#              -e "image_mirror_url=${image_mirror_url}" \
-#              -e "tempest_run_filter=${tempest_run_filter}" \
-#              -e "verification_temp_dir=$verification_temp_dir" \
-#              post-deploy-checks.yml
-#
-#    publishers:
-#      - post-tasks:
-#        - matches:
-#          - log-text: heat-ardana-
-#          script: |
-#            set -x
-#            . $WORKSPACE/stack_env
-#            if [[ -n $BUILD_POOL_NAME ]] && (( $BUILD_POOL_SIZE == 0 )); then
-#                openstack --os-cloud $CLOUD_CONFIG_NAME stack delete --wait \
-#                      $STACK_NAME || :
-#            else
-#                DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $STACK_NAME deployer-ip-floating -c output_value -f value)
-#                if [[ -n $BUILD_POOL_NAME ]]; then
-#                    openstack --os-cloud $CLOUD_CONFIG_NAME stack suspend --wait \
-#                          $STACK_NAME || :
-#                fi
-#                set +x
-#                echo "*****************************************************************"
-#                echo ""
-#                if [[ -n $BUILD_POOL_NAME ]]; then
-#                  echo "** The installation stack has been suspended and will be removed "
-#                  echo "** automatically by one of the future job runs that is using the "
-#                  echo "** same '$BUILD_POOL_NAME' build pool.                           "
-#                  echo ""
-#                  echo "** To prevent future jobs from removing the installation, either "
-#                  echo "** resume the stack or remove the '$BUILD_POOL_NAME' tag from it "
-#                  echo "** by running:                                                   "
-#                  echo ""
-#                  echo "**   openstack stack update --tags '' $STACK_NAME                "
-#                  echo ""
-#                else
-#                  echo "** Installation remains available at                             "
-#                  echo "             ssh ardana@$DEPLOYER_IP                             "
-#                  echo ""
-#                  echo "** Please do openstack stack delete $STACK_NAME when you're done."
-#                fi
-#                echo ""
-#                echo "*****************************************************************"
-#            fi
-#      - workspace-cleanup:
-#          clean-if:
-#            - failure: false
-#            - aborted: false
-#            - unstable: false
+      lightweight-checkout: false

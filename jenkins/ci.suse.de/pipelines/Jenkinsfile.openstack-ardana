@@ -15,7 +15,10 @@
 
 pipeline {
   // skip the default checkout, because we want to use a custom path
-  options { skipDefaultCheckout() }
+  options {
+    skipDefaultCheckout()
+    // lock(label: 'ECP-SLOT', quantity: 1)
+  }
 
   agent {
     node {
@@ -32,133 +35,194 @@ pipeline {
         }
       }
     }
-    stage('clone input model repo') {
-      when {
-          expression { git_input_model_repo != '' }
-      }
-      steps {
-        dir('input-model-git') {
-          git(
-             url: "$git_input_model_repo",
-             branch: "$git_input_model_branch"
-          )
-          sh 'ln -s $WORKSPACE/input-model-git/$git_input_model_path/$model $WORKSPACE/input-model'
+
+    // TODO: more stages here (linter, etc)
+    stage('parallel stage') {
+      // abort all stages if one of them fails
+      failFast true
+      parallel {
+
+        // TODO: more stages here (linter, etc)
+
+        stage('build test packages') {
+          when {
+            expression { gerrit_change_ids != '' }
+          }
+          steps {
+            build job: 'cloud-ardana-testbuild-gerrit', parameters: [
+              string(name: 'gerrit_change_ids', value: "$gerrit_change_ids"),
+              string(name: 'develproject', value: "$develproject"),
+              string(name: 'homeproject', value: "$homeproject"),
+              string(name: 'repository', value: "$repository"),
+              string(name: 'git_automation_repo', value: "$git_automation_repo"),
+              string(name: 'git_automation_branch', value: "$git_automation_branch")
+            ], propagate: true, wait: true
+          }
         }
-      }
-    }
-    stage('generate heat') {
+
+        stage('prepare virtual environment') {
+          stages {
+
+            stage('clone input model repo') {
+              when {
+                  expression { git_input_model_repo != '' && scenario == '' }
+              }
+              steps {
+                script {
+                  env.input_model_path = "${WORKSPACE}/input-model"
+                }
+                dir('input-model-git') {
+                  git(
+                     url: "$git_input_model_repo",
+                     branch: "$git_input_model_branch"
+                  )
+                  sh 'ln -s $WORKSPACE/input-model-git/$git_input_model_path/$model $input_model_path'
+                }
+              }
+            }
+
+            stage('generate input model') {
+              when {
+                  expression { scenario != '' }
+              }
+              steps {
+                script {
+                  env.input_model_path = "${WORKSPACE}/input-model"
+                }
+                dir('automation-git/scripts/jenkins/ardana/ansible') {
+                  sh '''
+                    source /opt/ansible/bin/activate
+                    ansible-playbook -v generate-input-model.yml \
+                            -e scenario_name=${scenario} \
+                            -e input_model_dir=$input_model_path
+                  '''
+                }
+              }
+            }
+
+            stage('generate heat') {
+              steps {
+                script {
+                  env.heat_template_file = "${WORKSPACE}/heat-ardana-${model}.yaml"
+                }
+                dir('automation-git/scripts/jenkins/ardana/ansible') {
+                  sh '''
+                    source /opt/ansible/bin/activate
+                    ansible-playbook -v generate-heat.yml \
+                      -e input_model_path=$input_model_path \
+                      -e heat_template_file=$heat_template_file
+                    '''
+                }
+              }
+            }
+
+            stage('create virtual env') {
+              //options {
+              //  lock(resource: 'ECP-API')
+              //}
+              steps {
+                script {
+                  def heat_stack_name = "cloud-ci-openstack-ardana-${BUILD_NUMBER}"
+                  if ("${job_name}" != '') {
+                      heat_stack_name = heat_stack_name+"-${job_name}"
+                  }
+                  env.heat_stack_name = heat_stack_name
+                }
+                build job: 'openstack-ardana-heat', parameters: [
+                  string(name: 'action', value: "create"),
+                  string(name: 'build_pool_name', value: "$build_pool_name"),
+                  string(name: 'build_pool_size', value: "$build_pool_size"),
+                  string(name: 'heat_stack_name', value: "$heat_stack_name"),
+                  string(name: 'heat_template_file', value: "$heat_template_file")
+                ], propagate: true, wait: true
+              }
+            }
+
+            stage('setup ansible vars') {
+              steps {
+                dir('automation-git/scripts/jenkins/ardana/ansible') {
+                  sh './bin/setup_virt_vars.sh'
+                  script {
+                    env.DEPLOYER_IP = sh (returnStdout: true, script: 'cat deployer_ip')
+                  }
+                }
+              }
+            }
+
+            stage('cleanup virtual env') {
+              //options {
+              //  lock(resource: 'ECP-API')
+              //}
+              steps {
+                build job: 'openstack-ardana-heat', parameters: [
+                  string(name: 'action', value: "cleanup"),
+                  string(name: 'build_pool_name', value: "$build_pool_name"),
+                  string(name: 'build_pool_size', value: "$build_pool_size")
+                ], propagate: false, wait: false
+              }
+            }
+
+          } // stages
+        } // stage('prepare virtual environment')
+      } // parallel
+    } // stage('parallel stage')
+
+    stage('bootstrap CLM') {
       steps {
         dir('automation-git/scripts/jenkins/ardana/ansible') {
-          //ansiColor('xterm') {
-            sh '''
-              /opt/ansible/bin/ansible-playbook -v generate-heat.yml \
-                -e input_model_path=$WORKSPACE/input-model \
-                -e heat_template_file=$WORKSPACE/heat-ardana-${model}.yaml
-            '''
-          //}
+          sh './bin/bootstrap_clm.sh'
+          script {
+            env.verification_temp_dir = sh (returnStdout: true, script: 'cat verification_temp_dir')
+          }
         }
       }
     }
-    stage('create virtual env') {
+
+    stage('deploy Ardana') {
       steps {
-        script {
-          def heat_stack_name = "cloud-ci-openstack-ardana-${BUILD_NUMBER}"
-          if ("${job_name}" != '') {
-              heat_stack_name = heat_stack_name+"-${job_name}"
-          }
-          env.heat_stack_name = heat_stack_name
+        dir('automation-git/scripts/jenkins/ardana/ansible') {
+          sh '''
+            # Run site.yml outside ansible for output streaming
+            ssh $sshargs ardana@$DEPLOYER_IP "cd ~/scratch/ansible/next/ardana/ansible ; \
+                 ansible-playbook -v -i hosts/verb_hosts site.yml"
+          '''
         }
+      }
+    }
+
+    stage ('run Tempest') {
+      steps {
+        dir('automation-git/scripts/jenkins/ardana/ansible') {
+          sh '''
+            image_mirror_url=http://provo-clouddata.cloud.suse.de/images/openstack/x86_64
+            source /opt/ansible/bin/activate
+            # Run post-deploy checks
+            ansible-playbook -v -i hosts \
+                -e "image_mirror_url=${image_mirror_url}" \
+                -e "tempest_run_filter=${tempest_run_filter}" \
+                -e "verification_temp_dir=$verification_temp_dir" \
+                post-deploy-checks.yml
+          '''
+        }
+      }
+    }
+  }
+
+  post {
+    always {
         build job: 'openstack-ardana-heat', parameters: [
-          string(name: 'action', value: "create"),
+          string(name: 'action', value: "cleanup"),
           string(name: 'build_pool_name', value: "$build_pool_name"),
           string(name: 'build_pool_size', value: "$build_pool_size"),
           string(name: 'heat_stack_name', value: "$heat_stack_name"),
-          string(name: 'heat_template_file', value: "$WORKSPACE/heat-ardana-${model}.yaml")
-        ], propagate: true, wait: true
-      }
-    }
-
-    stage('Build') {
-      steps {
-        echo 'Building artifacts...'
-        // generate build artifacts, unit tests and code analysis
-        sleep 2
-        // store build artifacts for consecutive stages (i.e. stash
-        // or versioned artifact repository)
-        echo 'Building artifacts finished'
-      }
-    }
-
-    // milestones are used to discard obsolete build, if a consecutive
-    // build passes a milestone, it will discard all older builds that
-    // have not yet passed the milestone
-    //milestone 1
-    stage('QA') {
-      // we only have one QA environment so to limit concurrency to
-      // a single build we can use locks
-      // if another build reaches a lock, it will "wait" until the
-      // resource is available again
-      // inversePrecedence instructs the lock to pick the most recent
-      // build first
-      // lock(resource: 'qaEnvironment', inversePrecedence: true) {
-        // this milestone in combination with the inversed lock above
-        // discards all queued superseded builds
-        //milestone 2
-        // run integration and performance testing in parallel
-      parallel('Tests') {
-        stage('Integration Tests') {
-          steps {
-              echo 'Running integration tests...'
-              // get build artifacts (i.e. from stash)
-              // setup test environment
-              // run integration tests
-              sleep 5
-              // store test results
-              echo 'Running integration tests finished'
-          }
-        }
-        stage('Performance Tests') {
-          steps {
-              echo 'Running performance tests...'
-              // setup and run performance tests
-              sleep 10
-              // store test results
-              echo 'Running performance tests finished'
-          }
-        }
-      }
-      //}
-    }
-
-    //milestone 3
-    stage('Staging') {
-      //lock(resource: 'stagingEnvironment', inversePrecedence: true) {
-        //milestone 4
-      // wait for user verification before pushing to production
-      input {
-          message "Deploy to production?"
-          ok "Deploy"
-      }
-      steps {
-          echo 'Deployment to staging environment...'
-          // setup and deploy staging environment
-          sleep 5
-          echo 'Deployment to staging environment finished'
-      }
-
-      //}
-    }
-
-    //milestone 5
-    stage ('Production') {
-      //lock(resource: 'productionEnvironment', inversePrecedence: true) {
-      steps {
-          echo 'Deployment to production environment...'
-          // setup and deploy production environment
-          sleep 5
-          echo 'Deployment to production environment finished'
-      }
-      //}
+          string(name: 'heat_template_file', value: "$heat_template_file")
+        ], propagate: false, wait: false
+        build job: 'openstack-ardana-heat', parameters: [
+          string(name: 'action', value: "cleanup"),
+          string(name: 'build_pool_name', value: "$build_pool_name"),
+          string(name: 'build_pool_size', value: "$build_pool_size")
+        ], propagate: false, wait: false
     }
   }
+
 }
