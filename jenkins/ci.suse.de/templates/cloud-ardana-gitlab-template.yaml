@@ -1,5 +1,6 @@
 - job-template:
     name: 'cloud-ardana{version}-gitlab-{model}'
+    project-type: multijob
     node: cloud-ardana-ci
     concurrent: true
     workspace: "openstack-ardana-gitlab-$BUILD_ID"
@@ -25,13 +26,13 @@
     parameters:
       - string:
           name: git_automation_repo
-          default: https://github.com/SUSE-Cloud/automation.git
+          default: https://github.com/stefannica/automation.git
           description: >-
             The git automation repository to use
 
       - string:
           name: git_automation_branch
-          default: master
+          default: gitlab-builder
           description: >-
             The git automation branch
 
@@ -55,7 +56,7 @@
 
       - string:
           name: model
-          default: {model}
+          default: "{model}"
           description: >-
             The Input Model to use from the input model git repository / branch / path
 
@@ -123,7 +124,7 @@
 
       - string:
           name: tempest_run_filter
-          default: {tempest_run_filter}
+          default: "{tempest_run_filter}"
           description: >-
             Name of the filter file to use for tempest. Possible values:
             ci, compute, designate, lbaas, network, neutron-api, periodic,
@@ -132,7 +133,7 @@
 
       - string:
           name: build_pool_name
-          default: {build_pool_name}
+          default: "{build_pool_name}"
           description: >-
             Name of the build resource pool to be used for this job. When
             supplied, the heat stack created by this job will be added to the
@@ -140,7 +141,7 @@
 
       - string:
           name: build_pool_size
-          default: {build_pool_size}
+          default: "{build_pool_size}"
           description: >-
             The maximum number of heat stacks in the build_pool_name build pool
             that can be kept running at any given time. When this number is exceeded,
@@ -148,7 +149,7 @@
 
       - string:
           name: develproject
-          default: {develproject}
+          default: "{develproject}"
           description: >-
             Project in IBS to link against when creating a test project for a
             change proposal.
@@ -162,7 +163,7 @@
 
       - string:
           name: repository
-          default: {repository}
+          default: "{repository}"
           description: >-
             Name of the repository in IBS against which to build the test packages.
 
@@ -191,68 +192,42 @@
              - "{git_branch}"
 
     builders:
-      - system-groovy:
-          command: |
-            // this script aborts jobs already pending or running for the same GitLab merge requests
+#      - system-groovy:
+#          command: |
+#            // this script aborts jobs already pending or running for the same GitLab merge requests
+#
+#            import hudson.model.Result
+#            import jenkins.model.CauseOfInterruption
+#
+#            def env = build.getEnvironment()
+#            def repo_name= env.get('gitlabTargetRepoName')
+#            def mr_id= env.get('gitlabMergeRequestIid')
+#
+#            //iterate through current project runs
+#            build.getProject()._getRuns().each{{ run->
+#              def exec = run.getExecutor()
+#              def run_env = run.getEnvironment()
+#              def run_repo_name = run_env.get('gitlabTargetRepoName')
+#              def run_mr_id = run_env.get('gitlabMergeRequestIid')
+#
+#              //if the run is not a current build and it has executor (running) then abort it
+#              if(run!=build && exec!=null && repo_name==run_repo_name && mr_id==run_mr_id){{
+#                //prepare the cause of interruption
+#                def cause = new CauseOfInterruption(){{
+#                  public String getShortDescription(){{
+#                    return "interrupted by build #${{build.getId()}}"
+#                  }}
+#                }}
+#                exec.interrupt(Result.ABORTED, cause)
+#              }}
+#            }}
 
-            import hudson.model.Result
-            import jenkins.model.CauseOfInterruption
-
-            def env = build.getEnvironment()
-            def repo_name= env.get('gitlabTargetRepoName')
-            def mr_id= env.get('gitlabMergeRequestIid')
-
-            //iterate through current project runs
-            build.getProject()._getRuns().each{{ run->
-              def exec = run.getExecutor()
-              def run_env = run.getEnvironment()
-              def run_repo_name = run_env.get('gitlabTargetRepoName')
-              def run_mr_id = run_env.get('gitlabMergeRequestIid')
-
-              //if the run is not a current build and it has executor (running) then abort it
-              if(run!=build && exec!=null && repo_name==run_repo_name && mr_id==run_mr_id){{
-                //prepare the cause of interruption
-                def cause = new CauseOfInterruption(){{
-                  public String getShortDescription(){{
-                    return "interrupted by build #${{build.getId()}}"
-                  }}
-                }}
-                exec.interrupt(Result.ABORTED, cause)
-              }}
-            }}
-
-      - trigger-builds:
-        - project: openstack-ardana
-          predefined-parameters: |
-            git_automation_repo=${{git_automation_repo}}
-            git_automation_branch=${{git_automation_branch}}
-            git_input_model_repo=${{git_input_model_repo}}
-            git_input_model_branch=${{git_input_model_branch}}
-            git_input_model_path=${{git_input_model_path}}
-            git_automation_repo=${{git_automation_repo}}
-            git_automation_repo=${{git_automation_repo}}
-            git_automation_repo=${{git_automation_repo}}
-            git_automation_repo=${{git_automation_repo}}
-            model=${{model}}
-            job_name=${{job_name}}
-            cloudsource=${{cloudsource}}
-            repositories=${{repositories}}
-            update_cloudsource=${{update_cloudsource}}
-            update_repositories=${{update_repositories}}
-            update_method=${{update_method}}
-            tempest_run_filter=${{tempest_run_filter}}
-            build_pool_name=${{build_pool_name}}
-            build_pool_size=${{build_pool_size}}
-            develproject=${{develproject}}
-            homeproject=${{homeproject}}
-            repository=${{repository}}
-            gitlab_project=${{gitlabTargetRepoName}}
-            gitlab_mr_id=${{gitlabMergeRequestIid}}
-            gitlab_source_branch=${{gitlabSourceBranch}}
-            gitlab_target_branch=${{gitlabTargetBranch}}
-            develproject={develproject}
-            repository={repository}
-          block: true
+      - multijob:
+          name: 'Test Ardana Deployment'
+          condition: SUCCESSFUL
+          projects:
+            - name: openstack-ardana
+              current-parameters: true
 
     publishers:
       - gitlab-notifier:
