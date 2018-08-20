@@ -35,7 +35,7 @@
 
       - string:
           name: jenkinsfile_path
-          default: jenkins/ci.suse.de/pipelines/Jenkinsfile.openstack-ardana
+          default: jenkins/ci.suse.de/pipelines/openstack-ardana.Jenkinsfile
           description: >-
             The location of the Jenkinsfile defining the pipeline
 
@@ -70,7 +70,7 @@
             The scenario used to generate the input model
 
       - string:
-          name: job_name
+          name: job_desc
           default: ''
           description: >-
             This name reserves job environment and prevents deletion at the end.

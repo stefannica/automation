@@ -5,19 +5,13 @@ CLOUD_CONFIG_NAME=engcloud-cloud-ci
 
 set -ex
 
-DEPLOYER_IP=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $heat_stack_name admin-floating-ip -c output_value -f value)
-
 NETWORK_MGMT_ID=$(openstack --os-cloud $CLOUD_CONFIG_NAME stack output show $heat_stack_name mgmt-network-id -c output_value -f value)
 cat << EOF > hosts
 [hosts]
-$DEPLOYER_IP ansible_user=root
+$CLM_IP ansible_user=root
 EOF
 
 cat hosts
-
-cat << EOF > deployer_ip
-$DEPLOYER_IP
-EOF
 
 cat << EOF > ardana_net_vars.yml
 ---
