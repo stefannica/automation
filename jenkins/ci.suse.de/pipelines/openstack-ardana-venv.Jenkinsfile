@@ -15,15 +15,17 @@ pipeline {
   agent {
     node {
       label reuse_node ? reuse_node : "cloud-ardana-ci"
-      customWorkspace reuse_workspace ? reuse_workspace : "${JOB_NAME}-${BUILD_NUMBER}"
+      customWorkspace label ? "${JOB_NAME}-${label}" : "${JOB_NAME}-${BUILD_NUMBER}"
     }
   }
 
   stages {
-    stage('setup environment') {
+    stage('setup workspace and environment') {
       steps {
+        cleanWs()
 
-        // Replace the created workspace with a symlink to the reused one
+        // If the job is set up to reuse an existing workspace, replace the
+        // current workspace with a symlink to the reused one.
         // NOTE: even if we specify the reused workspace as the
         // customWorkspace variable value, Jenkins will refuse to reuse a
         // workspace that's already in use by one of the currently running
@@ -34,20 +36,20 @@ pipeline {
             ln -s "${reuse_workspace}" "${WORKSPACE}"
           fi
         '''
+
         script {
-          if ("${job_desc}" != '') {
-            currentBuild.displayName = "#${BUILD_NUMBER} ${job_desc}"
+          if ("${label}" != '') {
+            currentBuild.displayName = "#${BUILD_NUMBER} ${label}"
             //currentBuild.description = ""
+            env.heat_stack_name="$JOB_NAME-$label"
           }
           else {
             currentBuild.displayName = "${JOB_NAME}-${BUILD_NUMBER}"
             //currentBuild.description = ""
+            env.heat_stack_name="$JOB_NAME-$BUILD_NUMBER"
           }
           env.input_model_path = "${WORKSPACE}/input-model"
           env.heat_template_file = "${WORKSPACE}/heat-ardana-${model}.yaml"
-          if ("${heat_stack_name}" == '') {
-            env.heat_stack_name = "${JOB_NAME}-${BUILD_NUMBER}"
-          }
           env.CLOUD_CONFIG_NAME = "engcloud-cloud-ci"
         }
       }
@@ -74,7 +76,9 @@ pipeline {
              url: "${git_input_model_repo}",
              branch: "${git_input_model_branch}"
           )
-          sh 'ln -s ./input-model-git/${git_input_model_path}/${model} $input_model_path'
+        }
+        script {
+          env.input_model_path = "${WORKSPACE}/input-model-git/${git_input_model_path}/${model}"
         }
       }
     }
@@ -111,17 +115,11 @@ pipeline {
     }
 
     stage('create virtual env') {
-      //options {
-      //  lock(resource: 'ECP-API')
-      //}
-      steps {
-        build job: 'openstack-ardana-heat', parameters: [
-          string(name: 'action', value: "create"),
-          string(name: 'build_pool_name', value: "${build_pool_name}"),
-          string(name: 'build_pool_size', value: "${build_pool_size}"),
-          string(name: 'heat_stack_name', value: "${heat_stack_name}"),
-          string(name: 'heat_template_file', value: "${heat_template_file}")
-        ], propagate: true, wait: true
+      options {
+        lock(resource: 'ECP-API')
+      }
+      dir('automation-git/scripts/jenkins/ardana/ansible') {
+        sh './bin/heat_stack.sh create "${$heat_stack_name}" "${heat_template_file}"'
       }
     }
 
@@ -160,20 +158,9 @@ EOF
   }
   post {
     failure {
-        build job: 'openstack-ardana-heat', parameters: [
-          string(name: 'action', value: "cleanup"),
-          string(name: 'build_pool_name', value: "${build_pool_name}"),
-          string(name: 'build_pool_size', value: "${build_pool_size}"),
-          string(name: 'heat_stack_name', value: "${heat_stack_name}"),
-          string(name: 'heat_template_file', value: "${heat_template_file}")
-        ], propagate: false, wait: false
-    }
-    always {
-        build job: 'openstack-ardana-heat', parameters: [
-          string(name: 'action', value: "cleanup"),
-          string(name: 'build_pool_name', value: "${build_pool_name}"),
-          string(name: 'build_pool_size', value: "${build_pool_size}")
-        ], propagate: false, wait: false
+      dir('automation-git/scripts/jenkins/ardana/ansible') {
+        sh './bin/heat_stack.sh delete "${$heat_stack_name}"'
+      }
     }
   }
 }

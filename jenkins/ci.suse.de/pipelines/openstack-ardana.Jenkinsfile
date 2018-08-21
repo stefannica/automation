@@ -12,28 +12,16 @@ pipeline {
   agent {
     node {
       label 'cloud-ardana-ci'
-      customWorkspace "openstack-ardana-pipeline-${BUILD_ID}"
+      customWorkspace label ? "${JOB_NAME}-${label}" : "${JOB_NAME}-${BUILD_NUMBER}"
     }
   }
 
   stages {
     stage('setup environment') {
       steps {
-
-        // Replace the created workspace with a symlink to the reused one
-        // NOTE: even if we specify the reused workspace as the
-        // customWorkspace variable value, Jenkins will refuse to reuse a
-        // workspace that's already in use by one of the currently running
-        // jobs and will just create a new one.
-        sh '''
-          if [ -n "${reuse_workspace}" ]; then
-            rmdir "${WORKSPACE}"
-            ln -s "${reuse_workspace}" "${WORKSPACE}"
-          fi
-        '''
         script {
-          if ("${job_desc}" != '') {
-            currentBuild.displayName = "#${BUILD_NUMBER} ${job_desc}"
+          if ("${label}" != '') {
+            currentBuild.displayName = "#${BUILD_NUMBER} ${label}"
             //currentBuild.description = ""
           }
           else {
@@ -96,7 +84,7 @@ pipeline {
               string(name: 'build_pool_size', value: "${build_pool_size}"),
               string(name: 'reuse_node', value: "${NODE_NAME}"),
               string(name: 'reuse_workspace', value: "${WORKSPACE}"),
-              string(name: 'job_desc', value: "${job_desc} (env: ${heat_stack_name})")
+              string(name: 'label', value: "${label}")
             ], propagate: true, wait: true
 
             // Load the environment variables set by the downstream job
@@ -149,18 +137,31 @@ pipeline {
 
   post {
     always {
-        build job: 'openstack-ardana-heat', parameters: [
-          string(name: 'action', value: "cleanup"),
-          string(name: 'build_pool_name', value: "$build_pool_name"),
-          string(name: 'build_pool_size', value: "$build_pool_size"),
-          string(name: 'heat_stack_name', value: "$heat_stack_name"),
-          string(name: 'heat_template_file', value: "$heat_template_file")
-        ], propagate: false, wait: false
-        build job: 'openstack-ardana-heat', parameters: [
-          string(name: 'action', value: "cleanup"),
-          string(name: 'build_pool_name', value: "$build_pool_name"),
-          string(name: 'build_pool_size', value: "$build_pool_size")
-        ], propagate: false, wait: false
+      dir('automation-git/scripts/jenkins/ardana/ansible') {
+        sh '''
+           if [ "$cleanup" == "always" ]; then
+             ./bin/heat_stack.sh delete "${$heat_stack_name}"'
+           fi
+        '''
+      }
+    }
+    success {
+      dir('automation-git/scripts/jenkins/ardana/ansible') {
+        sh '''
+           if [ "$cleanup" == "on success" ]; then
+             ./bin/heat_stack.sh delete "${$heat_stack_name}"'
+           fi
+        '''
+      }
+    }
+    failure {
+      dir('automation-git/scripts/jenkins/ardana/ansible') {
+        sh '''
+           if [ "$cleanup" == "on failure" ]; then
+             ./bin/heat_stack.sh delete "${$heat_stack_name}"'
+           fi
+        '''
+      }
     }
   }
 

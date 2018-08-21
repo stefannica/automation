@@ -21,6 +21,26 @@
       daysToKeep: 300
 
     parameters:
+
+      - string:
+          name: label
+          default: ''
+          description: >-
+            This label uniquely identifies this job, its workspace and the virtual or hardware environment that it manages.
+            A unique label value will be generated if one isn't supplied.
+
+            WARNING: if a virtual environment associated with the supplied label already exists, it will be replaced.
+
+      - choice:
+          name: cleanup
+          choices:
+            -
+            - always
+            - on success
+            - on failure
+          description: >-
+            Configure the conditions that trigger the virtual environment cleanup.
+
       - string:
           name: git_automation_repo
           default: https://github.com/SUSE-Cloud/automation.git
@@ -61,19 +81,14 @@
           name: model
           default: std-min
           description: >-
-            The Input Model to use from the input model git repository / branch / path
+            The Input Model to use from the input model git repository / branch / path, or the name of the generated
+            input model.
 
       - string:
           name: scenario
           default: ''
           description: >-
             The scenario used to generate the input model
-
-      - string:
-          name: job_desc
-          default: ''
-          description: >-
-            This name reserves job environment and prevents deletion at the end.
 
       - choice:
           name: cloudsource
@@ -143,22 +158,6 @@
             ci, compute, designate, lbaas, network, neutron-api, periodic,
             periodic-virtual, refstack, smoke, swift, tests2skip, tests-ci,
             upgrade-ci or upgrade
-
-      - string:
-          name: build_pool_name
-          default: ''
-          description: >-
-            Name of the build resource pool to be used for this job. When
-            supplied, the heat stack created by this job will be added to the
-            build pool and will be cleaned up automatically when the pool fills up.
-
-      - string:
-          name: build_pool_size
-          default: '0'
-          description: >-
-            The maximum number of heat stacks in the build_pool_name build pool
-            that can be kept running at any given time. When this number is exceeded,
-            older stacks in the pool will be deleted to make place for new ones.
 
       - string:
           name: gerrit_change_ids

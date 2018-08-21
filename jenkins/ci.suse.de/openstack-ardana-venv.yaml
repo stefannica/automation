@@ -19,6 +19,15 @@
 
     parameters:
       - string:
+          name: label
+          default: ''
+          description: >-
+            This label uniquely identifies this job, its workspace and the virtual environment that it creates.
+            A unique label value will be generated if one isn't supplied.
+
+            WARNING: if a virtual environment associated with the supplied label already exists, it will be replaced.
+
+      - string:
           name: git_automation_repo
           default: https://github.com/SUSE-Cloud/automation.git
           description: >-
@@ -40,7 +49,7 @@
           name: git_input_model_repo
           default: git://git.suse.provo.cloud/ardana/ardana-input-model
           description: >-
-            The git repository to use for input models
+            The git repository to use for predefined input models
 
       - string:
           name: git_input_model_branch
@@ -58,7 +67,8 @@
           name: model
           default: std-min
           description: >-
-            The Input Model to use from the input model git repository / branch / path
+            The Input Model to use from the input model git repository / branch / path, or the name of the generated
+            input model.
 
       - string:
           name: scenario
@@ -67,34 +77,11 @@
             The scenario used to generate the input model
 
       - string:
-          name: heat_stack_name
-          default: ''
-          description: >-
-            The name of the ECP heat stack created by this job.
-            WARNING: if the heat stack with the supplied name exists already, it will be replaced.
-
-      - string:
-          name: build_pool_name
-          default: ''
-          description: >-
-            Name of the build resource pool to be used for this job. When
-            supplied, the heat stack created by this job will be added to the
-            build pool and will be cleaned up automatically when the pool fills up.
-
-      - string:
-          name: build_pool_size
-          default: '0'
-          description: >-
-            The maximum number of heat stacks in the build_pool_name build pool
-            that can be kept running at any given time. When this number is exceeded,
-            older stacks in the pool will be deleted to make place for new ones.
-
-      - string:
           name: reuse_node
           default: ''
           description: >-
-            The Jenkins node where this job must run. Used by upstream jobs to
-            force a job to use the same node.
+            The Jenkins agent where this job must run. Used by upstream jobs to
+            force a job to reuse the same node.
 
       - string:
           name: reuse_workspace
@@ -102,13 +89,6 @@
           description: >-
             The Jenkins workspace that this job must reuse. Used by upstream jobs to
             force a job to use the same workspace.
-
-      - string:
-          name: job_desc
-          default: ''
-          description: >-
-            The job name suffix set for this job. Used by upstream jobs to indicate
-            the global context in which this job is running.
 
     pipeline-scm:
       scm:
