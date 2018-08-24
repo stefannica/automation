@@ -3,7 +3,7 @@
 set -ex
 
 NETWORK_MGMT_ID=$(openstack --os-cloud ${os_cloud} stack output show $heat_stack_name mgmt-network-id -c output_value -f value)
-sed -i "s/^ardana-virt.*/ardana-virt      ansible_host=$CLM_IP/g" inventory
+sed -i "s/^ardana-virt.*/ardana-virt      ansible_host=$DEPLOYER_IP/g" inventory
 
 cat inventory
 
@@ -34,7 +34,7 @@ done
 fi
 
 # Get the IP addresses of the dns servers from the mgmt network
-echo "mgmt_dnsservers:" >> host_vars/ardana-virt.yml
+echo "dns_servers:" >> host_vars/ardana-virt.yml
 openstack --os-cloud ${os_cloud} port list --network $NETWORK_MGMT_ID \
         --device-owner network:dhcp -f value -c 'Fixed IP Addresses' | \
   sed -e "s/^ip_address='\(.*\)', .*$/\1/" | \

@@ -17,7 +17,7 @@ pipeline {
   }
 
   stages {
-    stage('setup environment') {
+    stage('setup build environment') {
       steps {
         script {
           if ("${label}" != '') {
@@ -46,7 +46,7 @@ pipeline {
     }
 
     // TODO: more stages here (linter, etc)
-    stage('parallel stage') {
+    stage('parallel one') {
       // abort all stages if one of them fails
       failFast true
       parallel {
@@ -93,42 +93,69 @@ pipeline {
       } // parallel
     } // stage('parallel stage')
 
-    stage('bootstrap CLM') {
+    stage('setup deployer media') {
       steps {
         dir('automation-git/scripts/jenkins/ardana/ansible') {
-          sh './bin/bootstrap_clm.sh'
           script {
-            env.verification_temp_dir = sh (returnStdout: true, script: 'cat verification_temp_dir')
+            sh './bin/bootstrap_clm.sh'
           }
         }
       }
     }
 
-    stage('deploy Ardana') {
+    stage('initialize deployer') {
       steps {
         dir('automation-git/scripts/jenkins/ardana/ansible') {
-          sh '''
-            # Run site.yml outside ansible for output streaming
-            ssh $sshargs ardana@${CLM_IP} "cd ~/scratch/ansible/next/ardana/ansible ; \
-                 ansible-playbook -v -i hosts/verb_hosts site.yml"
-          '''
+          script {
+            sh '''
+              source /opt/ansible/bin/activate
+              ansible-playbook -v -e "build_url=$BUILD_URL" \
+                                  -e cloudsource="${cloudsource}" \
+                                  init.yml
+            '''
+          }
         }
       }
     }
 
-    stage ('run Tempest') {
+    stage('deploy cloud') {
       steps {
         dir('automation-git/scripts/jenkins/ardana/ansible') {
-          sh '''
-            image_mirror_url=http://provo-clouddata.cloud.suse.de/images/openstack/x86_64
-            source /opt/ansible/bin/activate
-            # Run post-deploy checks
-            ansible-playbook -v \
-                -e "image_mirror_url=${image_mirror_url}" \
-                -e "tempest_run_filter=${tempest_run_filter}" \
-                -e "verification_temp_dir=$verification_temp_dir" \
-                post-deploy-checks.yml
-          '''
+          script {
+            sh './bin/deploy_ardana.sh'
+          }
+        }
+      }
+    }
+
+    stage('parallel two') {
+      // run all stages to the end, even if one of them fails
+      failFast false
+      parallel {
+
+        stage ('tempest') {
+          when {
+            expression { tempest_run_filter != '' }
+          }
+          steps {
+            dir('automation-git/scripts/jenkins/ardana/ansible') {
+              script {
+                sh './bin/run_tempest.sh'
+              }
+            }
+          }
+        }
+
+        stage ('post deploy checks') {
+          steps {
+            dir('automation-git/scripts/jenkins/ardana/ansible') {
+              sh '''
+                source /opt/ansible/bin/activate
+                # Run post-deploy checks
+                ansible-playbook -v post-deploy-checks.yml
+              '''
+            }
+          }
         }
       }
     }

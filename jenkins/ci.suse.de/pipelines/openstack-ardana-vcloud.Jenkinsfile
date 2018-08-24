@@ -130,10 +130,10 @@ pipeline {
       }
     }
 
-    stage('get CLM IP') {
+    stage('get deployer IP') {
       steps {
         script {
-          env.CLM_IP = sh (
+          env.DEPLOYER_IP = sh (
             script: 'openstack --os-cloud ${os_cloud} stack output show $heat_stack_name admin-floating-ip -c output_value -f value',
             returnStdout: true
           ).trim()
@@ -154,7 +154,7 @@ pipeline {
         sh '''
           sshargs="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
           # FIXME: Use cloud-init in the used image
-          sshpass -p linux ssh-copy-id -o ConnectionAttempts=120 $sshargs root@${CLM_IP}
+          sshpass -p linux ssh-copy-id -o ConnectionAttempts=120 $sshargs root@${DEPLOYER_IP}
         '''
         dir('automation-git/scripts/jenkins/ardana/ansible') {
           sh '''
@@ -169,7 +169,7 @@ pipeline {
       steps {
         sh '''
           cat << EOF > ${JOB_NAME}.output.groovy
-env.CLM_IP="${CLM_IP}"
+env.DEPLOYER_IP="${DEPLOYER_IP}"
 env.heat_stack_name="${heat_stack_name}"
 env.heat_template_file="${heat_template_file}"
 env.input_model_path="${input_model_path}"
@@ -181,17 +181,21 @@ EOF
 
   post {
     success{
+      // Load the environment variables set by the job
+      load "${JOB_NAME}.output.groovy"
       echo '''
-        *****************************************************************
-        ** The virtual environment is reachable at
-        **
-        **        ssh root@$CLM_IP
-        **
-        ** Please delete the $heat_stack_name stack manually when you're done.
-        *****************************************************************
+*****************************************************************
+** The virtual environment is reachable at
+**
+**        ssh root@${DEPLOYER_IP}
+**
+** Please delete the $heat_stack_name stack manually when you're done.
+*****************************************************************
       '''
     }
     failure {
+      // Load the environment variables set by the job
+      load "${JOB_NAME}.output.groovy"
       lock(resource: 'ECP-API') {
         dir('automation-git/scripts/jenkins/ardana/ansible') {
           sh '''
