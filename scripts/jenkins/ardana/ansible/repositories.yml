@@ -1,6 +1,6 @@
 ---
 - name: Setup repositories on the deployer node
-  hosts: ardana-virt
+  hosts: ardana-{{ clm_env }}
   remote_user: root
   gather_facts: False
 
@@ -50,6 +50,11 @@
     when: not item.stat.exists
     with_items:
       - "{{ srv_dir_stats.results }}"
+
+  - name: Grow 1st partition filesystem
+    shell: |
+      /usr/sbin/growpart /dev/vda 1 && /sbin/resize2fs /dev/vda1
+    ignore_errors: True
 
   # NOTE: we rsync only once, to avoid bringing in new cloudsource media contents
   # during subsequent runs
@@ -102,7 +107,6 @@
     zypper:
       name: "patterns-cloud-ardana"
       state: present
-
 
   # This can't happen earlier because we rely on the ardana pattern for creating
   # the ardana user/group

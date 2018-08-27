@@ -15,7 +15,7 @@ pipeline {
   agent {
     node {
       label reuse_node ? reuse_node : "cloud-ardana-ci"
-      customWorkspace label ? "${JOB_NAME}-${label}" : "${JOB_NAME}-${BUILD_NUMBER}"
+      customWorkspace clm_env ? "${JOB_NAME}-${clm_env}" : "${JOB_NAME}-${BUILD_NUMBER}"
     }
   }
 
@@ -38,16 +38,11 @@ pipeline {
         '''
 
         script {
-          if ("${label}" != '') {
-            currentBuild.displayName = "#${BUILD_NUMBER} ${label}"
-            //currentBuild.description = ""
-            env.heat_stack_name="$JOB_NAME-$label"
+          if ( clm_env == '') {
+            error("Empty 'clm_env' parameter value.")
           }
-          else {
-            currentBuild.displayName = "${JOB_NAME}-${BUILD_NUMBER}"
-            //currentBuild.description = ""
-            env.heat_stack_name="$JOB_NAME-$BUILD_NUMBER"
-          }
+          currentBuild.displayName = "#${BUILD_NUMBER} ${clm_env}"
+          env.heat_stack_name="$JOB_NAME-$clm_env"
           env.input_model_path = "${WORKSPACE}/input-model"
           env.heat_template_file = "${WORKSPACE}/heat-ardana-${model}.yaml"
         }
@@ -98,6 +93,11 @@ pipeline {
                              -e scenario_name="${scenario}" \
                              -e input_model_dir="${input_model_path}" \
                              -e virt_config_file="${virt_config}" \
+                             -e clm_model=$clm_model \
+                             -e controllers=$controllers \
+                             -e sles_computes=$sles_computes \
+                             -e rhel_computes=$rhel_computes \
+                             -e rc_notify=$rc_notify \
                              generate-input-model.yml
           '''
         }
@@ -130,21 +130,19 @@ pipeline {
       }
     }
 
-    stage('get deployer IP') {
-      steps {
-        script {
-          env.DEPLOYER_IP = sh (
-            script: 'openstack --os-cloud ${os_cloud} stack output show $heat_stack_name admin-floating-ip -c output_value -f value',
-            returnStdout: true
-          ).trim()
-        }
-      }
-    }
-
     stage('setup ansible vars') {
       steps {
         dir('automation-git/scripts/jenkins/ardana/ansible') {
           sh './bin/setup_virt_vars.sh'
+          script {
+            env.DEPLOYER_IP = sh (
+              script: '''
+                source /opt/ansible/bin/activate
+                ansible -o localhost -a "echo {{ hostvars['ardana-$clm_env'].ansible_host }}" | cut -d' ' -f 8
+              ''',
+              returnStdout: true
+            ).trim()
+          }
         }
       }
     }
@@ -159,31 +157,17 @@ pipeline {
         dir('automation-git/scripts/jenkins/ardana/ansible') {
           sh '''
             source /opt/ansible/bin/activate
-            ansible-playbook -v ssh-keys.yml
+            ansible-playbook -v -e clm_env=$clm_env \
+                                ssh-keys.yml
           '''
         }
-      }
-    }
-
-    stage('setup output variables') {
-      steps {
-        sh '''
-          cat << EOF > ${JOB_NAME}.output.groovy
-env.DEPLOYER_IP="${DEPLOYER_IP}"
-env.heat_stack_name="${heat_stack_name}"
-env.heat_template_file="${heat_template_file}"
-env.input_model_path="${input_model_path}"
-EOF
-        '''
       }
     }
   }
 
   post {
     success{
-      // Load the environment variables set by the job
-      load "${JOB_NAME}.output.groovy"
-      echo '''
+      echo """
 *****************************************************************
 ** The virtual environment is reachable at
 **
@@ -191,11 +175,9 @@ EOF
 **
 ** Please delete the $heat_stack_name stack manually when you're done.
 *****************************************************************
-      '''
+      """
     }
     failure {
-      // Load the environment variables set by the job
-      load "${JOB_NAME}.output.groovy"
       lock(resource: 'ECP-API') {
         dir('automation-git/scripts/jenkins/ardana/ansible') {
           sh '''

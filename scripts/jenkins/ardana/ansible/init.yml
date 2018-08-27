@@ -1,6 +1,6 @@
 ---
 - name: Initialize the Deployer
-  hosts: ardana-virt
+  hosts: ardana-{{ clm_env }}
   remote_user: root
   gather_facts: False
 
@@ -12,11 +12,6 @@
   - name: Add build information to /etc/motd
     shell: |
       echo "Build job:  {{ build_url }}" >>/etc/motd
-
-  - name: Grow 1st partition filesystem
-    shell: |
-      /usr/sbin/growpart /dev/vda 1 && /sbin/resize2fs /dev/vda1
-    ignore_errors: True
 
   - name: Call ardana-init
     shell: /usr/bin/ardana-init

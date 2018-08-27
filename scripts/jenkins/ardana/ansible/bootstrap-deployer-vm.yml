@@ -24,7 +24,7 @@
 
   vars_prompt:
     - name: "qe_env"
-      prompt: "Target envinroment to deploy"
+      prompt: "Target environment to deploy"
       private: no
       when: qe_env not defined
 

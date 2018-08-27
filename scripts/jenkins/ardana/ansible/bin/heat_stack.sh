@@ -25,14 +25,23 @@ delete_heat_stack() {
         fi
     fi
 
+    # After deleting a stack, it will still remain configured with a DELETE_COMPLETE
+    # status for a while (and re-creating one with the same name during this time will
+    # fail).
+    while [[ $(get_heat_stack $heat_stack_name) == *" DELETE_COMPLETE" ]]; do
+      delete_rc=0
+      openstack --os-cloud ${os_cloud} stack delete --wait $stack_name || :
+      sleep 5
+    done
+
     return $delete_rc
 }
 
 get_heat_stack() {
     stack_name=$1
     openstack --os-cloud ${os_cloud} stack list \
-              -f value -c 'Stack Name' |
-              grep "^$stack_name$" || :
+              -f value -c 'Stack Name' -c 'Stack Status' |
+              grep "^$stack_name " || :
 }
 
 usage_and_exit() {
@@ -54,7 +63,7 @@ if [[ $action == "create" ]]; then
 
     heat_stack=$(get_heat_stack $heat_stack_name)
     if [[ -n $heat_stack ]]; then
-        delete_heat_stack $heat_stack_name
+      delete_heat_stack $heat_stack_name
     fi
     exit_rc=0
     openstack --os-cloud ${os_cloud} stack create --timeout 10 --wait \
