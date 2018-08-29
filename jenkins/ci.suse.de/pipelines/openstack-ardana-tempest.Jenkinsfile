@@ -37,15 +37,13 @@ pipeline {
 
         script {
           env.cloud_type = "virtual"
-          if ( clm_env != '') {
-            currentBuild.displayName = "#${BUILD_NUMBER} ${clm_env}"
-            //currentBuild.description = ""
-            if ( clm_env.startsWith("qe") || clm_env.startsWith("qa") ) {
-              env.cloud_type = "physical"
-            }
-          }
-          else {
+          if ( clm_env == '') {
             error("Empty 'clm_env' parameter value.")
+          }
+          currentBuild.displayName = "#${BUILD_NUMBER} ${clm_env}"
+          // FIXME: find a better way of differentiating between hardware and virtual environments
+          if ( clm_env.startsWith("qe") || clm_env.startsWith("qa") ) {
+            env.cloud_type = "physical"
           }
         }
       }
@@ -72,25 +70,24 @@ pipeline {
           // the virtual environment and set up the ansible inventory.
           env.heat_stack_name="openstack-ardana-vcloud-$clm_env"
         }
-        dir('automation-git/scripts/jenkins/ardana/ansible') {
-          sh './bin/setup_virt_vars.sh'
-        }
+        sh '''
+          cd automation-git/scripts/jenkins/ardana/ansible
+          ./bin/setup_virt_vars.sh
+        '''
       }
     }
 
     stage('run tempest') {
       steps {
-        dir('automation-git/scripts/jenkins/ardana/ansible') {
-          script {
-            sh '''
-              source /opt/ansible/bin/activate
-              ansible-playbook -e qe_env=$clm_env \
-                               -e rc_notify=$rc_notify \
-                               -e tempest_run_filter=$tempest_run_filter \
-                               run-ardana-tempest.yml
-            '''
-          }
-        }
+        sh '''
+          cd automation-git/scripts/jenkins/ardana/ansible
+          source /opt/ansible/bin/activate
+          ansible-playbook -v \
+                           -e qe_env=$clm_env \
+                           -e rc_notify=$rc_notify \
+                           -e tempest_run_filter=$tempest_run_filter \
+                           run-ardana-tempest.yml
+        '''
       }
     }
   }

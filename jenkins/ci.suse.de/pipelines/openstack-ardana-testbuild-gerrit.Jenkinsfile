@@ -59,14 +59,12 @@ pipeline {
 
     stage('build test packages') {
       steps {
-        dir('automation-git/scripts/jenkins/ardana/gerrit') {
-          sh '''
-            set -eux
-            python -u build_test_package.py
-          '''
-        }
-
-        echo "zypper repository for test packages: $test_repository"
+        sh '''
+          cd automation-git/scripts/jenkins/ardana/gerrit
+          set -eux
+          python -u build_test_package.py
+          echo "zypper repository for test packages: $test_repository"
+        '''
       }
     }
   }

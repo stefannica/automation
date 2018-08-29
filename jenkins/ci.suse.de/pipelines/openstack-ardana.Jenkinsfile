@@ -23,15 +23,12 @@ pipeline {
 
         script {
           env.cloud_type = "virtual"
-          if ( clm_env != '') {
-            currentBuild.displayName = "#${BUILD_NUMBER} ${clm_env}"
-            //currentBuild.description = ""
-            if ( clm_env.startsWith("qe") || clm_env.startsWith("qa") ) {
-              env.cloud_type = "physical"
-            }
-          }
-          else {
+          if ( clm_env == '') {
             error("Empty 'clm_env' parameter value.")
+          }
+          currentBuild.displayName = "#${BUILD_NUMBER} ${clm_env}"
+          if ( clm_env.startsWith("qe") || clm_env.startsWith("qa") ) {
+            env.cloud_type = "physical"
           }
           env.cloud_release = "cloud"+cloudsource[-1]
           if ( "${want_caasp}" == '1' ) {
@@ -83,19 +80,18 @@ pipeline {
             expression { cloud_type == 'physical' }
           }
           steps {
-            dir('automation-git/scripts/jenkins/ardana/ansible') {
-              script {
-                sh '''
-                  source /opt/ansible/bin/activate
-                  ansible-playbook -e qe_env=$clm_env \
-                                   -e rc_notify=$rc_notify \
-                                   rebuild-deployer-vm.yml
+            sh '''
+              cd automation-git/scripts/jenkins/ardana/ansible
+              source /opt/ansible/bin/activate
+              ansible-playbook -v \
+                               -e qe_env=$clm_env \
+                               -e rc_notify=$rc_notify \
+                               rebuild-deployer-vm.yml
 
-                  ansible-playbook -v -e clm_env=$clm_env \
-                                      ssh-keys.yml
-                '''
-              }
-            }
+              ansible-playbook -v \
+                               -e clm_env=$clm_env \
+                               ssh-keys.yml
+            '''
           }
         }
 
@@ -104,24 +100,23 @@ pipeline {
               expression { cloud_type == 'physical' }
           }
           steps {
-            dir('automation-git/scripts/jenkins/ardana/ansible') {
-              script {
-                env.virt_config = "${WORKSPACE}/${scenario}-virt-config.yml"
-              }
-              sh '''
-                source /opt/ansible/bin/activate
-                ansible-playbook -v \
-                                 -e cloud_release="${cloud_release}" \
-                                 -e scenario_name="${scenario}" \
-                                 -e input_model_dir="${input_model_path}" \
-                                 -e clm_model=$clm_model \
-                                 -e controllers=$controllers \
-                                 -e sles_computes=$sles_computes \
-                                 -e rhel_computes=$rhel_computes \
-                                 -e rc_notify=$rc_notify \
-                                 generate-input-model.yml
-              '''
+            script {
+              env.virt_config = "${WORKSPACE}/${scenario}-virt-config.yml"
             }
+            sh '''
+              cd automation-git/scripts/jenkins/ardana/ansible
+              source /opt/ansible/bin/activate
+              ansible-playbook -v \
+                               -e cloud_release="${cloud_release}" \
+                               -e scenario_name="${scenario}" \
+                               -e input_model_dir="${input_model_path}" \
+                               -e clm_model=$clm_model \
+                               -e controllers=$controllers \
+                               -e sles_computes=$sles_computes \
+                               -e rhel_computes=$rhel_computes \
+                               -e rc_notify=$rc_notify \
+                               generate-input-model.yml
+            '''
           }
         }
 
@@ -192,18 +187,16 @@ pipeline {
             expression { cloud_type == 'virtual' }
           }
           steps {
-            dir('automation-git/scripts/jenkins/ardana/ansible') {
-              script {
-                sh '''
-                  source /opt/ansible/bin/activate
-                  ansible-playbook -v -e clm_env=$clm_env \
-                                      -e build_url=$BUILD_URL \
-                                      -e cloudsource="${cloudsource}" \
-                                      init.yml
-                  ./bin/deploy_ardana.sh
-                '''
-              }
-            }
+            sh '''
+              cd automation-git/scripts/jenkins/ardana/ansible
+              source /opt/ansible/bin/activate
+              ansible-playbook -v \
+                               -e clm_env=$clm_env \
+                               -e build_url=$BUILD_URL \
+                               -e cloudsource="${cloudsource}" \
+                               init.yml
+              ./bin/deploy_ardana.sh
+            '''
           }
         }
 
@@ -212,27 +205,25 @@ pipeline {
             expression { cloud_type == 'physical' }
           }
           steps {
-            dir('automation-git/scripts/jenkins/ardana/ansible') {
-              script {
-                sh '''
-                  source /opt/ansible/bin/activate
-                  ansible-playbook -v -e qe_env=$clm_env \
-                                      -e cloud_source=$cloud_source \
-                                      -e cloud_brand=$cloud_brand \
-                                      -e rc_notify=$rc_notify \
-                                      -e ardana_input_model=$scenario \
-                                      -e ardana_input_model_path=$input_model_path \
-                                      -e cloud_maint_updates=$cloud_maint_updates \
-                                      -e sles_maint_updates=$sles_maint_updates \
-                                      -e clm_model=$clm_model \
-                                      -e controllers=$controllers \
-                                      -e sles_computes=$sles_computes \
-                                      -e rhel_computes=$rhel_computes
-                                      -e ses_enabled=$ses_enabled
-                                      ardana-deploy.yml
-                '''
-              }
-            }
+            sh '''
+              cd automation-git/scripts/jenkins/ardana/ansible
+              source /opt/ansible/bin/activate
+              ansible-playbook -v
+                               -e qe_env=$clm_env \
+                               -e cloud_source=$cloud_source \
+                               -e cloud_brand=$cloud_brand \
+                               -e rc_notify=$rc_notify \
+                               -e ardana_input_model=$scenario \
+                               -e ardana_input_model_path=$input_model_path \
+                               -e cloud_maint_updates=$cloud_maint_updates \
+                               -e sles_maint_updates=$sles_maint_updates \
+                               -e clm_model=$clm_model \
+                               -e controllers=$controllers \
+                               -e sles_computes=$sles_computes \
+                               -e rhel_computes=$rhel_computes
+                               -e ses_enabled=$ses_enabled
+                               ardana-deploy.yml
+            '''
           }
         }
       }
@@ -266,14 +257,14 @@ pipeline {
 
         stage ('post deploy checks') {
           steps {
-            dir('automation-git/scripts/jenkins/ardana/ansible') {
-              sh '''
-                source /opt/ansible/bin/activate
-                # Run post-deploy checks
-                ansible-playbook -v -e clm_env=$clm_env \
-                                    post-deploy-checks.yml
-              '''
-            }
+            sh '''
+              cd automation-git/scripts/jenkins/ardana/ansible
+              source /opt/ansible/bin/activate
+              # Run post-deploy checks
+              ansible-playbook -v \
+                               -e clm_env=$clm_env \
+                               post-deploy-checks.yml
+            '''
           }
         }
       }
@@ -284,50 +275,46 @@ pipeline {
         expression { want_caasp == '1' }
       }
       steps {
-        dir('automation-git/scripts/jenkins/ardana/ansible') {
-          sh '''
-            source /opt/ansible/bin/activate
-            ansible-playbook -v -e clm_env=$clm_env \
-                                deploy-caasp.yml
-          '''
-        }
+        sh '''
+          cd automation-git/scripts/jenkins/ardana/ansible
+          source /opt/ansible/bin/activate
+          ansible-playbook -v \
+                           -e clm_env=$clm_env \
+                           deploy-caasp.yml
+        '''
       }
     }
   }
 
   post {
     always {
-      archiveArtifacts '*'
       lock(resource: 'ECP-API') {
-        dir('automation-git/scripts/jenkins/ardana/ansible') {
-          sh '''
-             if [ "$cloud_type" == "virtual" ] && [ "$cleanup" == "always" ] && [ -n "${heat_stack_name}" ]; then
-               ./bin/heat_stack.sh delete "${heat_stack_name}"
-             fi
-          '''
-        }
+        sh '''
+          cd automation-git/scripts/jenkins/ardana/ansible
+          if [ "$cloud_type" == "virtual" ] && [ "$cleanup" == "always" ] && [ -n "${heat_stack_name}" ]; then
+            ./bin/heat_stack.sh delete "${heat_stack_name}"
+          fi
+        '''
       }
     }
     success {
       lock(resource: 'ECP-API') {
-        dir('automation-git/scripts/jenkins/ardana/ansible') {
-          sh '''
-             if [ "$cloud_type" == "virtual" ] && [ "$cleanup" == "on success" ] && [ -n "${heat_stack_name}" ]; then
-               ./bin/heat_stack.sh delete "${heat_stack_name}"
-             fi
-          '''
-        }
+        sh '''
+          cd automation-git/scripts/jenkins/ardana/ansible
+          if [ "$cloud_type" == "virtual" ] && [ "$cleanup" == "on success" ] && [ -n "${heat_stack_name}" ]; then
+            ./bin/heat_stack.sh delete "${heat_stack_name}"
+          fi
+        '''
       }
     }
     failure {
       lock(resource: 'ECP-API') {
-        dir('automation-git/scripts/jenkins/ardana/ansible') {
-          sh '''
-             if [ "$cloud_type" == "virtual" ] && [ "$cleanup" == "on failure" ] && [ -n "${heat_stack_name}" ]; then
-               ./bin/heat_stack.sh delete "${heat_stack_name}"
-             fi
-          '''
-        }
+        sh '''
+          cd automation-git/scripts/jenkins/ardana/ansible
+          if [ "$cloud_type" == "virtual" ] && [ "$cleanup" == "on failure" ] && [ -n "${heat_stack_name}" ]; then
+            ./bin/heat_stack.sh delete "${heat_stack_name}"
+          fi
+        '''
       }
     }
   }

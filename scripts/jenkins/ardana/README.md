@@ -46,7 +46,9 @@ Principles:
   * pass information back to the upstream job by setting them as environment variables in the
   downstream job and using the `.buildVariables` build job object attribute in the upstream job
   (NOTE: this is only possible if the downstream job is also a pipeline job)
-
+* passing information from one stage to the next:
+  * use ansible variables (host/group vars, extra vars) as much as possible
+  * use build environment variables (which can only be set by using `env.<variable-name>` in a pipeline script block)
 * use the lockable resources mechanism to throttle parallel builds and
 implement a virtual resource management and scheduling
 * use fast-fail for parallel stages where applicable to abort all the individual stages

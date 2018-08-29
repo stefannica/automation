@@ -49,15 +49,13 @@ pipeline {
 
         script {
           env.cloud_type = "virtual"
-          if ( clm_env != '') {
-            currentBuild.displayName = "#${BUILD_NUMBER} ${clm_env}"
-            //currentBuild.description = ""
-            if ( clm_env.startsWith("qe") || clm_env.startsWith("qa") ) {
-              env.cloud_type = "physical"
-            }
-          }
-          else {
+          if ( clm_env == '') {
             error("Empty 'clm_env' parameter value.")
+          }
+          currentBuild.displayName = "#${BUILD_NUMBER} ${clm_env}"
+          // FIXME: find a better way of differentiating between hardware and virtual environments
+          if ( clm_env.startsWith("qe") || clm_env.startsWith("qa") ) {
+            env.cloud_type = "physical"
           }
         }
       }
@@ -84,9 +82,10 @@ pipeline {
           // the virtual environment and set up the ansible inventory.
           env.heat_stack_name="openstack-ardana-vcloud-$clm_env"
         }
-        dir('automation-git/scripts/jenkins/ardana/ansible') {
-          sh './bin/setup_virt_vars.sh'
-        }
+        sh '''
+          cd automation-git/scripts/jenkins/ardana/ansible
+          ./bin/setup_virt_vars.sh
+        '''
       }
     }
 
@@ -97,18 +96,15 @@ pipeline {
             expression { cloud_type == 'virtual' }
           }
           steps {
-            dir('automation-git/scripts/jenkins/ardana/ansible') {
-              script {
-                sh '''
-                  source /opt/ansible/bin/activate
-                  ansible-playbook -v -e clm_env=$clm_env \
-                                      -e "cloudsource=${cloudsource}" \
-                                      -e "repositories='${repositories}'" \
-                                      -e "test_repository_url='${test_repository}'" \
-                                      repositories.yml
-                '''
-              }
-            }
+            sh '''
+              cd automation-git/scripts/jenkins/ardana/ansible
+              source /opt/ansible/bin/activate
+              ansible-playbook -v -e clm_env=$clm_env \
+                                  -e "cloudsource=${cloudsource}" \
+                                  -e "repositories='${repositories}'" \
+                                  -e "test_repository_url='${test_repository}'" \
+                                  repositories.yml
+            '''
           }
         }
 
@@ -117,30 +113,27 @@ pipeline {
             expression { cloud_type == 'physical' }
           }
           steps {
-            dir('automation-git/scripts/jenkins/ardana/ansible') {
-              script {
-                sh '''
-                  # convert cloudsource to cloud_source
-                  # TODO: this will no longer be needed when the virtual/hw stages are merged
-                  if [ "$cloudsource" == "GM"* ]; then
-                    cloud_source="GM"
-                  elif [ "$cloudsource" == "staging"* ]; then
-                    cloud_source="devel-staging"
-                  elif [ "$cloudsource" == "devel"* ]; then
-                    cloud_source="devel"
-                  fi
+            sh '''
+              # convert cloudsource to cloud_source
+              # TODO: this will no longer be needed when the virtual/hw stages are merged
+              if [ "$cloudsource" == "GM"* ]; then
+                cloud_source="GM"
+              elif [ "$cloudsource" == "staging"* ]; then
+                cloud_source="devel-staging"
+              elif [ "$cloudsource" == "devel"* ]; then
+                cloud_source="devel"
+              fi
 
-                  source /opt/ansible/bin/activate
-                  ansible-playbook -e qe_env=$clm_env \
-                                   -e cloud_source=$cloud_source \
-                                   -e cloud_brand=$cloud_brand \
-                                   -e rc_notify=$rc_notify \
-                                   -e cloud_maint_updates="$cloud_maint_updates" \
-                                   -e sles_maint_updates="$sles_maint_updates" \
-                                   bootstrap-deployer-vm.yml
-                '''
-              }
-            }
+              cd automation-git/scripts/jenkins/ardana/ansible
+              source /opt/ansible/bin/activate
+              ansible-playbook -e qe_env=$clm_env \
+                               -e cloud_source=$cloud_source \
+                               -e cloud_brand=$cloud_brand \
+                               -e rc_notify=$rc_notify \
+                               -e cloud_maint_updates="$cloud_maint_updates" \
+                               -e sles_maint_updates="$sles_maint_updates" \
+                               bootstrap-deployer-vm.yml
+            '''
           }
         }
       }
