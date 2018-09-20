@@ -74,4 +74,4 @@
     repository: SLE_12_SP4
     branch: master
     jobs:
-        - 'cloud-ardana{version}-job-gerrit-{arch}'
+        - 'cloud-ardana{version}-job-gerrit-{arch}-snica'

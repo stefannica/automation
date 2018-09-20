@@ -18,31 +18,25 @@ pipeline {
 
     stage('validate commit message') {
       steps {
+        cleanWs()
         script {
           currentBuild.displayName = "#${BUILD_NUMBER}: ${gerrit_change_ids}"
         }
-        echo 'TBD: trigger commit message validator job...'
-      }
-    }
+        git branch: "${GERRIT_BRANCH}", url: 'git://git.suse.provo.cloud/${GERRIT_PROJECT}'
+        //checkout changelog: true, poll: false, scm: [
+        //  $class: 'GitSCM',
+        //  branches: [[name: "${GERRIT_BRANCH}"]],
+        //  doGenerateSubmoduleConfigurations: false,
+        //  extensions: [],
+        //  submoduleCfg: [],
+        //  userRemoteConfigs: [[refspec: "${GERRIT_REFSPEC}",
+        //                       url: "git://git.suse.provo.cloud/${GERRIT_PROJECT}"]]
+        //]
 
-    stage('integration test') {
-      steps {
-        lock(resource: null, label: "$build_pool", variable: 'ardana_env', quantity: 1) {
-          script {
-            def slaveJob = build job: 'openstack-ardana', parameters: [
-              string(name: 'ardana_env', value: "$ardana_env"),
-              string(name: 'cleanup', value: "on success"),
-              string(name: 'gerrit_change_ids', value: "$gerrit_change_ids"),
-              string(name: 'git_automation_repo', value: "$git_automation_repo"),
-              string(name: 'git_automation_branch', value: "$git_automation_branch"),
-              string(name: 'model', value: "$model"),
-              string(name: 'cloudsource', value: "$cloudsource"),
-              string(name: 'tempest_run_filter', value: "$tempest_run_filter"),
-              string(name: 'develproject', value: "$develproject"),
-              string(name: 'repository', value: "$repository")
-            ], propagate: true, wait: true
-          }
-        }
+        //branches: [[name: "$\{env.BRANCH_NAME}"]], doGenerateSubmoduleConfigurations: false, extensions:
+        //[[$class: 'CloneOption', depth: 0, noTags: true, reference: '', shallow: +*true*+]],
+        //submoduleCfg: [], userRemoteConfigs: [url: '[http://My]]
+        echo 'TBD: trigger commit message validator job...'
       }
     }
   }
