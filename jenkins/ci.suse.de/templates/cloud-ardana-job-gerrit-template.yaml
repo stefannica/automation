@@ -34,28 +34,33 @@
     parameters:
 
       - string:
+          name: ardana_env
+          default: '{ardana_env|}'
+          description: >-
+            The virtual or hardware environment identifier. This field should either
+            be set to one of the values associated with the known hardware environments
+            (e.g. qe101), or to a value that will identify the created virtual environment.
+
+            WARNING: if a virtual environment associated with the supplied ardana_env already
+            exists, it will be replaced.
+
+      - bool:
+          name: reserve_env
+          default: '{reserve_env|true}'
+          description: >-
+            Reserve the 'ardana_env' lockable resource throughout the execution of this job
+
+      - string:
           name: git_automation_repo
-          default: https://github.com/SUSE-Cloud/automation.git
+          default: '{git_automation_repo|https://github.com/SUSE-Cloud/automation.git}'
           description: >-
             The git automation repository to use
 
       - string:
           name: git_automation_branch
-          default: master
+          default: '{git_automation_branch|master}'
           description: >-
             The git automation branch
-
-      - string:
-          name: jenkinsfile_path
-          default: jenkins/ci.suse.de/pipelines/openstack-ardana-gerrit.Jenkinsfile
-          description: >-
-            The location of the Jenkinsfile defining the pipeline
-
-      - string:
-          name: build_pool
-          default: '{build_pool}'
-          description: >-
-            The lockable resource pool (label) to use for jobs triggered by this pipeline
 
       - string:
           name: gerrit_change_ids
@@ -109,5 +114,5 @@
               - ${{git_automation_branch}}
             browser: auto
             wipe-workspace: false
-      script-path: ${{jenkinsfile_path}}
+      script-path: jenkins/ci.suse.de/pipelines/openstack-ardana-gerrit.Jenkinsfile
       lightweight-checkout: false
