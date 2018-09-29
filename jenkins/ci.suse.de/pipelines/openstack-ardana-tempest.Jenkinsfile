@@ -62,11 +62,16 @@ pipeline {
 
   post {
     always {
-        // archiveArtifacts and junit don't support absolute paths, so we have to to this instead
-        sh 'ln -s ${SHARED_WORKSPACE} ${BUILD_NUMBER}'
-        archiveArtifacts artifacts: "${BUILD_NUMBER}/.artifacts/**/*", allowEmptyArchive: true
-        junit testResults: "${BUILD_NUMBER}/.artifacts/*.xml", allowEmptyResults: true
-        sh 'rm ${BUILD_NUMBER}'
+      script {
+        // Let the upstream job archive artifacts and collect test results
+        if (reuse_node == '') {
+          // archiveArtifacts and junit don't support absolute paths, so we have to to this instead
+          sh 'ln -s ${SHARED_WORKSPACE} ${BUILD_NUMBER}'
+          archiveArtifacts artifacts: "${BUILD_NUMBER}/.artifacts/**/*", allowEmptyArchive: true
+          junit testResults: "${BUILD_NUMBER}/.artifacts/*.xml", allowEmptyResults: true
+          sh 'rm ${BUILD_NUMBER}'
+        }
+      }
     }
   }
 }

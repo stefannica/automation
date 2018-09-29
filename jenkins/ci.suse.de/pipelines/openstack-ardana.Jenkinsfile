@@ -237,11 +237,15 @@ pipeline {
 
   post {
     always {
-        // archiveArtifacts doesn't support absolute paths, so we have to to this instead
+      script{
+        // archiveArtifacts and junit don't support absolute paths, so we have to to this instead
         sh 'ln -s ${SHARED_WORKSPACE} ${BUILD_NUMBER}'
         archiveArtifacts artifacts: "${BUILD_NUMBER}/.artifacts/**/*", allowEmptyArchive: true
+        if ( tempest_run_filter != '' ) {
+          junit testResults: "${BUILD_NUMBER}/.artifacts/*.xml", allowEmptyResults: true
+        }
         sh 'rm ${BUILD_NUMBER}'
-      script{
+
         if (cleanup == "always" && cloud_type == "virtual") {
           def slaveJob = build job: 'openstack-ardana-heat', parameters: [
             string(name: 'ardana_env', value: "$ardana_env"),
