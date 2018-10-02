@@ -1,0 +1,12 @@
+# These variables only come into play when running from a Jenkins job
+
+workspace_path: "{{ lookup('env', 'WORKSPACE') | default('.', true) }}"
+
+jjb_file: "../../../../jenkins/ci.suse.de/{{ lookup('env', 'JOB_NAME') }}.yaml"
+
+jenkins_job_name:
+jenkins_build_display_name:
+jenkins_workspace:
+jenkins_build_url:
+
+jenkins_artifacts_dir: "{{ jenkins_workspace }}/.artifacts/"

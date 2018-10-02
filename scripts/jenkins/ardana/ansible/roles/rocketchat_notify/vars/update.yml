@@ -37,7 +37,7 @@ _msg_fields_started:
     value: "{{ hostvars[ardana_env].ansible_host }}"
     short: True
   - title: Started by
-    value: "{{ lookup('env', 'BUILD_URL') | default(lookup('env', 'USER'), true) }}"
+    value: "{{ (jenkins_build_url != '') | ternary(jenkins_build_url, lookup('env', 'USER')) }}"
     short: False
   - title: Ardana log stream
     value: "http://{{ hostvars[ardana_env].ansible_host }}:9091/"
@@ -51,10 +51,10 @@ _msg_fields_finished:
     value: "{{ rc_state }}"
     short: True
   - title: Built by
-    value: "{{ lookup('env', 'BUILD_URL') | default(lookup('env', 'USER'), true) }}"
+    value: "{{ (jenkins_build_url != '') | ternary(jenkins_build_url, lookup('env', 'USER')) }}"
     short: False
   - title: Log
-    value: "{{ ansible_log_url if lookup('env', 'BUILD_URL') else 'Not available' }}"
+    value: "{{ (jenkins_build_url != '') | ternary(ansible_log_url, 'Not available') }}"
     short: False
 
 _field_cloud_mu:

@@ -14,7 +14,7 @@
 # under the License.
 #
 ---
-ardana_qe_test_log_url: "{{ lookup('env', 'BUILD_URL') }}artifact/.artifacts/{{ test_name }}.log"
+ardana_qe_test_log_url: "{{ jenkins_build_url }}artifact/.artifacts/{{ test_name }}.log"
 
 rc_announcement_started: "Running ardana-qe-tests({{ test_name }}) test"
 rc_announcement_finished: "{{ rc_previous_announcement.content | b64decode if rc_previous_announcement.content is defined else 'NA' }}"
@@ -23,7 +23,7 @@ rc_msg_title: "ardana-qe-tests({{ test_name }}) {{ rc_action }}"
 
 rc_msg_fields_started:
   - title: Started by
-    value: "{{ lookup('env', 'BUILD_URL') | default(lookup('env', 'USER'), true) }}"
+    value: "{{ (jenkins_build_url != '') | ternary(jenkins_build_url, lookup('env', 'USER')) }}"
     short: False
   - title: Deployer
     value: "{{ hostvars[ardana_env].ansible_host }}"
@@ -31,7 +31,7 @@ rc_msg_fields_started:
 
 _rc_msg_fields_finished:
   - title: Started by
-    value: "{{ lookup('env', 'BUILD_URL') | default(lookup('env', 'USER'), true) }}"
+    value: "{{ (jenkins_build_url != '') | ternary(jenkins_build_url, lookup('env', 'USER')) }}"
     short: False
   - title: Deployer
     value: "{{ hostvars[ardana_env].ansible_host }}"
@@ -52,7 +52,7 @@ _rc_msg_fields_finished:
     value: "{{ ardana_qe_failed_tests.stdout if ardana_qe_failed_tests is defined else 'Not available' }}"
     short: False
   - title: Log
-    value: "{{ ardana_qe_test_log_url if lookup('env', 'BUILD_URL') else 'Not available' }}"
+    value: "{{ (jenkins_build_url != '') | ternary(ardana_qe_test_log_url, 'Not available') }}"
     short: False
 
 _rc_os_health_msg:

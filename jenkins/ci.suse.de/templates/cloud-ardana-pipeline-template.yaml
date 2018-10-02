@@ -149,6 +149,12 @@
             Name of the filter file to use for tempest. Use an empty value to
             skip running tempest.
 
+      - bool:
+          name: report_os_health
+          default: '{report_os_health|true}'
+          description: >-
+            Report tempest results to the OpenStack Health instance.
+
       - string:
           name: extra_repos
           default: ''

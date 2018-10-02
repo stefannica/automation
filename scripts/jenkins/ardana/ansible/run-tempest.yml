@@ -59,6 +59,7 @@
 
         - include_role:
             name: send_to_os_health
+          when: report_os_health
 
   post_tasks:
       - include_role:

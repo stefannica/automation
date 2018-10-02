@@ -15,13 +15,14 @@
 #
 ---
 
-jenkins_artifacts_url: "{{ lookup('env', 'BUILD_URL') + 'artifact/.artifacts/' if lookup('env', 'BUILD_URL') else 'NA' }}"
+jenkins_artifacts_url: "{{ (jenkins_build_url != '') | ternary(jenkins_build_url + 'artifact/.artifacts/', 'NA') }}"
 clouddata_server: "provo-clouddata.cloud.suse.de"
 
 subunit2sql_venv: "/opt/subunit2sql"
 os_health_server: "10.86.0.167"
 os_health_url: "http://{{ os_health_server }}/#/job/{{ os_health_build_name }}"
-os_health_build_name: "{{ lookup('env', 'BUILD_DISPLAY_NAME') | default('NA', true)  | replace(' ', '-') }}"
+os_health_build_name: "{{ (jenkins_build_display_name != '') | ternary(jenkins_build_display_name, 'NA') | replace(' ', '-') }}"
+os_health_job_name: "{{ (jenkins_job_name != '') | ternary(jenkins_job_name, 'NA') }}"
 os_service_name: "{{ test_name.split('_')[0] }}"
 
 sles_sdk_repos:

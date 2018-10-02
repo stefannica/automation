@@ -19,13 +19,10 @@
 cloud_release: "cloud{{ cloudsource | regex_search('\\d') }}"
 rhel_enabled: "{{ rhel_computes is defined and rhel_computes | int > 0 }}"
 
-workspace_path: "{{ lookup('env', 'WORKSPACE') | default('.', true) }}"
 input_model_path: "{{ workspace_path }}/input_model"
 
 is_physical_deploy: "{{ ardana_env in groups['qe_all'] }}"
 rc_notify: False
-
-jjb_file: "../../../../jenkins/ci.suse.de/{{ lookup('env', 'JOB_NAME') }}.yaml"
 
 suse_release: "suse-{{ ansible_distribution_version }}"
 local_repos_base_dir: "/srv/www/{{ suse_release }}/{{ ansible_architecture }}/repos"
@@ -49,3 +46,5 @@ rc_channels:
   qe2023: "cloud-qe-hlm2023par"
   scale: "cloud-qe-scale"
   qa4: "cloud-qe-qa4"
+
+report_os_health: False

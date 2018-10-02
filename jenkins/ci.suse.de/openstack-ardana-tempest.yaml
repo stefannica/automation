@@ -72,6 +72,12 @@
             skip running tempest.
 
       - bool:
+          name: report_os_health
+          default: false
+          description: >-
+            Report tempest results to the OpenStack Health instance.
+
+      - bool:
           name: rc_notify
           default: false
           description: >-

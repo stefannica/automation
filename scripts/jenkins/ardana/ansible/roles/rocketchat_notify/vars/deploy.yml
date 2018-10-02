@@ -75,7 +75,7 @@ _msg_fields_finished:
     value: "{{ cloud_media_build_version.content | b64decode if cloud_media_build_version is defined else 'NA' }}"
     short: False
   - title: Log
-    value: "{{ ansible_log_url_msg if lookup('env', 'BUILD_URL') else 'Not available' }}"
+    value: "{{ (jenkins_build_url != '') | ternary(ansible_log_url_msg, 'Not available') }}"
     short: False
 
 

@@ -9,6 +9,7 @@
     branch: master
     model: std-min
     tempest_run_filter: ''
+    report_os_health: false
     cleanup: never
     jobs:
         - '{name}'
