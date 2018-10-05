@@ -245,6 +245,13 @@ pipeline {
           junit testResults: ".artifacts/*.xml", allowEmptyResults: true
         }
       }
+      step([$class: 'LogParserPublisher',
+        parsingRulesPath: "${SHARED_WORKSPACE}/automation-git/scripts/jenkins/log-parser/openstack-ardana-rules.txt",
+        useProjectRule: false,
+        useProjectRule: false,
+        failBuildOnError: false,
+        unstableOnWarning: false,
+        Logparsergraphs: true ])
       cleanWs()
       script{
         if (cleanup == "always" && cloud_type == "virtual") {
