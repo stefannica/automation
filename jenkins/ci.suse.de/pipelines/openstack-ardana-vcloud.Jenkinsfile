@@ -127,18 +127,26 @@ pipeline {
       cleanWs()
     }
     success{
+      env.DEPLOYER_IP = sh (
+        returnStdout: true,
+        script: '''
+          awk '/admin-floating-ip/{getline; print \$2}' $SHARED_WORKSPACE/automation-git/scripts/jenkins/ardana/ansible/ansible_facts/localhost | sed -e 's/^"//' -e 's/"\$//'
+        '''
+      ).trim()
+      script {
+        currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env} (${DEPLOYER_IP})"
+      }
       sh """
-      set +x
-      cd $SHARED_WORKSPACE/automation-git/scripts/jenkins/ardana/ansible/ansible_facts
-      echo "
+        set +x
+        echo "
 *****************************************************************
 ** The virtual environment is reachable at
 **
-**        ssh root@\$(awk '/admin-floating-ip/{getline; print \$2}' localhost | sed -e 's/^"//' -e 's/"\$//')
+**        ssh root@\${DEPLOYER_IP}
 **
 ** Please delete openstack-ardana-${ardana_env} stack manually when you're done.
 *****************************************************************
-      "
+        "
       """
     }
   }

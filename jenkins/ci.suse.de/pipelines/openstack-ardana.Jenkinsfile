@@ -115,6 +115,28 @@ pipeline {
                 string(name: 'reuse_node', value: "${NODE_NAME}")
               ], propagate: true, wait: true
             }
+
+            // Load the environment variables set by the downstream job
+            env.DEPLOYER_IP = slaveJob.buildVariables.DEPLOYER_IP
+          }
+          post {
+            success {
+              script {
+                currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env} (${DEPLOYER_IP})"
+              }
+              sh """
+                set +x
+                echo "
+*****************************************************************
+** The virtual environment is reachable at
+**
+**        ssh root@\${DEPLOYER_IP}
+**
+** Please delete openstack-ardana-${ardana_env} stack manually when you're done.
+*****************************************************************
+                "
+              """
+            }
           }
         }
 
