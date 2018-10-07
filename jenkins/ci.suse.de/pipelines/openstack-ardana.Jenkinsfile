@@ -89,6 +89,7 @@ pipeline {
                 string(name: 'git_automation_branch', value: "$git_automation_branch"),
                 string(name: 'reuse_node', value: "${NODE_NAME}")
               ], propagate: true, wait: true
+              echo slaveJob.buildVariables.RUN_DISPLAY_URL
             }
           }
         }
@@ -114,6 +115,7 @@ pipeline {
                 string(name: 'git_automation_branch', value: "$git_automation_branch"),
                 string(name: 'reuse_node', value: "${NODE_NAME}")
               ], propagate: true, wait: true
+              echo slaveJob.buildVariables.RUN_DISPLAY_URL
             }
           }
         }
@@ -132,6 +134,7 @@ pipeline {
                 string(name: 'git_automation_repo', value: "$git_automation_repo"),
                 string(name: 'git_automation_branch', value: "$git_automation_branch")
               ], propagate: true, wait: true
+              echo slaveJob.buildVariables.RUN_DISPLAY_URL
 
               // Load the environment variables set by the downstream job
               env.test_repository_url = slaveJob.buildVariables.test_repository_url
@@ -155,6 +158,7 @@ pipeline {
             string(name: 'git_automation_branch', value: "$git_automation_branch"),
             string(name: 'reuse_node', value: "${NODE_NAME}")
           ], propagate: true, wait: true
+          echo slaveJob.buildVariables.RUN_DISPLAY_URL
         }
       }
     }
@@ -217,6 +221,7 @@ pipeline {
                 string(name: 'git_automation_branch', value: "$git_automation_branch"),
                 string(name: 'reuse_node', value: "${NODE_NAME}")
               ], propagate: true, wait: true
+              echo slaveJob.buildVariables.RUN_DISPLAY_URL
             }
           }
         }

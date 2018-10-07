@@ -55,6 +55,7 @@ pipeline {
             string(name: 'develproject', value: "$develproject"),
             string(name: 'repository', value: "$repository")
           ], propagate: true, wait: true
+          echo slaveJob.buildVariables.RUN_DISPLAY_URL
         }
       }
     }

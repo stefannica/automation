@@ -101,6 +101,7 @@ pipeline {
             string(name: 'git_automation_branch', value: "$git_automation_branch"),
             string(name: 'reuse_node', value: "${NODE_NAME}")
           ], propagate: true, wait: true
+          echo slaveJob.buildVariables.RUN_DISPLAY_URL
         }
       }
     }
