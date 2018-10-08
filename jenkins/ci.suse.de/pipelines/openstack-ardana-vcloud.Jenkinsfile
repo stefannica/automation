@@ -59,11 +59,7 @@ pipeline {
             expression { scenario_name != '' }
           }
           steps {
-            sh('''
-              cd $SHARED_WORKSPACE
-              source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-              ansible_playbook generate-input-model.yml -e @input.yml
-            ''')
+            sh 'sleep 1'
           }
         }
         stage('Clone input model') {
@@ -71,11 +67,12 @@ pipeline {
             expression { scenario_name == '' }
           }
           steps {
-            sh('''
-              cd $SHARED_WORKSPACE
-              source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-              ansible_playbook clone-input-model.yml -e @input.yml
-            ''')
+            echo env.RUN_DISPLAY_URL
+            script {
+              env.build_url = env.RUN_DISPLAY_URL
+              //env.RUN_DISPLAY_URL = env.RUN_DISPLAY_URL
+            }
+            sh 'sleep 1'
           }
         }
       }
@@ -83,64 +80,20 @@ pipeline {
 
     stage('Generate heat template') {
       steps {
-        sh('''
-          cd $SHARED_WORKSPACE
-          source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-          ansible_playbook generate-heat-template.yml -e @input.yml
-        ''')
+        sh 'sleep 1'
       }
     }
 
     stage('Create heat stack') {
       steps {
-        script {
-          def slaveJob = build job: 'openstack-ardana-heat', parameters: [
-            string(name: 'ardana_env', value: "$ardana_env"),
-            string(name: 'heat_action', value: "create"),
-            string(name: 'git_automation_repo', value: "$git_automation_repo"),
-            string(name: 'git_automation_branch', value: "$git_automation_branch"),
-            string(name: 'reuse_node', value: "${NODE_NAME}")
-          ], propagate: true, wait: true
-          echo slaveJob.buildVariables.RUN_DISPLAY_URL
-        }
+        sh 'sleep 1'
       }
     }
 
     stage('Setup SSH access') {
       steps {
-        sh('''
-          cd $SHARED_WORKSPACE
-          source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-          ansible_playbook setup-ssh-access.yml -e @input.yml
-        ''')
+        sh 'sleep 1'
       }
-    }
-  }
-
-  post {
-    always {
-      script {
-        // Let the upstream job archive artifacts
-        if (reuse_node == '') {
-          archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
-        }
-      }
-      cleanWs()
-    }
-    success{
-      sh """
-      set +x
-      cd $SHARED_WORKSPACE/automation-git/scripts/jenkins/ardana/ansible/ansible_facts
-      echo "
-*****************************************************************
-** The virtual environment is reachable at
-**
-**        ssh root@\$(awk '/admin-floating-ip/{getline; print \$2}' localhost | sed -e 's/^"//' -e 's/"\$//')
-**
-** Please delete openstack-ardana-${ardana_env} stack manually when you're done.
-*****************************************************************
-      "
-      """
     }
   }
 }
