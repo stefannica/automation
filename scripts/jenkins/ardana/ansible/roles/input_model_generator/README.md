@@ -148,7 +148,7 @@ service_groups:
       - LMM
       - DBMQ
       - SWPAC
-      - NEUTRON
+      - NETWORK
       - SWOBJ
   - name: sles-compute
     type: resource

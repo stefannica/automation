@@ -76,7 +76,7 @@ service_groups:
     heat_flavor_id: cloud-ardana-job-controller
     member_count: '{{ neutron_nodes|default(3) }}'
     service_components:
-      - NEUTRON
+      - NETWORK
   - name: sles-compute
     type: resource
     prefix: sles-comp

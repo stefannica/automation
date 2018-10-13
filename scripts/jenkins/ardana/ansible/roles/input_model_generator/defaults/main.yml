@@ -45,66 +45,79 @@ service_component_groups:
     - ip-cluster
     - bind
     - memcached
-    - barbican-api
-    - barbican-worker
-    - cinder-api
-    - cinder-scheduler
-    - cinder-volume
-    - cinder-backup
-    - designate-api
-    - designate-central
-    - designate-pool-manager
-    - designate-zone-manager
-    - designate-mdns
-    - glance-api
-    #- glance-api:
-    #    ha_mode: false
-    #    glance_stores: 'file'
-    #    glance_default_store: 'file'
-    - glance-registry
-    - horizon
-    - heat-api
-    - heat-api-cfn
-    - heat-api-cloudwatch
-    - heat-engine
-    - keystone-api
-    - keystone-client
-    - magnum-api
-    - magnum-conductor
-    - nova-api
-    - nova-placement-api
-    - nova-scheduler
-    - nova-conductor
-    - nova-console-auth
-    - nova-novncproxy
-    - neutron-server
-    - neutron-ml2-plugin
-    - octavia-api
-    - octavia-health-manager
-    - ops-console-web
-    - manila-api
+    - BARBICAN:
+      - barbican-api
+      - barbican-worker
+    - CINDER:
+      - cinder-api
+      - cinder-scheduler
+      - cinder-volume
+      - cinder-backup
+    - DESIGNATE:
+      - designate-api
+      - designate-central
+      - designate-pool-manager
+      - designate-zone-manager
+      - designate-mdns
+    - GLANCE:
+      - glance-api
+      #- glance-api:
+      #    ha_mode: false
+      #    glance_stores: 'file'
+      #    glance_default_store: 'file'
+      - glance-registry
+    - HORIZON:
+      - horizon
+    - HEAT:
+      - heat-api
+      - heat-api-cfn
+      - heat-api-cloudwatch
+      - heat-engine
+    - KEYSTONE:
+      - keystone-api
+      - keystone-client
+    - MAGNUM:
+      - magnum-api
+      - magnum-conductor
+    - NOVA:
+      - nova-api
+      - nova-placement-api
+      - nova-scheduler
+      - nova-conductor
+      - nova-console-auth
+      - nova-novncproxy
+    - NEUTRON:
+      - neutron-server
+      - neutron-ml2-plugin
+    - OCTAVIA:
+      - octavia-api
+      - octavia-health-manager
+      - ops-console-web
+    - MANILA:
+      - manila-api
   DBMQ:
     - mysql
     - rabbitmq
-  NEUTRON:
+  NETWORK:
     - neutron-vpn-agent
     - neutron-dhcp-agent
     - neutron-metadata-agent
     - neutron-openvswitch-agent
   LMM:
     - ntp-client
-    - ceilometer-api
-    - ceilometer-polling
-    - ceilometer-agent-notification
-    - ceilometer-common
-    #- ceilometer-client
+    - CEILOMETER:
+      - ceilometer-api
+      - ceilometer-polling
+      - ceilometer-agent-notification
+      - ceilometer-common
+      #- ceilometer-client
     - cassandra
     - kafka
     - spark
-
-    # Freezer-api need to be installed on same node as logging-server
-    # as they share elasticsearch
-    - freezer-api
+    - FREEZER:
+      # Freezer-api need to be installed on same node as logging-server
+      # as they share elasticsearch
+      - freezer-api
     - logging-server
 
     - storm
@@ -124,13 +137,16 @@ service_component_groups:
   SWOBJ:
     - swift-object
   COMPUTE:
-    - nova-compute-kvm
-    - nova-compute
-    - neutron-l3-agent
-    - neutron-metadata-agent
-    - neutron-openvswitch-agent
-    - neutron-lbaasv2-agent
-    - manila-share
+    - NOVA:
+      - nova-compute-kvm
+      - nova-compute
+    - NEUTRON:
+      - neutron-l3-agent
+      - neutron-metadata-agent
+      - neutron-openvswitch-agent
+      - neutron-lbaasv2-agent
+    - MANILA:
+      - manila-share
 
 
 

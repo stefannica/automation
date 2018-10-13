@@ -45,7 +45,7 @@ service_groups:
     service_components:
       - CORE
       - SWPAC
-      - NEUTRON
+      - NETWORK
   - name: lmm
     type: cluster
     prefix: lmm
