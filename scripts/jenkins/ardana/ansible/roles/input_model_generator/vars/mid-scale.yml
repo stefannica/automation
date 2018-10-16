@@ -38,7 +38,7 @@ scenario:
   audit_enabled: True
   ses_enabled: False
   use_cinder_volume_disk: True
-  use_glance_cache_disk: True
+  use_glance_cache_disk: False
 
   service_template: "{{ 'full-spread-dac' if clm_model == 'integrated' else 'full-spread' }}"
   network_template: full-spread
