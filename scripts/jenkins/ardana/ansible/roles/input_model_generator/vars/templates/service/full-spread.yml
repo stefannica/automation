@@ -100,6 +100,6 @@ service_groups:
     prefix: swobj
     heat_flavor_id: cloud-ardana-job-compute
     member_count: '{{ swobj_nodes|default(3) }}'
-    min_count: '{{ 3 if swobj_nodes|default(3) >= 3 else swobj_nodes|default(3) }}'
+    min_count: '{{ [ swobj_nodes|default(3)|int, 3 ] | min }}'
     service_components:
       - SWOBJ

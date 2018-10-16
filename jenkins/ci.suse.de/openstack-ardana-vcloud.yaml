@@ -1,5 +1,5 @@
 - job:
-    name: openstack-ardana-vcloud
+    name: openstack-ardana-vcloud-snica
     project-type: pipeline
     concurrent: true
     wrappers:

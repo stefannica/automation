@@ -120,7 +120,7 @@ pipeline {
           }
           steps {
             script {
-              def slaveJob = build job: 'openstack-ardana-vcloud', parameters: [
+              def slaveJob = build job: 'openstack-ardana-vcloud-snica', parameters: [
                   string(name: 'ardana_env', value: "$ardana_env"),
                   string(name: 'git_input_model_branch', value: "$git_input_model_branch"),
                   string(name: 'git_input_model_path', value: "$git_input_model_path"),
@@ -128,6 +128,12 @@ pipeline {
                   string(name: 'scenario_name', value: "$scenario_name"),
                   string(name: 'clm_model', value: "$clm_model"),
                   string(name: 'controllers', value: "$controllers"),
+                  string(name: 'core_nodes', value: "$core_nodes"),
+                  string(name: 'lmm_nodes', value: "$lmm_nodes"),
+                  string(name: 'dbmq_nodes', value: "$dbmq_nodes"),
+                  string(name: 'neutron_nodes', value: "$neutron_nodes"),
+                  string(name: 'swpac_nodes', value: "$swpac_nodes"),
+                  string(name: 'swobj_nodes', value: "$swobj_nodes"),
                   string(name: 'sles_computes', value: "$sles_computes"),
                   string(name: 'rhel_computes', value: "$rhel_computes"),
                   string(name: 'rc_notify', value: "$rc_notify"),
