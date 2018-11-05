@@ -46,6 +46,7 @@
       pip:
         name: "{{ item }}"
         virtualenv: "{{ subunit_tools_venv }}"
+        virtualenv_site_packages: yes
       loop:
         - "junitxml"
         - "python-subunit"

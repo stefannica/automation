@@ -83,12 +83,6 @@ maintenance_updates_path:
 maint_updates_list: "{{ maint_updates.split(',') if maint_updates is defined and maint_updates | length else [] }}"
 maintenance_updates_server: "dist.suse.de"
 
-sles_sdk_repos:
-  - name: "SLE{{ ansible_distribution_major_version }}-SP{{ ansible_distribution_release }}-SDK-Pool"
-  - name: "SLE{{ ansible_distribution_major_version }}-SP{{ ansible_distribution_release }}-SDK-Updates"
-  - name: "SLE{{ ansible_distribution_major_version }}-SP{{ ansible_distribution_release }}-SDK-Updates-test"
-    enabled: "{{ updates_test_enabled }}"
-
 ntp_servers:
   - 10.86.32.1
   - nsprv.provo.novell.com

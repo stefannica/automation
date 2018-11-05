@@ -15,12 +15,11 @@
 #
 ---
 
-- include_tasks: os_health_requires.yml
-
 - name: Setup subunit2sql
   pip:
     name: "{{ item }}"
     virtualenv: "{{ subunit2sql_venv }}"
+    virtualenv_site_packages: yes
   loop:
     - "subunit2sql"
     - "pymysql"
