@@ -37,13 +37,13 @@
 
       - string:
           name: git_automation_repo
-          default: https://github.com/SUSE-Cloud/automation.git
+          default: https://github.com/stefannica/automation.git
           description: >-
             The git automation repository to use
 
       - string:
           name: git_automation_branch
-          default: master
+          default: test-gerrit-merger
           description: >-
             The git automation branch
 

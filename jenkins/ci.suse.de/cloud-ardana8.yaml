@@ -101,11 +101,13 @@
         - '{ardana_gerrit_job}'
 
 - project:
-    name: openstack-ardana-gerrit-cloud8
+    name: openstack-ardana-gerrit-cloud8-snica
     ardana_gerrit_job: '{name}'
     ardana_env: cloud-ardana-gerrit-slot
     cloudsource: stagingcloud8
     gerrit_change_ids: '${{GERRIT_CHANGE_NUMBER}}/${{GERRIT_PATCHSET_NUMBER}}'
+    git_automation_repo: https://github.com/stefannica/automation.git
+    git_automation_branch: test-gerrit-merger
     triggers:
       - gerrit:
           server-name: 'gerrit.suse.provo.cloud'

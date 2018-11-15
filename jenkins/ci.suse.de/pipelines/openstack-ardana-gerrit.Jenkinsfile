@@ -71,25 +71,16 @@ The following links can also be used to track the results:
       }
     }
 
-    stage('integration test') {
+    stage('build test packages') {
       when {
         expression { cloudsource == 'stagingcloud9' }
       }
       steps {
         script {
-          def slaveJob = build job: 'openstack-ardana', parameters: [
-              string(name: 'ardana_env', value: "$ardana_env"),
-              string(name: 'reserve_env', value: "$reserve_env"),
-              string(name: 'cleanup', value: "on success"),
+          def slaveJob = build job: 'openstack-ardana-testbuild-gerrit', parameters: [
               string(name: 'gerrit_change_ids', value: "$gerrit_change_ids"),
               string(name: 'git_automation_repo', value: "$git_automation_repo"),
-              string(name: 'git_automation_branch', value: "$git_automation_branch"),
-              string(name: 'scenario_name', value: "standard"),
-              string(name: 'clm_model', value: "standalone"),
-              string(name: 'controllers', value: "2"),
-              string(name: 'sles_computes', value: "1"),
-              string(name: 'cloudsource', value: "$cloudsource"),
-              string(name: 'tempest_run_filter', value: "$tempest_run_filter")
+              string(name: 'git_automation_branch', value: "$git_automation_branch")
           ], propagate: false, wait: true
           env.jobResult = slaveJob.getResult()
           env.jobUrl = slaveJob.buildVariables.blue_ocean_buildurl
