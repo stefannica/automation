@@ -19,6 +19,7 @@
   git:
     repo: "{{ qe_ardana_bm_info_git_url }}"
     dest: "{{ qe_ardana_bm_info_dir }}"
+    version: "{{ qe_ardana_bm_info_branch }}"
     force: yes
   delegate_to: localhost
 
