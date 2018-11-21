@@ -24,7 +24,7 @@ except ImportError:
 
 sys.path.append(os.path.dirname(__file__))
 from gerrit_settings import gerrit_project_map, obs_project_settings  # noqa: E402
-from gerrit import GERRIT_URL, GerritChange  # noqa: E402
+from gerrit import GERRIT_URL, GerritChange, GerritApiCaller  # noqa: E402
 
 
 @contextlib.contextmanager
@@ -56,10 +56,14 @@ class OBSPackage:
         self.source_workspace = source_workspace
         self.source_dir = os.path.join(
             self.source_workspace, '%s.git' % self.gerrit_project)
-        self._prep_workspace()
+        self._workspace_ready = False
         self._applied_changes = set()
 
-    def _prep_workspace(self):
+    def prep_workspace(self):
+
+        if self._workspace_ready:
+            return
+
         with cd(self.source_workspace):
             if not os.path.exists('%s.git/.git' % self.gerrit_project):
                 print("Cloning gerrit project %s" % self.gerrit_project)
@@ -75,6 +79,8 @@ class OBSPackage:
             except sh.ErrorReturnCode_1:
                 sh.git('checkout', '-b', self.test_branch,
                        'origin/%s' % self.target_branch)
+
+        self._workspace_ready = True
 
     def add_change(self, change):
         """
@@ -96,6 +102,8 @@ class OBSPackage:
         elif change.status == "ABANDONED":
             raise Exception("Can not merge abandoned change %s" % change)
 
+        self.prep_workspace()
+
         with cd(self.source_dir):
             # If another change has already applied this change by having it as
             # one of its ancestry commits then the following merge will do a
@@ -108,11 +116,14 @@ class OBSPackage:
     def applied_change_numbers(self):
         return ", ".join([change.id for change in self._applied_changes])
 
+    def has_applied_changes(self):
+        return bool(self._applied_changes)
+
     def __repr__(self):
         return "<OBSPackage %s>" % self.name
 
 
-class OBSProject:
+class OBSProject(GerritApiCaller):
     """
     Manage the OBS Project
     """
@@ -158,6 +169,50 @@ class OBSProject:
                    self.obs_test_project_name, '--accept-in-hours', 720,
                    '-m', 'Auto delete after 30 days.')
 
+    def get_obsinfo_filename(self, package, service_def=None):
+        if not service_def:
+            service_def_cmd = sh.osc(
+                '-A', 'https://api.suse.de', 'cat',
+                self.obs_linked_project,
+                package.name,
+                '_service')
+            service_def = str(service_def_cmd)
+        root = ET.fromstring(service_def)
+        nodes = root.findall(
+            './service[@name="obs_scm"]/param[@name="filename"]')
+        if len(nodes) != 1 or not nodes[0].text:
+            raise ValueError(
+                "There needs to be exactly one obs_scm service filename"
+                " in https://build.suse.de/package/view_file/%s/%s/_service"
+                % (self.obs_linked_project, package.name))
+        return nodes[0].text
+
+    def is_current(self, package):
+        if package.has_applied_changes():
+            return False
+
+        obsinfo_filename = self.get_obsinfo_filename(package)
+        obsinfo = sh.osc(
+            '-A', 'https://api.suse.de', 'cat',
+            self.obs_linked_project,
+            package.name,
+            '%s.obsinfo' % obsinfo_filename)
+
+        matches = re.findall('^commit: (\S+)$', str(obsinfo), re.MULTILINE)
+        if len(matches) != 1:
+            raise ValueError(
+                "There needs to be exactly one commit value"
+                " in https://build.suse.de/package/view_file/%s/%s/%s.obsinfo"
+                % (
+                self.obs_linked_project, package.name, obsinfo_filename))
+        current_commit = matches[0]
+
+        gerrit_query = "/projects/ardana%2F{}/branches/{}".format(
+            package.gerrit_project, package.target_branch)
+        head_commit = self._query_gerrit(gerrit_query)['revision']
+
+        return current_commit == head_commit
+
     def add_test_package(self, package):
         """
         Create a package in the OBS Project
@@ -167,32 +222,16 @@ class OBSProject:
          - Grab the local source
          - Commit the package to be built into the project
         """
-        pcat = sh.osc.bake(
-            '-A', 'https://api.suse.de', 'cat',
-            self.obs_linked_project,
-            package.name)
-        service = pcat('_service')
-        root = ET.fromstring(str(service))
-        nodes = root.findall(
-            './service[@name="obs_scm"]/param[@name="filename"]')
-        if len(nodes) != 1 or not nodes[0].text:
-            raise ValueError(
-                "There needs to be exactly one obs_scm service filename"
-                " in https://build.suse.de/package/view_file/%s/%s/_service"
-                % (self.obs_linked_project, package.name))
-        servicefilename = nodes[0].text
-        obsinfo = pcat('%s.obsinfo' % servicefilename)
-        matches = re.findall('^commit: (\S+)$', str(obsinfo), re.MULTILINE)
-        commitid = sh.git(
-            '-C', package.source_dir,
-            'rev-list', '-n', '1', 'HEAD').strip()
-        if len(matches) == 1 and matches[0] == commitid:
+
+        if self.is_current(package):
             print(
                 "Skipping %s as the inherited package is the same."
                 % package.name)
             return
 
         print("Creating test package %s" % package.name)
+
+        package.prep_workspace()
 
         # Clean up any checkouts from previous builds
         cleanup_path(os.path.join(self.obs_test_project_name, package.name))
@@ -210,6 +249,8 @@ class OBSProject:
             with open('_service', 'r+') as service_file:
                 # Update the service file to use the git state in our workspace
                 service_def = service_file.read()
+                obsinfo_filename = self.get_obsinfo_filename(package,
+                                                             service_def)
                 service_def = re.sub(
                     r'<param name="url">.*</param>',
                     '<param name="url">%s</param>' % package.source_dir,
@@ -222,7 +263,7 @@ class OBSProject:
                 service_file.write(service_def)
                 service_file.truncate()
             # Run the osc service and commit the changes to OBS
-            sh.osc('rm', glob.glob('%s*.obscpio' % servicefilename))
+            sh.osc('rm', glob.glob('%s*.obscpio' % obsinfo_filename))
             env = os.environ.copy()
             # TODO use proper api, once available from:
             # https://github.com/openSUSE/obs-service-tar_scm/issues/258
@@ -230,7 +271,7 @@ class OBSProject:
             # Otherwise it only works with remote URLs.
             env['TAR_SCM_TESTMODE'] = '1'
             sh.osc('service', 'disabledrun', _env=env)
-            sh.osc('add', glob.glob('%s*.obscpio' % servicefilename))
+            sh.osc('add', glob.glob('%s*.obscpio' % obsinfo_filename))
             sh.osc('commit', '-m',
                    'Testing gerrit changes applied to %s'
                    % package.applied_change_numbers())
