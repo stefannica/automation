@@ -169,29 +169,43 @@ class OBSProject(GerritApiCaller):
                    self.obs_test_project_name, '--accept-in-hours', 720,
                    '-m', 'Auto delete after 30 days.')
 
-    def get_obsinfo_filename(self, package, service_def=None):
-        if not service_def:
-            service_def_cmd = sh.osc(
-                '-A', 'https://api.suse.de', 'cat',
-                self.obs_linked_project,
-                package.name,
-                '_service')
-            service_def = str(service_def_cmd)
-        root = ET.fromstring(service_def)
-        nodes = root.findall(
-            './service[@name="obs_scm"]/param[@name="filename"]')
-        if len(nodes) != 1 or not nodes[0].text:
+    def _find_in_osc_file(self, description, package, filename, find_fnc):
+        osc_data = sh.osc(
+            '-A', 'https://api.suse.de', 'cat',
+            self.obs_linked_project,
+            package.name,
+            filename)
+
+        osc_data_item = find_fnc(str(osc_data))
+        if not osc_data_item:
             raise ValueError(
-                "There needs to be exactly one obs_scm service filename"
-                " in https://build.suse.de/package/view_file/%s/%s/_service"
-                % (self.obs_linked_project, package.name))
-        return nodes[0].text
+                "There needs to be exactly one %s"
+                " in https://build.suse.de/package/view_file/%s/%s/%s"
+                % (description, self.obs_linked_project, package.name, filename))
+        return osc_data_item
+
+    def get_obsinfo_filename(self, package, service_def=None):
+
+        def _get_obsinfo_filename():
+            root = ET.fromstring(service_def)
+            nodes = root.findall(
+                './service[@name="obs_scm"]/param[@name="filename"]')
+            if len(nodes) != 1 or not nodes[0].text:
+                return None
+            return nodes[0].text
+
+        if not service_def:
+            service_def = self._osc_cat_file("obs_scm service filename",
+                                             package, '_service',
+                                             _get_obsinfo_filename)
 
     def is_current(self, package):
         if package.has_applied_changes():
             return False
-
         obsinfo_filename = self.get_obsinfo_filename(package)
+
+
+
         obsinfo = sh.osc(
             '-A', 'https://api.suse.de', 'cat',
             self.obs_linked_project,
