@@ -9,7 +9,25 @@
       numToKeep: -1
       daysToKeep: 14
 
-    triggers: '{triggers}'
+    triggers:
+      - gerrit:
+          server-name: 'gerrit.suse.provo.cloud'
+          trigger-on:
+            - patchset-created-event:
+                exclude-drafts: true
+                exclude-no-code-change: false
+            - draft-published-event
+            - comment-added-contains-event:
+                comment-contains-value: '^suse_recheck$'
+            - comment-added-contains-event:
+                comment-contains-value: '^recheck$'
+          silent: true
+          projects:
+            - project-compare-type: 'REG_EXP'
+              project-pattern: !include-raw: ../gerrit-project-regexp.txt
+              branches:
+                - branch-compare-type: 'PLAIN'
+                  branch-pattern: '{branch}'
 
     parameters:
 
@@ -29,43 +47,36 @@
 
       - bool:
           name: reserve_env
-          default: '{reserve_env|true}'
+          default: '{reserve_env|false}'
           description: >-
             Reserve the 'ardana_env' lockable resource throughout the execution of this job
 
-      - string:
-          name: git_automation_repo
-          default: '{git_automation_repo|https://github.com/SUSE-Cloud/automation.git}'
-          description: >-
-            The git automation repository to use
-
-      - string:
-          name: git_automation_branch
-          default: '{git_automation_branch|master}'
-          description: >-
-            The git automation branch
-
       - validating-string:
-          name: gerrit_change_ids
-          default: '{gerrit_change_ids}'
-          regex: '([0-9]+(/[0-9]+)?)(,[0-9]+(/[0-9]+)?)*'
+          name: gerrit_patchset
+          default: ''
+          regex: '([0-9]+/[0-9]+)?'
           msg: The entered value failed validation
           description: >-
-            A comma separated list of IDs for changes in gerrit.suse.provo.cloud
-            to test. The patchset may be supplied as part of the change ID in the form:
+            A gerrit.suse.provo.cloud Gerrit change patchset to test.
+            Both a Gerrit change number and a patchset number must be supplied, in the following form:
 
-               <change_number>[/<patchset_number>]
+               <change_number>/<patchset_number>
+
+            For jobs triggered by Gerrit, the Gerrit change ID and patch number are
+            extracted from the GERRIT_CHANGE_NUMBER and GERRIT_PATCHSET_NUMBER environment
+            variables.
+
+      - bool:
+          name: voting
+          default: '{voting|false}'
+          description: >-
+            Determines if this job posts Verified labels on target Gerrit changes.
 
       - string:
-          name: cloudsource
-          default: '{cloudsource|develcloud9}'
+          name: integration_test_job
+          default: '{integration_test_job|openstack-ardana}'
           description: >-
-            The cloud repository (from provo-clouddata) to be used for testing.
-            This value can take the following form:
-
-               stagingcloud<X> (Devel:Cloud:X:Staging)
-               develcloud<X> (Devel:Cloud:X)
-               GM<X> (official GM)
+            The downstream Ardana Jenkins integration job triggered by this job
 
       - bool:
           name: ses_enabled
@@ -80,18 +91,16 @@
             if ses_enabled is set to true.
 
       - string:
-          name: tempest_filter_list
-          default: '{tempest_filter_list|ci}'
+          name: git_automation_repo
+          default: '{git_automation_repo|https://github.com/SUSE-Cloud/automation.git}'
           description: >-
-            Name of the filter file to use for tempest. Use an empty value to
-            skip running tempest.
+            The git automation repository to use
 
       - string:
-          name: os_cloud
-          default: '{os_cloud|engcloud-cloud-ci-private}'
+          name: git_automation_branch
+          default: '{git_automation_branch|master}'
           description: >-
-            The OpenStack API credentials used to manage virtual clouds (leave
-            empty to use the default shared 'cloud' ECP account).
+            The git automation branch
 
       - text:
           name: extra_params

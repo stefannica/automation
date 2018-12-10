@@ -145,6 +145,7 @@ def generate_summary(server, job_name, build_number,
                 if downstream_jobs:
                     d_job_name = downstream_jobs[0][1]
                     d_build_number = int(downstream_jobs[0][2])
+                    stage['name'] = '{} ({})'.format(stage['name'], d_job_name)
                     sub_summary = generate_summary(
                         server, d_job_name, d_build_number,
                         filter_stages, recursive, depth+1)
@@ -191,7 +192,7 @@ def print_pipeline_report(job_name, build_number, filter_stages, recursive):
 
 
 def argparse_jenkins_job_type(jenkins_job):
-    change_regex = re.compile(r"^([a-zA-Z0-9_-]+)(/([0-9]+))?$")
+    change_regex = re.compile(r"^([\w_-]+)(/([\d]+))?$")
     match = change_regex.match(jenkins_job)
     if not match:
         raise argparse.ArgumentTypeError(
@@ -218,7 +219,7 @@ def main():
                              "If this argument is omitted, the JOB_NAME "
                              "and BUILD_NUMBER environment variables "
                              "are used.")
-    parser.add_argument('-f', '--filter', action='append',
+    parser.add_argument('-f', '--filter', action='append', default=[],
                         help='Name of stage to filter out of the report')
     parser.add_argument('--recursive', action="store_true", default=False,
                         help='include information about downstream builds '

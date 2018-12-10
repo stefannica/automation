@@ -23,6 +23,12 @@ pipeline {
     stage('Setup workspace') {
       steps {
         script {
+          if (gerrit_patchset == '') {
+            if (env.GERRIT_CHANGE_NUMBER == null || env.GERRIT_PATCHSET_NUMBER == null) {
+              error("Empty 'gerrit_patchset' parameter value.")
+            }
+            env.gerrit_patchset = "${GERRIT_CHANGE_NUMBER}/${GERRIT_PATCHSET_NUMBER}"
+          }
           currentBuild.displayName = "#${BUILD_NUMBER}: ${gerrit_change_ids}"
 
           sh('''
@@ -33,43 +39,68 @@ pipeline {
 
           ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
           ardana_lib.load_extra_params_as_vars(extra_params)
-        }
 
-        sh('''
-          if [ -n "$GERRIT_CHANGE_NUMBER" ] ; then
-            # Post reviews only for jobs triggered by Gerrit
-            automation-git/scripts/jenkins/ardana/gerrit/gerrit_review.py \
-              --vote 0 \
-              --label 'Verified' \
-              --message "
+          sh('''
+            gerrit_change_items=(${gerrit_patchset//\\// })
+            gerrit_change_number=${gerrit_change_items[0]}
+            gerrit_patchset_number=${gerrit_change_items[1]}
+
+            # abort other older running builds that target the same change patchset and integration test job
+            ./automation-git/scripts/jenkins/jenkins-job-cancel \
+              --older-than ${BUILD_NUMBER} \
+              --with-param gerrit_patchset=${gerrit_patchset} \
+              --with-param integration_test_job=${integration_test_job} \
+              ${JOB_NAME} || :
+
+            ./automation-git/scripts/jenkins/jenkins-job-cancel \
+              --older-than ${BUILD_NUMBER} \
+              --with-param GERRIT_CHANGE_NUMBER=${gerrit_change_number} \
+              --with-param GERRIT_PATCHSET_NUMBER=${gerrit_patchset_number} \
+              --with-param integration_test_job=${integration_test_job} \
+              ${JOB_NAME} || :
+
+            message="
 Started build (${JOB_NAME}): ${BUILD_URL}
 The following links can also be used to track the results:
 
 - live console output: ${BUILD_URL}console
 - live pipeline job view: ${RUN_DISPLAY_URL}
-" \
-              --patch ${GERRIT_PATCHSET_NUMBER} \
-              ${GERRIT_CHANGE_NUMBER}
-          fi
-        ''')
+"
+            if $voting ; then
+              automation-git/scripts/jenkins/ardana/gerrit/gerrit_review.py \
+                --vote 0 \
+                --label 'Verified' \
+                --message "$message" \
+                ${gerrit_patchset}
+            else
+              automation-git/scripts/jenkins/ardana/gerrit/gerrit_review.py \
+                --message "$message" \
+                ${gerrit_patchset}
+            fi
+          ''')
+        }
       }
     }
 
     stage('validate commit message') {
-      when {
-        expression { env.GERRIT_CHANGE_COMMIT_MESSAGE != null }
-      }
       steps {
         sh '''
           export LC_ALL=C.UTF-8
           export LANG=C.UTF-8
 
-          echo $GERRIT_CHANGE_COMMIT_MESSAGE | base64 --decode | gitlint -C automation-git/scripts/jenkins/gitlint.ini
+          if [[ -n $GERRIT_CHANGE_COMMIT_MESSAGE ]]; then
+            echo $GERRIT_CHANGE_COMMIT_MESSAGE | base64 --decode | gitlint -C automation-git/scripts/jenkins/gitlint.ini
+          else
+            automation-git/scripts/jenkins/ardana/gerrit/gerrit_get_commit_msg.py ${gerrit_patchset} | gitlint -C automation-git/scripts/jenkins/gitlint.ini
+          fi
         '''
       }
     }
 
     stage('integration test') {
+      when {
+        expression { integration_test_job != '' }
+      }
       steps {
         script {
           // reserve a resource here for the openstack-ardana job, to avoid
@@ -77,22 +108,12 @@ The following links can also be used to track the results:
           // resource to become available.
           ardana_lib.run_with_reserved_env(reserve_env == 'true', ardana_env, ardana_env) {
             reserved_env ->
-            ardana_lib.trigger_build('openstack-ardana', [
+            ardana_lib.trigger_build(integration_test_job, [
               string(name: 'ardana_env', value: reserved_env),
               string(name: 'reserve_env', value: "false"),
-              string(name: 'cleanup', value: "on success"),
-              string(name: 'gerrit_change_ids', value: "$gerrit_change_ids"),
+              string(name: 'gerrit_change_ids', value: "$gerrit_patchset"),
               string(name: 'git_automation_repo', value: "$git_automation_repo"),
               string(name: 'git_automation_branch', value: "$git_automation_branch"),
-              string(name: 'scenario_name', value: "standard"),
-              string(name: 'clm_model', value: "standalone"),
-              string(name: 'controllers', value: "2"),
-              string(name: 'sles_computes', value: "1"),
-              string(name: 'cloudsource', value: "$cloudsource"),
-              string(name: 'ses_enabled', value: "true"),
-              string(name: 'ses_rgw_enabled', value: "false"),
-              string(name: 'tempest_filter_list', value: "$tempest_filter_list"),
-              string(name: 'os_cloud', value: "$os_cloud"),
               text(name: 'extra_params', value: extra_params)
             ])
           }
@@ -110,37 +131,43 @@ The following links can also be used to track the results:
             --filter 'Declarative: Post Actions' \
             --filter 'Setup workspace' > pipeline-report.txt || :
 
-          # Post reviews only for jobs triggered by Gerrit
-          if [ -n "$GERRIT_CHANGE_NUMBER" ] ; then
-            if [[ $BUILD_RESULT == SUCCESS ]]; then
-              vote=+2
-              message="
+          if [[ $BUILD_RESULT == SUCCESS ]]; then
+            vote=+2
+            message="
 Build succeeded (${JOB_NAME}): ${BUILD_URL}
 
 "
-            else
-              vote=-2
-              message="
+          elif [[ $BUILD_RESULT == ABORTED ]]; then
+            vote=
+            message="
+Build aborted (${JOB_NAME}): ${BUILD_URL}
+
+"
+          else
+            vote=-2
+            message="
 Build failed (${JOB_NAME}): ${BUILD_URL}
 
 "
-            fi
+          fi
+          if $voting && [[ -n $vote ]] ; then
             automation-git/scripts/jenkins/ardana/gerrit/gerrit_review.py \
               --vote $vote \
               --label 'Verified' \
               --message "$message" \
               --message-file pipeline-report.txt \
-              --patch ${GERRIT_PATCHSET_NUMBER} \
-              ${GERRIT_CHANGE_NUMBER}
-
+              ${gerrit_patchset}
             if [[ $BUILD_RESULT == SUCCESS ]]; then
               automation-git/scripts/jenkins/ardana/gerrit/gerrit_merge.py \
-                --patch ${GERRIT_PATCHSET_NUMBER} \
-                ${GERRIT_CHANGE_NUMBER}
+                ${gerrit_patchset}
             fi
+          else
+            automation-git/scripts/jenkins/ardana/gerrit/gerrit_review.py \
+              --message "$message" \
+              --message-file pipeline-report.txt \
+              ${gerrit_patchset}
           fi
         ''')
-
       }
     }
     cleanup {
