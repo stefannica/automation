@@ -15,7 +15,7 @@
     scenario_name: standard
     clm_model: standalone
     controllers: '3'
-    sles_computes: '1'
+    sles_computes: '2'
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -28,7 +28,7 @@
     scenario_name: standard
     clm_model: integrated
     controllers: '3'
-    sles_computes: '1'
+    sles_computes: '2'
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -40,8 +40,8 @@
     ardana_env: cloud-ardana-ci-slot
     scenario_name: standard
     clm_model: standalone
-    controllers: '2'
-    sles_computes: '1'
+    controllers: '3'
+    sles_computes: '2'
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -51,7 +51,11 @@
     name: cloud-ardana9-job-demo-x86_64
     ardana_job: '{name}'
     ardana_env: cloud-ardana-ci-slot
-    model: demo
+    scenario_name: standard
+    clm_model: integrated
+    controller_nodes: '1'
+    sles_computes: '1'
+    disabled_services: 'monasca|logging|ceilometer|octavia|cassandra|kafka|spark|storm'
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -63,10 +67,10 @@
     ardana_env: cloud-ardana-ci-slot
     scenario_name: std-split
     clm_model: standalone
-    core_nodes: '1'
-    lmm_nodes: '1'
-    dbmq_nodes: '1'
-    sles_computes: '1'
+    core_nodes: '2'
+    lmm_nodes: '3'
+    dbmq_nodes: '3'
+    sles_computes: '2'
     triggers:
      - timed: 'H H * * *'
     jobs:
