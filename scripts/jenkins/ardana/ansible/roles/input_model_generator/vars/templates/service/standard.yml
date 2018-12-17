@@ -28,14 +28,14 @@ service_groups:
   - name: clm
     type: cluster
     prefix: c0
-    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-compute"
+    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-compute-pike"
     member_count: '{{ (clm_model == "standalone") | ternary(1, 0) }}'
     service_components:
       - CLM
   - name: controller
     type: cluster
     prefix: c1
-    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-controller"
+    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-controller-pike"
     member_count: '{{ controllers|default(3) }}'
     service_components:
       - '{{ (clm_model == "integrated") | ternary("CLM", '') }}'
@@ -48,7 +48,7 @@ service_groups:
   - name: sles-compute
     type: resource
     prefix: sles-comp
-    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-compute"
+    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-compute-pike"
     member_count: '{{ sles_computes|default(1) }}'
     min_count: 0
     service_components:
@@ -57,7 +57,7 @@ service_groups:
     type: resource
     prefix: rhel-comp
     distro_id: rhel73-x86_64
-    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-compute"
+    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-compute-pike"
     member_count: '{{ rhel_computes|default(1) }}'
     min_count: 0
     service_components:
