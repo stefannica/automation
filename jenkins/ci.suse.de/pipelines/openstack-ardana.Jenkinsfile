@@ -260,12 +260,10 @@ pipeline {
         timeout(time: 4, unit: 'HOURS')
       }
       input {
-        message "Cleanup the environment ?"
-        ok "Yes, we should."
+        message "What should we do with the $ardana_env environment ?"
+        ok "Proceed."
         parameters {
-            booleanParam(name: 'DEBUG_BUILD', defaultValue: true, description: '')
-            choice(name: 'cleanup', choices: ['one', 'two', 'three'], description: '')
-            boolean(name: 'cleanup', defaultValue: 'on success', description: 'Who should I say hello to?')
+            choice(name: 'cleanup', choices: ['on success', 'on failure', 'always'], description: '')
         }
       }
       input {
