@@ -1,6 +1,6 @@
 # Multi-purpose, customizable, manually triggered Ardana job
 - project:
-    name: openstack-ardana
+    name: openstack-ardana-snica
     ardana_job: '{name}'
     concurrent: True
     triggers:

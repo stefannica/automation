@@ -376,12 +376,14 @@
             - 'always'
             - 'on success'
             - 'on failure'
+            - 'ask'
           description: >-
             Configure the conditions that trigger the virtual environment cleanup. Possible values are:
               - never
               - always
               - on success
               - on failure
+              - ask
 
       - string:
           name: git_automation_repo

@@ -252,6 +252,42 @@ pipeline {
       }
     }
 
+    stage ('Keep environment') {
+      when {
+        expression { cleanup == "ask" }
+      }
+      options {
+        timeout(time: 4, unit: 'HOURS')
+      }
+      input {
+        message "Cleanup the environment ?"
+        ok "Yes, we should."
+        parameters {
+            booleanParam(name: 'DEBUG_BUILD', defaultValue: true, description: '')
+            choice(name: 'cleanup', choices: ['one', 'two', 'three'], description: '')
+            boolean(name: 'cleanup', defaultValue: 'on success', description: 'Who should I say hello to?')
+        }
+      }
+      input {
+
+      }
+      steps {
+        script {
+          // Generate stages for Tempest tests
+          ardana_lib.generate_tempest_stages(env.tempest_filter_list)
+          // Generate stages for QA tests
+          ardana_lib.generate_qa_tests_stages(env.qa_test_list)
+          // Generate stage for CaaSP deployment
+          if (want_caasp == 'true') {
+            stage('Deploy CaaSP') {
+              ardana_lib.ansible_playbook('deploy-caasp')
+            }
+          }
+        }
+      }
+    }
+
+
   }
 
   post {
