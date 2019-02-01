@@ -56,27 +56,21 @@ pipeline {
             script: 'echo "$(dirname $WORKSPACE)/shared/${ardana_env}"'
           ).trim()
           sh('''
-            rm -rf "$SHARED_WORKSPACE"
-            mkdir -p "$SHARED_WORKSPACE"
+            IFS='/' read -r -a repo_arr <<< "$git_automation_repo"
+            export git_automation_repo="${repo_arr[3]}"
+            curl https://raw.githubusercontent.com/$git_automation_repo/automation/$git_automation_branch/scripts/jenkins/ardana/openstack-ardana.prep.sh | bash
 
-            # archiveArtifacts and junit don't support absolute paths, so we have to to this instead
-            ln -s ${SHARED_WORKSPACE}/.artifacts ${WORKSPACE}
-
-            cd $SHARED_WORKSPACE
-            git clone $git_automation_repo --branch $git_automation_branch automation-git
-            cd automation-git
-
+            cd $SHARED_WORKSPACE/automation-git
             if [ -n "$github_pr" ] ; then
               scripts/jenkins/ardana/pr-update.sh
             fi
-
-            source scripts/jenkins/ardana/jenkins-helper.sh
-            ansible_playbook load-job-params.yml \
-              -e jjb_file=$SHARED_WORKSPACE/automation-git/jenkins/ci.suse.de/templates/cloud-ardana-pipeline-template.yaml \
-              -e jjb_type=job-template
-            ansible_playbook notify-rc-pcloud.yml -e @input.yml
           ''')
           ardana_lib = load "$SHARED_WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
+
+          ardana_lib.ansible_playbook('load-job-params',
+                                      "-e jjb_type=job-template -e jjb_file=$SHARED_WORKSPACE/automation-git/jenkins/ci.suse.de/templates/cloud-ardana-pipeline-template.yaml"
+                                      )
+          ardana_lib.ansible_playbook('notify-rc-pcloud')
         }
       }
     }

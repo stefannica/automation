@@ -1,0 +1,9 @@
+ardana_env: 'ardana-test'
+cloudsource: 'stagingcloud9'
+scenario_name: 'standard'
+clm_model: 'standalone'
+controllers: '3'
+sles_computes: '2'
+ses_enabled: true
+ses_rgw_enabled: false
+cleanup: 'never'

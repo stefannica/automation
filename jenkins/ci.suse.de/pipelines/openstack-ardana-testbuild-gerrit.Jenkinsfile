@@ -35,7 +35,27 @@ pipeline {
             '''
           ).trim()
           sh('''
-            git clone $git_automation_repo --branch $git_automation_branch automation-git
+            # temporary, until git_automation_repo is re-purposed to hold only
+            # the fork name and renamed to git_automation_fork
+            IFS='/' read -r -a repo_arr <<< "$git_automation_repo"
+            git_automation_fork="${repo_arr[3]}
+            export github_pr_id=$github_pr
+
+            export automationrepo=~/github.com/${git_automation_fork}/automation
+            export AUTOMATION_REPO=github.com/${git_automation_fork}/automation#${git_automation_branch}
+            export SHARED_WORKSPACE=$WORKSPACE
+
+            # automation bootstrapping
+            if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
+              rm -rf ${automationrepo}
+              curl https://raw.githubusercontent.com/${git_automation_fork}/automation/${git_automation_branch}/scripts/jenkins/update_automation | bash
+            fi
+
+            # fetch the latest automation updates
+            ${automationrepo}/scripts/jenkins/update_automation
+
+            # prepare the shared workspace
+            ${automationrepo}/scripts/jenkins/ardana/openstack-ardana.prep.sh
           ''')
         }
       }

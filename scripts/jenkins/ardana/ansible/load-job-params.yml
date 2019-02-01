@@ -25,6 +25,11 @@
     jjb_type: "job"
 
   tasks:
+    - name: Delete existing input.yml file
+      file:
+        path: "./input.yml"
+        state: absent
+
     - name: Load ansible variables from ENV
       lineinfile:
         path: "./input.yml"
