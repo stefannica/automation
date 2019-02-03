@@ -16,7 +16,7 @@ pipeline {
 
   agent {
     node {
-      label reuse_node ? reuse_node : "cloud-ardana-ci"
+      label "cloud-ardana-ci"
       customWorkspace "${JOB_NAME}-${BUILD_NUMBER}"
     }
   }
@@ -47,21 +47,15 @@ pipeline {
             returnStdout: true,
             script: 'echo "$(dirname $WORKSPACE)/shared/${ardana_env}"'
           ).trim()
-          if (reuse_node == '') {
-            // Resort to the backup dedicated workspace if this job is running as
-            // a standalone job allowing users to run several tests in parallel
-            // targeting the same environment.
-            env.SHARED_WORKSPACE = "$WORKSPACE"
-            sh('''
-               git clone $git_automation_repo --branch $git_automation_branch automation-git
-               source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-               ansible_playbook load-job-params.yml
-               ansible_playbook setup-ssh-access.yml -e @input.yml
-            ''')
-          } else {
-            // archiveArtifacts and junit don't support absolute paths, so we have to to this instead
-            sh "ln -s ${SHARED_WORKSPACE}/.artifacts ${WORKSPACE}"
-          }
+          // Use a dedicated workspace allowing users to run several tests in parallel
+          // targeting the same environment.
+          env.SHARED_WORKSPACE = "$WORKSPACE"
+          sh('''
+             git clone $git_automation_repo --branch $git_automation_branch automation-git
+             source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
+             ansible_playbook load-job-params.yml
+             ansible_playbook setup-ssh-access.yml -e @input.yml
+          ''')
           ardana_lib = load "$SHARED_WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
           ardana_lib.get_deployer_ip()
 
