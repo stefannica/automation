@@ -1,5 +1,5 @@
 - job:
-    name: openstack-ardana-heat
+    name: openstack-ardana-heat-snica
     project-type: pipeline
     concurrent: true
     wrappers:
@@ -66,13 +66,13 @@
 
       - string:
           name: git_automation_repo
-          default: https://github.com/SUSE-Cloud/automation.git
+          default: https://github.com/stefannica/automation.git
           description: >-
             The git automation repository to use
 
       - string:
           name: git_automation_branch
-          default: master
+          default: heat-text-input-test
           description: >-
             The git automation branch
 
@@ -91,5 +91,5 @@
               - ${git_automation_branch}
             browser: auto
             wipe-workspace: false
-      script-path: jenkins/ci.suse.de/pipelines/${JOB_NAME}.Jenkinsfile
+      script-path: jenkins/ci.suse.de/pipelines/openstack-ardana-heat.Jenkinsfile
       lightweight-checkout: false

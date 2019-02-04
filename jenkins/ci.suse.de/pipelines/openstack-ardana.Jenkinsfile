@@ -133,7 +133,7 @@ pipeline {
                 script: 'cat "$SHARED_WORKSPACE/heat-stack-${scenario_name}${model}.yml"'
               )
 
-              ardana_lib.trigger_build('openstack-ardana-heat', [
+              ardana_lib.trigger_build('openstack-ardana-heat-snica', [
                 string(name: 'ardana_env', value: "$ardana_env"),
                 string(name: 'heat_action', value: "create"),
                 text(name: 'heat_template', value: heat_template),
@@ -283,7 +283,7 @@ pipeline {
                 cleanup == "on success" && currentBuild.currentResult == "SUCCESS" ||
                 cleanup == "on failure" && currentBuild.currentResult != "SUCCESS") {
 
-              build job: 'openstack-ardana-heat', parameters: [
+              build job: 'openstack-ardana-heat-snica', parameters: [
                 string(name: 'ardana_env', value: "$ardana_env"),
                 string(name: 'heat_action', value: "delete"),
                 string(name: 'git_automation_repo', value: "$git_automation_repo"),
