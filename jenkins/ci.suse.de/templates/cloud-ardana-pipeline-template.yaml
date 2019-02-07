@@ -56,6 +56,8 @@
             - cloud9RC2
             - cloud9RC3
             - cloud9GMC
+            - cloud8RC1
+            - cloud8GMC
           description: >-
             The cloud repository (from provo-clouddata) to be used for testing.
             This value can take the following form:
