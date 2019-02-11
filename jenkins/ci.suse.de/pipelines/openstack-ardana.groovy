@@ -83,23 +83,21 @@ def generate_qa_tests_stages(qa_test_list) {
 // function body to use the 'reserved_env' variable without needing to check if a
 // resource has been reserved.
 //
-// The function also implements a sleep-retry mechanism as a workaround for JENKINS-52638.
-//
 def run_with_reserved_env(reserve, resource_label, default_resource, body) {
 
   if (reserve) {
     lock(resource: null, label: resource_label, variable: 'reserved_env', quantity: 1) {
       if (env.reserved_env && reserved_env != null) {
         echo "Reserved resource: " + reserved_env
-        body()
+        body(reserved_env)
       } else  {
         error("Jenkins bug (JENKINS-52638): couldn't reserve a resource with label " + resource_label)
       }
     }
   } else {
-    env.reserved_env = default_resource != null ? default_resource: resource_label
+    def reserved_env = default_resource != null ? default_resource: resource_label
     echo "Using resource without a reservation: " + reserved_env
-    body()
+    body(reserved_env)
   }
 }
 

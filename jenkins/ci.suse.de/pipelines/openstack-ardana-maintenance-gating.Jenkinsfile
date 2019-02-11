@@ -53,6 +53,7 @@ pipeline {
               // keeping a cloud-ardana-ci worker busy while waiting for a
               // resource to become available.
               ardana_lib.run_with_reserved_env(reserve_env == 'true', ardana_env, "${ardana_env}-deploy") {
+                reserved_env ->
                 def slaveJob = ardana_lib.trigger_build("cloud-ardana${version}-job-entry-scale-kvm-maintenance-update-x86_64", [
                   string(name: 'ardana_env', value: reserved_env),
                   string(name: 'reserve_env', value: "false"),
@@ -80,6 +81,7 @@ pipeline {
               // keeping a cloud-ardana-ci worker busy while waiting for a
               // resource to become available.
               ardana_lib.run_with_reserved_env(reserve_env == 'true', ardana_env, "${ardana_env}-update") {
+                reserved_env ->
                 def slaveJob = ardana_lib.trigger_build("cloud-ardana${version}-job-entry-scale-kvm-maintenance-update-x86_64", [
                   string(name: 'ardana_env', value: reserved_env),
                   string(name: 'reserve_env', value: "false"),
