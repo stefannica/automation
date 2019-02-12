@@ -1,0 +1,89 @@
+- job-template:
+    name: '{ardana_github_job}'
+    project-type: pipeline
+    concurrent: true
+    node: cloud-trigger
+    disabled: '{obj:disabled|False}'
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 14
+
+    parameters:
+
+      - validating-string:
+          name: ardana_env
+          default: '{ardana_env|}'
+          regex: '[A-Za-z0-9-_]+'
+          msg: >-
+            Empty or malformed value (only alphanumeric, '-' and '_' characters are allowed).
+          description: >-
+            The virtual or hardware environment identifier. This field should either
+            be set to one of the values associated with the known hardware environments
+            (e.g. qe101), or to a value that will identify the created virtual environment.
+
+            WARNING: if a virtual environment associated with the supplied ardana_env already
+            exists, it will be replaced.
+
+      - bool:
+          name: reserve_env
+          default: '{reserve_env|true}'
+          description: >-
+            Reserve the 'ardana_env' lockable resource throughout the execution of this job
+
+      - string:
+          name: git_automation_repo
+          default: '{git_automation_repo|https://github.com/SUSE-Cloud/automation.git}'
+          description: >-
+            The git automation repository to use
+
+      - string:
+          name: git_automation_branch
+          default: '{git_automation_branch|master}'
+          description: >-
+            The git automation branch
+
+      - validating-string:
+          name: github_pr
+          regex: '([0-9]+(/[0-9]+)?)(,[0-9]+(/[0-9]+)?)*'
+          msg: The entered value failed validation
+          description: >-
+            String is a ':' separated list of these values:
+            $ORG/$repo:$PR_ID:$SHA1:$BRANCH:$context
+
+            Note: SHA1 must be latest commit in PR, $context is optional
+            (only use if multiple gating runs needed per PR)
+
+      - string:
+          name: os_cloud
+          default: '{os_cloud|engcloud-cloud-ci-private}'
+          description: >-
+            The OpenStack API credentials used to manage virtual clouds (leave
+            empty to use the default shared 'cloud' ECP account).
+
+      - text:
+          name: extra_params
+          default:
+          description: >-
+            This field may be used to define additional parameters, one per line, in the form:
+
+
+              <parameter_name>=<parameter-value>
+
+
+            These parameters will be injected into the Jenkins job as environment variables that supplement
+            or override the other parameters configured for the Jenkins job.
+            This should not be used by default or regularly. It is meant to run job build customized in ways
+            not already supported by the job's parameters, such as testing automation git pull requests
+            with special configurations.
+
+    pipeline-scm:
+      scm:
+        - git:
+            url: ${{git_automation_repo}}
+            branches:
+              - ${{git_automation_branch}}
+            browser: auto
+            wipe-workspace: false
+      script-path: jenkins/ci.suse.de/pipelines/openstack-ardana-github.Jenkinsfile
+      lightweight-checkout: false
