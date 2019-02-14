@@ -35,7 +35,7 @@ Example:
 ```
     ansible-playbook generate-input-model.yml \
       -e scenario_name=standard \
-      -e input_model_dir=/path/to/input-model
+      -e input_model_path=/path/to/input-model
       -e virt_config_file=/path/to/virt-config.yml
 ```
 
@@ -105,7 +105,7 @@ following parameters:
 ```
     ansible-playbook generate-input-model.yml \
       -e scenario_name=standard \
-      -e input_model_dir=/path/to/input-model \
+      -e input_model_path=/path/to/input-model \
       -e controllers=2 \
       -e sles_computes=1 \
       -e clm_model=standalone

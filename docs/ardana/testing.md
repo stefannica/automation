@@ -185,13 +185,31 @@ openstack --os-cloud engcloud-cloud-ci stack list
 
 ```
 cd automation/scripts/jenkins/ardana/ansible
-ansible_playbook clone-input-model.yml -e model=standard
+ansible-playbook clone-input-model.yml -e model=standard
 ```
 
 
 ### Manual Ardana deployment
 
-TBD: how to run the ansible playbooks
+```
+ansible-playbook generate-input-model.yml \
+    -e scenario_name=standard \
+    -e input_model_path=./gen-input-model \
+    -e controllers=2 \
+    -e sles_computes=1 \
+    -e clm_model=standalone \
+    -e ardana_env=alan_turing \
+    -e cloudsource=GM8
+```
+
+```
+ansible-playbook generate-heat-template.yml \
+    -e input_model_path=./gen-input-model \
+    -e ardana_env=alan_turing \
+    -e cloudsource=GM8 \
+    -e heat_template_file=heat.yaml
+```
+
 
 
 ## Ardana CI jobs
