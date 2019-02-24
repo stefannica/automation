@@ -5,7 +5,7 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(__file__))
-from gerrit import GerritChange, GerritChangeSet  # noqa: E402
+from gerrit import GerritChange, GerritChangeSet, argparse_gerrit_change_type  # noqa: E402
 from gerrit_merge import gerrit_merge  # noqa: E402
 from gerrit_review import gerrit_review  # noqa: E402
 
@@ -178,12 +178,11 @@ def handle_change_updated(change, dry_run=False):
 def main():
     parser = argparse.ArgumentParser(
         description='Handle a Gerrit event')
-    parser.add_argument('change', type=int,
-                        help='the Gerrit change number (e.g. 1234)')
-    parser.add_argument('--patch', type=int,
-                        default=None,
-                        help='the Gerrit patch number (e.g. 3). If not '
-                             'supplied, the latest patch will be used')
+    parser.add_argument('change', type=argparse_gerrit_change_type,
+                        help='the Gerrit change number and an optional patch '
+                             'number (e.g. 1234 or 1234/1). If the patch '
+                             'number is not supplied, the latest patch will '
+                             'be used')
     parser.add_argument('event',
                         choices=['merged', 'updated'],
                         help='event to handle')
@@ -192,7 +191,7 @@ def main():
 
     args = parser.parse_args()
 
-    change = GerritChange(str(args.change), patchset=args.patch)
+    change = GerritChange(args.change)
 
     if args.event == 'merged':
         handle_change_merged(change, args.dry_run)

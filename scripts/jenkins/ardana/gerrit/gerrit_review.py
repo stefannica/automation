@@ -5,7 +5,7 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(__file__))
-from gerrit import GerritChange  # noqa: E402
+from gerrit import GerritChange, argparse_gerrit_change_type  # noqa: E402
 from gerrit_settings import gerrit_project_map  # noqa: E402
 
 
@@ -27,12 +27,11 @@ def gerrit_review(change, label=None, vote=1, message=''):
 def main():
     parser = argparse.ArgumentParser(
         description='Post a Gerrit review')
-    parser.add_argument('change', type=int,
-                        help='the Gerrit change number (e.g. 1234)')
-    parser.add_argument('--patch', type=int,
-                        default=None,
-                        help='the Gerrit patch number (e.g. 3). If not '
-                             'supplied, the latest patch will be used')
+    parser.add_argument('change', type=argparse_gerrit_change_type,
+                        help='the Gerrit change number and an optional patch '
+                             'number (e.g. 1234 or 1234/1). If the patch '
+                             'number is not supplied, the latest patch will '
+                             'be used')
     parser.add_argument('--label',
                         default=None,
                         choices=['Code-Review', 'Verified',
@@ -57,7 +56,7 @@ def main():
         with open(args.message_file) as msg_file:
             message += msg_file.read()
 
-    change = GerritChange(str(args.change), patchset=args.patch)
+    change = GerritChange(args.change)
 
     gerrit_review(change,
                   args.label,

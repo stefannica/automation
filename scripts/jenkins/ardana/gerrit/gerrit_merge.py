@@ -6,7 +6,7 @@ import sys
 
 sys.path.append(os.path.dirname(__file__))
 from gerrit import GerritChange  # noqa: E402
-from gerrit_settings import gerrit_project_map  # noqa: E402
+from gerrit_settings import gerrit_project_map, argparse_gerrit_change_type  # noqa: E402
 
 
 def check_all_dependencies_satisfied(change):
@@ -77,18 +77,17 @@ def main():
     parser = argparse.ArgumentParser(
         description='Merge a Gerrit change if its dependencies have merged '
                     'and if it submittable')
-    parser.add_argument('change', type=int,
-                        help='the Gerrit change number (e.g. 1234)')
-    parser.add_argument('--patch', type=int,
-                        default=None,
-                        help='the Gerrit patch number (e.g. 3). If not '
-                             'supplied, the latest patch will be used')
+    parser.add_argument('change', type=argparse_gerrit_change_type,
+                        help='the Gerrit change number and an optional patch '
+                             'number (e.g. 1234 or 1234/1). If the patch '
+                             'number is not supplied, the latest patch will '
+                             'be used')
     parser.add_argument('--dry-run', default=False, action='store_true',
                         help='do a dry run')
 
     args = parser.parse_args()
 
-    change = GerritChange(str(args.change), patchset=args.patch)
+    change = GerritChange(args.change)
 
     gerrit_merge(change, args.dry_run)
 
