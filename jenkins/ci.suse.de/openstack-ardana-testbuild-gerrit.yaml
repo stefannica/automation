@@ -25,11 +25,12 @@
 
     parameters:
       - string:
-          name: gerrit_change_ids
+          name: gerrit_changes
           default:
           description: >-
-            A comma separated list of IDs for changes in gerrit.suse.provo.cloud
-            to test. The patchset may be supplied as part of the change ID in the form:
+            A comma separated list of Gerrit change numbers for which to build
+            packages. The patchset number may optionally be appended to each
+            change number in the form:
 
                <change_number>[/<patchset_number>]
 

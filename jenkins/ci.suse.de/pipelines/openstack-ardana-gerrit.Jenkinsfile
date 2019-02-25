@@ -146,7 +146,7 @@ The following links can also be used to track the results:
             ardana_lib.trigger_build(integration_test_job, [
               string(name: 'ardana_env', value: reserved_env),
               string(name: 'reserve_env', value: "false"),
-              string(name: 'gerrit_change_ids', value: "$GERRIT_CHANGE_NUMBER/$GERRIT_PATCHSET_NUMBER"),
+              string(name: 'gerrit_changes', value: "$GERRIT_CHANGE_NUMBER/$GERRIT_PATCHSET_NUMBER"),
               string(name: 'cloudsource', value: "develcloud$version"),
               string(name: 'extra_repos', value: "$extra_repos"),
               string(name: 'git_automation_repo', value: "$git_automation_repo"),

@@ -27,10 +27,10 @@ pipeline {
         script {
           // Set this variable to be used by upstream builds
           env.blue_ocean_buildurl = env.RUN_DISPLAY_URL
-          if (gerrit_change_ids == '') {
-            error("Empty 'gerrit_change_ids' parameter value.")
+          if (gerrit_changes == '') {
+            error("Empty 'gerrit_changes' parameter value.")
           }
-          currentBuild.displayName = "#${BUILD_NUMBER}: ${gerrit_change_ids}"
+          currentBuild.displayName = "#${BUILD_NUMBER}: ${gerrit_changes}"
           sh('''
             git clone $git_automation_repo --branch $git_automation_branch automation-git
           ''')
@@ -48,7 +48,7 @@ pipeline {
           sh('''
             cd automation-git/scripts/jenkins/ardana/gerrit
             set -eux
-            python -u build_test_package.py --homeproject ${homeproject} --buildnumber ${BUILD_NUMBER} -c ${gerrit_change_ids//,/ -c }
+            python -u build_test_package.py --homeproject ${homeproject} --buildnumber ${BUILD_NUMBER} -c ${gerrit_changes//,/ -c }
           ''')
         }
       }

@@ -385,14 +385,13 @@
             $ORG/$repo:$PR_ID:$SHA1:$BRANCH:$context
 
       - validating-string:
-          name: gerrit_change_ids
+          name: gerrit_changes
           default: ''
           regex: '(([0-9]+(/[0-9]+)?)(,[0-9]+(/[0-9]+)?)*)*'
           msg: The entered value failed validation
           description: >-
-            A comma separated list of IDs for changes in
-            gerrit.suse.provo.cloud to test. The patchset may be supplied as part
-            of the change ID in the form:
+            A comma separated list of Gerrit change numbers to test. The patchset
+            number may optionally be appended to each change number in the form:
 
                <change_number>[/<patchset_number>]
 
