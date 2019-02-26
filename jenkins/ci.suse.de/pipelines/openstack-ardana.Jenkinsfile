@@ -64,6 +64,9 @@ pipeline {
           ''')
           ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
           ardana_lib.load_extra_params_as_vars(extra_params)
+          sh('''
+            env
+          ''')
           ardana_lib.ansible_playbook('load-job-params',
                                       "-e jjb_type=job-template -e jjb_file=$WORKSPACE/automation-git/jenkins/ci.suse.de/templates/cloud-ardana-pipeline-template.yaml"
                                       )
