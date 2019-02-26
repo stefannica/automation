@@ -51,7 +51,45 @@ pipeline {
           } else {
             currentBuild.displayName = "#${BUILD_NUMBER}: $GERRIT_CHANGE_NUMBER/$GERRIT_PATCHSET_NUMBER ($gerrit_context)"
           }
+        }
+      }
+    }
 
+    stage('supersede running jobs') {
+      steps {
+        script {
+          sh('''
+            if $voting; then
+              # If this is a voting job, abort other older running builds that
+              # target the same change number and are also voting.
+
+              python -u automation-git/scripts/jenkins/jenkins-job-cancel \
+                --older-than ${BUILD_NUMBER} \
+                --with-param GERRIT_CHANGE_NUMBER=${GERRIT_CHANGE_NUMBER} \
+                --with-param voting=True \
+                --wait 300 \
+                ${JOB_NAME} || :
+            else
+              # If this is a non-voting job, abort other older running builds
+              # that target the same change number and integration job and are
+              # also non-voting.
+
+              python -u automation-git/scripts/jenkins/jenkins-job-cancel \
+                --older-than ${BUILD_NUMBER} \
+                --with-param GERRIT_CHANGE_NUMBER=${GERRIT_CHANGE_NUMBER} \
+                --with-param voting=False \
+                --with-param integration_test_job=${integration_test_job} \
+                --wait 300 \
+                ${JOB_NAME} || :
+            fi
+          ''')
+        }
+      }
+    }
+
+    stage('notify Gerrit') {
+      steps {
+        script {
           sh('''
             build_str="Build"
             $voting || build_str="(Non-voting) build"
@@ -128,7 +166,9 @@ The following links can also be used to track the results:
           automation-git/scripts/jenkins/jenkins-job-pipeline-report.py \
             --recursive \
             --filter 'Declarative: Post Actions' \
-            --filter 'Setup workspace' > pipeline-report.txt || :
+            --filter 'Setup workspace' \
+            --filter 'supersede running jobs' \
+            --filter 'notify Gerrit' > pipeline-report.txt || :
 
           build_str="Build"
           $voting || build_str="(Non-voting) build"

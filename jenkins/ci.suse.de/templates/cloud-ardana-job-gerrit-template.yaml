@@ -59,11 +59,20 @@
           description: >-
             Determines if this job posts Verified labels on target Gerrit changes.
 
+            NOTE: there can be at most one voting Gerrit job running for a Gerrit
+            change number. The most recent job will automatically abort those
+            that are already running for the same Gerrit change number.
+
       - string:
           name: integration_test_job
           default: '{integration_test_job}'
           description: >-
             The Ardana Jenkins integration job triggered to validate the Gerrit change.
+
+            NOTE: there can be at most one non-voting Gerrit job running the same
+            integration test job for a Gerrit change number. The most recent job
+            will automatically abort those that are already running for the same
+            Gerrit change number and integration test job.
 
       - validating-string:
           name: extra_repos
