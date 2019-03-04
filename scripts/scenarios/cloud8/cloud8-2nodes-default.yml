@@ -48,7 +48,7 @@ proposals:
       swift-ring-compute:
       - @@controller@@
       swift-storage:
-      - @@compute-kvm@@
+      - @@compute@@
 - barclamp: glance
   attributes:
   deployment:
@@ -74,7 +74,7 @@ proposals:
       manila-server:
       - @@controller@@
       manila-share:
-      - @@compute-kvm@@
+      - @@compute@@
       - @@controller@@
 - barclamp: cinder
   attributes:
@@ -93,7 +93,7 @@ proposals:
       cinder-controller:
       - @@controller@@
       cinder-volume:
-      - @@compute-kvm@@
+      - @@compute@@
       - @@controller@@
 - barclamp: neutron
   attributes:
@@ -122,7 +122,7 @@ proposals:
       - @@controller@@
       nova-compute-hyperv: []
       nova-compute-kvm:
-      - @@compute-kvm@@
+      - @@compute@@
       nova-compute-qemu: []
       nova-compute-xen: []
 - barclamp: horizon
@@ -147,7 +147,7 @@ proposals:
   deployment:
     elements:
       ceilometer-agent:
-      - @@compute-kvm@@
+      - @@compute@@
       ceilometer-agent-hyperv: []
       ceilometer-central:
       - @@controller@@
