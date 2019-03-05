@@ -106,6 +106,16 @@ function ansible_playbook_ses {
   fi
 }
 
+function is_ardana_cloud {
+  cloud_product=$(get_from_input cloud_product)
+  [[ $cloud_product == ardana ]]
+}
+
+function is_crowbar_cloud {
+  cloud_product=$(get_from_input cloud_product)
+  [[ $cloud_product == crowbar ]]
+}
+
 function is_physical_deploy {
   ardana_env=$(get_from_input ardana_env)
   [[ $ardana_env == qe* ]] || [[ $ardana_env == pcloud* ]]
@@ -162,14 +172,18 @@ function build_test_packages {
   fi
 }
 
-function bootstrap_clm {
+function bootstrap_admin {
   test_repo_url=""
   if is_defined gerrit_change_ids; then
     homeproject=$(get_from_input homeproject)
     test_repo_url="http://download.suse.de/ibs/$(sed 's#\b:\b#&/#' <<< $homeproject):/ardana-ci-local/standard/$(get_from_input homeproject):ardana-ci-local.repo"
   fi
   extra_repos=$(sed -e "s/^,//" -e "s/,$//" <<< "$(get_from_input extra_repos),${test_repo_url}")
-  ansible_playbook bootstrap-clm.yml -e extra_repos="${extra_repos}"
+  if is_ardana_cloud; then
+    ansible_playbook bootstrap-clm.yml -e extra_repos="${extra_repos}"
+  else
+    ansible_playbook bootstrap-crowbar.yml -e extra_repos="${extra_repos}"
+  fi
 }
 
 function deploy_ses_vcloud {
@@ -188,13 +202,36 @@ function bootstrap_nodes {
   if is_physical_deploy; then
     ansible_playbook bootstrap-pcloud-nodes.yml
   else
-    ansible_playbook bootstrap-vcloud-nodes.yml
+    if is_ardana_cloud; then
+      ansible_playbook bootstrap-vcloud-nodes.yml
+    else
+      ansible_playbook bootstrap-crowbar-nodes.yml
+    fi
+  fi
+}
+
+function install_crowbar {
+  if $(get_from_input deploy_cloud); then
+    ansible_playbook deploy-crowbar.yml -e 'qa_crowbarsetup_cmd="onadmin_runlist prepareinstallcrowbar bootstrapcrowbar installcrowbar"'
+  fi
+}
+
+function register_nodes {
+  if $(get_from_input deploy_cloud); then
+    ansible_playbook register-crowbar-nodes.yml
+    ansible_playbook deploy-crowbar.yml -e 'qa_crowbarsetup_cmd="onadmin_runlist waitcloud post_allocate"'
   fi
 }
 
 function deploy_cloud {
   if $(get_from_input deploy_cloud); then
-    ansible_playbook deploy-cloud.yml
+    if is_ardana_cloud; then
+      ansible_playbook deploy-cloud.yml
+    else
+      install_crowbar
+      register_nodes
+      ansible_playbook deploy-crowbar.yml
+    fi
   fi
 }
 

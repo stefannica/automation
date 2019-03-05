@@ -1,4 +1,8 @@
 ---
+#=============== Product ==============#
+# The cloud product type (crowbar or ardana)
+cloud_product: 'ardana'
+
 #============= Eng. Cloud =============#
 # The OpenStack API credentials used to manage virtual clouds
 # (leave empty to use the default shared 'cloud' ECP account).
