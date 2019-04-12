@@ -26,6 +26,8 @@ export cloudfqdn={{ cloud_fqdn }}
 {% if cloudsource.startswith("stagingcloud") %}
 export cloudsource=develcloud{{ cloudsource[-1] }}
 export TESTHEAD=1
+{% elif cloudsource is match('cloud\\d(M\\d|RC\\d|GMC)') %}
+export cloudsource={{ cloudsource | regex_search('(M\\d+|RC\\d|GMC)$') }}
 {% else %}
 export cloudsource={{ cloudsource }}
 {% endif %}

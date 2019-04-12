@@ -35,13 +35,14 @@
           name: cloudsource
           choices:
             - '{cloudsource|stagingcloud9}'
+            - stagingcloud7
+            - develcloud7
+            - GM7
+            - GM7+up
             - stagingcloud8
             - develcloud8
             - GM8
             - GM8+up
-            - hosdevelcloud8
-            - hosGM8
-            - hosGM8+up
             - stagingcloud9
             - develcloud9
             - cloud9M3
@@ -52,6 +53,16 @@
             - cloud9M8
             - cloud9M9
             - cloud9M10
+            - cloud9RC1
+            - cloud9RC2
+            - cloud9RC3
+            - cloud9RC4
+            - cloud9RC5
+            - cloud9RC6
+            - cloud9RC7
+            - cloud9GMC1
+            - cloud9GMC2
+            - cloud9GMC
           description: >-
             The cloud repository (from provo-clouddata) to be used for testing.
             This value can take the following form:
