@@ -25,8 +25,8 @@ pipeline {
     stage('Setup workspace') {
       steps {
         script {
-          if (ardana_env == '') {
-            error("Empty 'ardana_env' parameter value.")
+          if (cloud_env == '') {
+            error("Empty 'cloud_env' parameter value.")
           }
           // Parameters of the type 'extended-choice' are set to null when the job
           // is automatically triggered and its value is set to ''. So, we need to set
@@ -40,7 +40,7 @@ pipeline {
           if (tempest_filter_list == '' && qa_test_list == '') {
             error("Empty 'tempest_run_filter' and 'qa_test_list' parameter values.")
           }
-          currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env}"
+          currentBuild.displayName = "#${BUILD_NUMBER}: ${cloud_env}"
           sh('''
              git clone $git_automation_repo --branch $git_automation_branch automation-git
           ''')

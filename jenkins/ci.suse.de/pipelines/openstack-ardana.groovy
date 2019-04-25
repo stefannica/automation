@@ -45,14 +45,14 @@ def get_deployer_ip() {
   env.DEPLOYER_IP = sh (
     returnStdout: true,
     script: '''
-      grep -oP "^${ardana_env}\\s+ansible_host=\\K[0-9\\.]+" \\
+      grep -oP "^${cloud_env}\\s+ansible_host=\\K[0-9\\.]+" \\
         $WORKSPACE/automation-git/scripts/jenkins/ardana/ansible/inventory
     '''
   ).trim()
-  currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env} (${DEPLOYER_IP})"
+  currentBuild.displayName = "#${BUILD_NUMBER}: ${cloud_env} (${DEPLOYER_IP})"
   echo """
 ******************************************************************************
-** The deployer for the '${ardana_env}' environment is reachable at:
+** The deployer for the '${cloud_env}' environment is reachable at:
 **
 **        ssh root@${DEPLOYER_IP}
 **

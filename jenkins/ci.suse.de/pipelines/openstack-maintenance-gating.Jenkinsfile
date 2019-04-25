@@ -22,8 +22,8 @@ pipeline {
     stage('Setup workspace') {
       steps {
         script {
-          if (ardana_env == '') {
-            error("Empty 'ardana_env' parameter value.")
+          if (cloud_env == '') {
+            error("Empty 'cloud_env' parameter value.")
           }
           if (maint_updates == '') {
             error("Empty 'maint_updates' parameter value.")
@@ -53,10 +53,10 @@ pipeline {
               // reserve a resource here for the openstack-ardana job, to avoid
               // keeping a cloud-ardana-ci worker busy while waiting for a
               // resource to become available.
-              ardana_lib.run_with_reserved_env(reserve_env.toBoolean(), ardana_env, "${ardana_env}-deploy") {
+              ardana_lib.run_with_reserved_env(reserve_env.toBoolean(), cloud_env, "${cloud_env}-deploy") {
                 reserved_env ->
                 def slaveJob = ardana_lib.trigger_build("cloud-ardana8-job-entry-scale-kvm-maintenance-update-x86_64", [
-                  string(name: 'ardana_env', value: reserved_env),
+                  string(name: 'cloud_env', value: reserved_env),
                   string(name: 'reserve_env', value: "false"),
                   string(name: 'cloudsource', value: "$cloudsource"),
                   string(name: 'maint_updates', value: "$maint_updates"),
@@ -82,10 +82,10 @@ pipeline {
               // reserve a resource here for the openstack-ardana job, to avoid
               // keeping a cloud-ardana-ci worker busy while waiting for a
               // resource to become available.
-              ardana_lib.run_with_reserved_env(reserve_env.toBoolean(), ardana_env, "${ardana_env}-update") {
+              ardana_lib.run_with_reserved_env(reserve_env.toBoolean(), cloud_env, "${cloud_env}-update") {
                 reserved_env ->
                 def slaveJob = ardana_lib.trigger_build("cloud-ardana8-job-entry-scale-kvm-maintenance-update-x86_64", [
-                  string(name: 'ardana_env', value: reserved_env),
+                  string(name: 'cloud_env', value: reserved_env),
                   string(name: 'reserve_env', value: "false"),
                   string(name: 'cloudsource', value: "$cloudsource"),
                   string(name: 'maint_updates', value: "$maint_updates"),

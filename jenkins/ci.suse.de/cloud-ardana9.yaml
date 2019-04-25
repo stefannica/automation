@@ -14,14 +14,14 @@
     ardana_gating_job: '{name}'
     concurrent: False
     version: '9'
-    ardana_env: 'cloud-ardana-gate{version}-slot'
+    cloud_env: 'cloud-ardana-gate{version}-slot'
     jobs:
         - '{ardana_gating_job}'
 
 - project:
     name: cloud-ardana9-job-std-3cp-x86_64
     ardana_job: '{name}'
-    ardana_env: cloud-ardana-ci-slot
+    cloud_env: cloud-ardana-ci-slot
     scenario_name: standard
     clm_model: standalone
     controllers: '3'
@@ -36,7 +36,7 @@
 - project:
     name: cloud-ardana9-job-dac-3cp-x86_64
     ardana_job: '{name}'
-    ardana_env: cloud-ardana-ci-slot
+    cloud_env: cloud-ardana-ci-slot
     scenario_name: standard
     clm_model: integrated
     controllers: '3'
@@ -51,7 +51,7 @@
 - project:
     name: cloud-ardana9-job-std-min-x86_64
     ardana_job: '{name}'
-    ardana_env: cloud-ardana-ci-slot
+    cloud_env: cloud-ardana-ci-slot
     scenario_name: standard
     clm_model: standalone
     controllers: '2'
@@ -66,7 +66,7 @@
 - project:
     name: cloud-ardana9-job-std-min-lmm-x86_64
     ardana_job: '{name}'
-    ardana_env: cloud-ardana-ci-slot
+    cloud_env: cloud-ardana-ci-slot
     scenario_name: std-lmm
     clm_model: standalone
     controllers: '2'
@@ -82,7 +82,7 @@
 - project:
     name: cloud-ardana9-job-demo-x86_64
     ardana_job: '{name}'
-    ardana_env: cloud-ardana-ci-slot
+    cloud_env: cloud-ardana-ci-slot
     scenario_name: standard
     clm_model: integrated
     controllers: '1'
@@ -98,7 +98,7 @@
 - project:
     name: cloud-ardana9-job-std-split-x86_64
     ardana_job: '{name}'
-    ardana_env: cloud-ardana-ci-slot
+    cloud_env: cloud-ardana-ci-slot
     scenario_name: std-split
     clm_model: standalone
     core_nodes: '1'
@@ -115,7 +115,7 @@
 - project:
     name: cloud-ardana9-job-entry-scale-kvm-x86_64
     ardana_job: '{name}'
-    ardana_env: cloud-ardana-ci-slot
+    cloud_env: cloud-ardana-ci-slot
     cloudsource: stagingcloud9
     scenario_name: entry-scale-kvm
     clm_model: standalone
@@ -137,7 +137,7 @@
     name: cloud-ardana9-job-mid-scale-kvm-qe101-x86_64
     ardana_job: '{name}'
     concurrent: False
-    ardana_env: qe101
+    cloud_env: qe101
     reserve_env: true
     scenario_name: mid-scale-kvm
     clm_model: integrated
@@ -169,7 +169,7 @@
     name: cloud-ardana9-job-entry-scale-kvm-qe102-x86_64
     ardana_job: '{name}'
     concurrent: False
-    ardana_env: qe102
+    cloud_env: qe102
     reserve_env: true
     scenario_name: entry-scale-kvm
     clm_model: standalone
@@ -196,7 +196,7 @@
 - project:
     name: cloud-ardana9-job-std-3cp-devel-staging-updates-x86_64
     ardana_job: '{name}'
-    ardana_env: cloud-ardana-ci-slot
+    cloud_env: cloud-ardana-ci-slot
     cloudsource: develcloud9
     updates_test_enabled: true
     update_after_deploy: true
@@ -215,7 +215,7 @@
 - project:
     name: cloud-ardana9-job-std-min-centos-x86_64
     ardana_job: '{name}'
-    ardana_env: cloud-ardana-ci-slot
+    cloud_env: cloud-ardana-ci-slot
     cloudsource: stagingcloud9
     scenario_name: standard
     clm_model: standalone
@@ -232,7 +232,7 @@
 - project:
     name: cloud-ardana9-job-std-min-suse-x86_64
     ardana_job: '{name}'
-    ardana_env: cloud-ardana-ci-slot
+    cloud_env: cloud-ardana-ci-slot
     cloudsource: GM9+up
     updates_test_enabled: false
     scenario_name: standard

@@ -37,8 +37,8 @@ available parameters should be self-descriptive, but the [Customized deployments
 will provide more information on the provided options. Here are some best
 practices:
 
-* For a virtual cloud deployment, use your Rocket/irc nickname as ```ardana_env```. If you need to deploy several Ardana setups,
-  use a unique ```ardana_env``` value for each one. Note that ```ardana_env``` values starting with
+* For a virtual cloud deployment, use your Rocket/irc nickname as ```cloud_env```. If you need to deploy several Ardana setups,
+  use a unique ```cloud_env``` value for each one. Note that ```cloud_env``` values starting with
   `qe` (e.g `qe101`, `qe102`) are reserved for QA baremetal deployments.
 * Select a ```cleanup``` value to decide what happens with the Ardana virtual cloud deployment after the job completes
 * To test a different input model other than the default `std-min`, adjust the
@@ -85,7 +85,7 @@ at the end of the run, e.g.:
 13:34:20 **
 13:34:20 **  2. (preferred) trigger a manual build for the openstack-ardana-heat job at
 13:34:20 **  https://ci.nue.suse.com/job/openstack-ardana-heat/build and use the
-13:34:20 **  same 'alan-turing' ardana_env value and the 'delete' action for the
+13:34:20 **  same 'alan-turing' cloud_env value and the 'delete' action for the
 13:34:20 **  parameters
 13:34:20 **
 13:34:20 ******************************************************************************
@@ -96,7 +96,7 @@ at the end of the run, e.g.:
 
 Aside from manual testing, any of the following pipeline Jenkins jobs can be manually triggered via `Build with Parameters`
 to run on an Ardana environment that was previously deployed using the Ardana Jenkins jobs. The target Ardana virtual or
-bare-metal environment must be indicated via the `ardana_env` parameter value:
+bare-metal environment must be indicated via the `cloud_env` parameter value:
 
 * [openstack-ardana-qa-tests](https://ci.nue.suse.com/job/openstack-ardana-tests/build) : runs tempest or QA test cases
 * [openstack-ardana-update](https://ci.nue.suse.com/job/openstack-ardana-update/build) : automates the maintenance update
@@ -309,9 +309,9 @@ situation:
   [manual cloud 8 Gerrit CI build](https://ci.nue.suse.com/job/openstack-ardana-gerrit-cloud8/build)
   with the following parameter values:
 
-    * `ardana_env` set to point to one of the available QA bare-metal
+    * `cloud_env` set to point to one of the available QA bare-metal
     environments (contact the QA team to find one that is available)
-    * `reserve_env` unchecked (unless the `ardana_env` QA environment also
+    * `reserve_env` unchecked (unless the `cloud_env` QA environment also
     has an associated [Lockable Resource](https://ci.nue.suse.com/lockable-resources) )
     * `voting` set, to have the new build replace the official voting CI
     job and determine whether the Gerrit change can be merged or not
@@ -335,7 +335,7 @@ E.g. to have a fully customizable `openstack-ardana` job running for a cloud9 Ge
 change, one might trigger a [manual cloud 9 Gerrit CI build](https://ci.nue.suse.com/job/openstack-ardana-gerrit-cloud9/build)
 with the following parameter values:
 
-  * `ardana_env` set to the IRC or LDAP username of the user (i.e. this
+  * `cloud_env` set to the IRC or LDAP username of the user (i.e. this
   will be a private Ardana ECP deployment environment that remains running
   and can be accessed after the job is done)
   * `reserve_env` unchecked

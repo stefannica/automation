@@ -18,6 +18,6 @@
 heat_action: "create"
 
 heat_stack_create_timeout: 480
-heat_stack_name: "openstack-ardana-{{ ardana_env }}"
-ses_stack_name: "openstack-ses-{{ ardana_env }}"
+heat_stack_name: "openstack-ardana-{{ cloud_env }}"
+ses_stack_name: "openstack-ses-{{ cloud_env }}"
 monitor_stack_after_delete: True

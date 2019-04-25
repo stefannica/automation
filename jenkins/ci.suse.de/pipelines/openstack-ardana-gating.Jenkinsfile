@@ -58,10 +58,10 @@ pipeline {
               // reserve a resource here for the openstack-ardana job, to avoid
               // keeping a cloud-ardana-ci worker busy while waiting for a
               // resource to become available.
-              ardana_lib.run_with_reserved_env(true, ardana_env, null) {
+              ardana_lib.run_with_reserved_env(true, cloud_env, null) {
                 reserved_env ->
                 ardana_lib.trigger_build("cloud-ardana${version}-job-std-min-x86_64", [
-                  string(name: 'ardana_env', value: reserved_env),
+                  string(name: 'cloud_env', value: reserved_env),
                   string(name: 'reserve_env', value: "false"),
                   string(name: 'cleanup', value: "never"),
                   string(name: 'rc_notify', value: "true"),
@@ -83,10 +83,10 @@ pipeline {
               // reserve a resource here for the openstack-ardana job, to avoid
               // keeping a cloud-ardana-ci worker busy while waiting for a
               // resource to become available.
-              ardana_lib.run_with_reserved_env(true, ardana_env, null) {
+              ardana_lib.run_with_reserved_env(true, cloud_env, null) {
                 reserved_env ->
                 ardana_lib.trigger_build("cloud-ardana${version}-job-std-3cp-devel-staging-updates-x86_64", [
-                  string(name: 'ardana_env', value: reserved_env),
+                  string(name: 'cloud_env', value: reserved_env),
                   string(name: 'reserve_env', value: "false"),
                   string(name: 'cleanup', value: "never"),
                   string(name: 'rc_notify', value: "true"),

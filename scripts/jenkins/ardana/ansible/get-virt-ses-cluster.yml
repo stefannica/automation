@@ -23,7 +23,7 @@
     - name: Get virtual SES host IP
       command: |
         openstack --os-cloud {{ os_cloud }} stack output show \
-          openstack-ses-{{ ardana_env }} ses-floating-ip -f value -c \
+          openstack-ses-{{ cloud_env }} ses-floating-ip -f value -c \
           output_value
       register: _ses_ip
       changed_when: false

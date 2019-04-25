@@ -27,10 +27,10 @@ pipeline {
         script {
           // Set this variable to be used by upstream builds
           env.blue_ocean_buildurl = env.RUN_DISPLAY_URL
-          if (ardana_env == '') {
-            error("Empty 'ardana_env' parameter value.")
+          if (cloud_env == '') {
+            error("Empty 'cloud_env' parameter value.")
           }
-          currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env}"
+          currentBuild.displayName = "#${BUILD_NUMBER}: ${cloud_env}"
           sh('''
             git clone $git_automation_repo --branch $git_automation_branch automation-git
           ''')

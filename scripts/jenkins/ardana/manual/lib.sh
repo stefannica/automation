@@ -77,8 +77,8 @@ function mitogen_disable {
 }
 
 function ansible_playbook {
-  if ! is_defined ardana_env; then
-    echo "ERROR: ardana_env must be defined - please check all variables on input.yml"
+  if ! is_defined cloud_env; then
+    echo "ERROR: cloud_env must be defined - please check all variables on input.yml"
     return 1
   else
     source $ANSIBLE_VENV/bin/activate
@@ -92,8 +92,8 @@ function ansible_playbook {
 }
 
 function ansible_playbook_ses {
-  if ! is_defined ardana_env; then
-    echo "ERROR: ardana_env must be defined - please check all variables on input.yml"
+  if ! is_defined cloud_env; then
+    echo "ERROR: cloud_env must be defined - please check all variables on input.yml"
     return 1
   else
     source $ANSIBLE_VENV/bin/activate
@@ -107,17 +107,17 @@ function ansible_playbook_ses {
 }
 
 function is_physical_deploy {
-  ardana_env=$(get_from_input ardana_env)
-  [[ $ardana_env == qe* ]] || [[ $ardana_env == pcloud* ]]
+  cloud_env=$(get_from_input cloud_env)
+  [[ $cloud_env == qe* ]] || [[ $cloud_env == pcloud* ]]
 }
 
 function get_deployer_ip {
-  grep -oP "^$(get_from_input ardana_env)\\s+ansible_host=\\K[0-9\\.]+" \
+  grep -oP "^$(get_from_input cloud_env)\\s+ansible_host=\\K[0-9\\.]+" \
     $AUTOMATION_DIR/scripts/jenkins/ardana/ansible/inventory
 }
 
 function get_ses_ip {
-  grep -oP "^openstack-ses-$(get_from_input ardana_env)\\s+ansible_host=\\K[0-9\\.]+" \
+  grep -oP "^openstack-ses-$(get_from_input cloud_env)\\s+ansible_host=\\K[0-9\\.]+" \
     $AUTOMATION_DIR/scripts/jenkins/ses/ansible/inventory
 }
 
@@ -174,7 +174,7 @@ function bootstrap_clm {
 
 function deploy_ses_vcloud {
   if ! is_physical_deploy && $(get_from_input ses_enabled); then
-    ses_id=$(get_from_input ardana_env)
+    ses_id=$(get_from_input cloud_env)
     network="openstack-ardana-${ses_id}_management_net"
     ansible_playbook_ses ses-heat-stack.yml -e "ses_id=$ses_id network=$network"
     ansible_playbook_ses bootstrap-ses-node.yml -e ses_id=$ses_id
@@ -223,8 +223,8 @@ function run_qa_tests {
 }
 
 function validate_input {
-  if ! is_defined ardana_env; then
-    echo "ERROR: ardana_env must be defined - please check all variables on input.yml"
+  if ! is_defined cloud_env; then
+    echo "ERROR: cloud_env must be defined - please check all variables on input.yml"
     return 1
   else
     echo "
@@ -247,11 +247,11 @@ function exit_msg {
     SES_IP=$(get_ses_ip)
     echo "
   *****************************************************************************************
-  ** The '$(get_from_input ardana_env)' SES environment is reachable at:
+  ** The '$(get_from_input cloud_env)' SES environment is reachable at:
   **
   **        ssh root@${SES_IP}
   **
-  ** Please delete the 'openstack-ses-$(get_from_input ardana_env)' stack when you're done,
+  ** Please delete the 'openstack-ses-$(get_from_input cloud_env)' stack when you're done,
   ** by loging into the ECP at https://engcloud.prv.suse.net/project/stacks/
   ** and deleting the heat stack.
   *****************************************************************************************
@@ -260,13 +260,13 @@ function exit_msg {
 
   echo "
   *****************************************************************************************
-  ** The deployer for the '$(get_from_input ardana_env)' environment is reachable at:
+  ** The deployer for the '$(get_from_input cloud_env)' environment is reachable at:
   **
   **        ssh ardana@${DEPLOYER_IP}
   **        or
   **        ssh root@${DEPLOYER_IP}
   **
-  ** Please delete the 'openstack-ardana-$(get_from_input ardana_env)' stack when you're done,
+  ** Please delete the 'openstack-ardana-$(get_from_input cloud_env)' stack when you're done,
   ** by by using one of the following methods:
   **
   **  1. log into the ECP at https://engcloud.prv.suse.net/project/stacks/

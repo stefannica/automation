@@ -32,7 +32,7 @@
 
     parameters:
       - validating-string:
-          name: ardana_env
+          name: cloud_env
           default: ''
           regex: '[A-Za-z0-9-_]+'
           msg: >-
@@ -41,7 +41,7 @@
             The virtual environment identifier. This field should be set to a
             value that will uniquely identify the heat stack.
 
-            WARNING: if a heat stack associated with the supplied ardana_env already
+            WARNING: if a heat stack associated with the supplied cloud_env already
             exists, it will be replaced if this job is launched to create it.
 
       - choice:
