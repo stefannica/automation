@@ -10,7 +10,7 @@ gate-qe202      ansible_host=10.84.89.1
 gate-qe2023     ansible_host=10.84.89.150
 gate-qescale    ansible_host=10.84.48.50
 
-[deployer_qe]
+[admin_qe]
 pcloud001       ansible_host=10.84.132.1
 pcloud002       ansible_host=10.84.144.1
 qe002           ansible_host=10.84.43.81
@@ -27,13 +27,33 @@ ses-qe          ansible_host=10.84.88.251
 
 [qe_all:children]
 gate_qe
-deployer_qe
+admin_qe
 ses_qe
 
-[deployer_virt]
+[admin_virt]
+
+[controllers_virt]
+
+[computes_virt]
 
 [ses_virt]
 
 [virt_all:children]
-deployer_virt
+admin_virt
 ses_virt
+
+[cloud_virt_hosts:children]
+controllers_virt
+computes_virt
+
+[crowbar:children]
+
+[ardana:children]
+
+[ardana_virt:children]
+
+[crowbar_virt:children]
+
+[ardana_qe:children]
+
+[crowbar_qe:children]

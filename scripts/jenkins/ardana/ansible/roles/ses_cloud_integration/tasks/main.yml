@@ -20,4 +20,5 @@
     path: "{{ ses_cloud_config_path }}"
     state: directory
 
-- include_tasks: ses_configure_v{{ ardana_ses_integration_version }}.yml
+# Always use SES integration v2 with Crowbar
+- include_tasks: ses_configure_v{{ ses_integration_version }}.yml

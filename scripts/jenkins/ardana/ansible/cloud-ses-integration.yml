@@ -44,7 +44,7 @@
 
 - name: Prepare files for Cloud SES configuration
   hosts: "{{ cloud_env }}"
-  remote_user: "{{ cloud_admin_user[cloud_product] }}"
+  remote_user: "{{ cloud_admin_user }}"
   gather_facts: no
   vars:
     task: "deploy"

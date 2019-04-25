@@ -15,7 +15,7 @@
 #
 ---
 
-- name: Prepare first time deployer access
+- name: Prepare first time admin node access
   hosts: "localhost"
   gather_facts: false
   vars:
@@ -41,16 +41,84 @@
             label: "{{ item.item | replace('-', '_') }}: {{ ('stdout' in item and item.stdout == 'None') | ternary([], item.stdout | default('') | from_yaml) }}"
           when: not is_physical_deploy
 
-        - name: Ensure deployer on ansible inventory file when virtual deploy
+        - name: Clean up previously generated inventory file entries
           blockinfile:
             path: "inventory"
-            insertafter: "\\[deployer_virt\\]"
-            marker: "# {mark} ANSIBLE MANAGED BLOCK - ARDANA"
+            insertafter: "\\[{{ item }}\\]"
+            marker: "# {mark} ANSIBLE MANAGED BLOCK {{ item }}"
+          loop:
+            - admin_virt
+            - controllers_virt
+            - computes_virt
+            - crowbar:children
+            - ardana:children
+            - crowbar_virt:children
+            - ardana_virt:children
+            - crowbar_qe:children
+            - ardana_qe:children
+
+        - name: Add admin host on ansible inventory file when virtual deploy
+          blockinfile:
+            path: "inventory"
+            insertafter: "\\[admin_virt\\]"
+            marker: "# {mark} ANSIBLE MANAGED BLOCK admin_virt"
             block: |
               {{ cloud_env }}      ansible_host={{ admin_floating_ip }}
           when: not is_physical_deploy
 
-        - name: Configure first time deployer access
+        - name: Populate the ansible {{ cloud_product }} inventory group
+          blockinfile:
+            path: "inventory"
+            insertafter: "\\[{{ cloud_product }}:children\\]"
+            marker: "# {mark} ANSIBLE MANAGED BLOCK {{ cloud_product }}:children"
+            block: |
+              {{ cloud_env }}
+
+        - name: Populate the ansible {{ cloud_product }}_virt inventory group
+          blockinfile:
+            path: "inventory"
+            insertafter: "\\[{{ cloud_product }}_virt:children\\]"
+            marker: "# {mark} ANSIBLE MANAGED BLOCK {{ cloud_product }}_virt:children"
+            block: |
+              {{ cloud_env }}
+          when: not is_physical_deploy
+
+        - name: Populate the ansible {{ cloud_product }}_qe inventory group
+          blockinfile:
+            path: "inventory"
+            insertafter: "\\[{{ cloud_product }}_qe:children\\]"
+            marker: "# {mark} ANSIBLE MANAGED BLOCK {{ cloud_product }}_qe:children"
+            block: |
+              {{ cloud_env }}
+          when: is_physical_deploy
+
+        - name: Create temp inventory with all non-admin virtual nodes
+          hosts: "{{ cloud_env }}"
+          gather_facts: False
+          vars:
+            virtual_hosts:
+              - group: controller
+                ips: "{{ hostvars['localhost'].controller_conf_ips | difference([hostvars['localhost'].admin_conf_ip]) }}"
+              - group: compute
+                ips: "{{ hostvars['localhost'].compute_conf_ips }}"
+
+          tasks:
+            - name: Create temp inventory with all non-admin virtual nodes
+              add_host:
+                name: "{{ item.0.group }}{{ item.0.ips.index(item.1) + 1 }}"
+                ansible_host: "{{ item.1 }}"
+                ansible_password: "linux"
+                group: "{{ item.0.group }}, cloud_virt_hosts"
+                ansible_ssh_common_args: >
+                  -o ProxyCommand='ssh -o UserKnownHostsFile=/dev/null -o
+                  StrictHostKeyChecking=no -W %h:%p -q root@{{ hostvars[cloud_env].ansible_host }}'
+                  -o ControlPath='~/.ansible/cp/{{ cloud_env }}-%r@%h:%p'
+              loop: "{{ virtual_hosts | subelements('ips') }}"
+              loop_control:
+                label: "{{ item.0.group }}{{ item.0.ips.index(item.1) + 1 }} - {{ item.1 }}"
+
+
+        - name: Configure first time admin node access
           add_host:
             name: "{{ cloud_env }}"
             ansible_host: "{{ is_physical_deploy | ternary(omit, admin_floating_ip) }}"
@@ -68,17 +136,17 @@
             msg: "{{ task }} failed."
 
 
-- name: Ensure public keys on deployer
+- name: Ensure public keys on admin node
   hosts: "{{ cloud_env }}"
   remote_user: root
-  # NOTE: don't gather facts before deployer becomes accessible
+  # NOTE: don't gather facts before admin node becomes accessible
   gather_facts: false
   vars:
     task: "deploy"
 
   tasks:
     - block:
-        - name: Wait for deployer to be accessible
+        - name: Wait for admin node to be accessible
           wait_for_connection:
             sleep: 10
             timeout: 300

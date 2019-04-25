@@ -1,0 +1,7 @@
+# group variables applicable only to Ardana environments (cloud_product = `ardana`)
+---
+
+cloud_admin_user: ardana
+
+# FIXME: this should be determined from the input model instead
+rhel_enabled: "{{ rhel_computes is defined and rhel_computes | int > 0 }}"

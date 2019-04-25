@@ -1,0 +1,2 @@
+# group variables applicable only to Ardana virtual environments (cloud_product = `ardana` and is_physical_deploy=false)
+---

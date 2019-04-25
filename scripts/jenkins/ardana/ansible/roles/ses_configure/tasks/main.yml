@@ -18,4 +18,4 @@
 - include_tasks: delete_pools.yml
 
 - include_tasks: configure_ses.yml
-  when: ardana_ses_integration_version == 1
+  when: ses_integration_version == 1

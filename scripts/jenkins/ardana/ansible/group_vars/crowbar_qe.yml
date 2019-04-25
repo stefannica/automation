@@ -1,0 +1,2 @@
+# group variables applicable only to Crowbar bare-metal environments (cloud_product = `crowbar` and is_physical_deploy=true)
+---

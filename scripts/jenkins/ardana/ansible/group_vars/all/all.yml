@@ -18,10 +18,6 @@
 cloud_product: "ardana"
 #cloud_product: "crowbar"
 
-cloud_admin_user:
-  ardana: ardana
-  crowbar: root
-
 # The cloud release is encoded in the cloudsource value
 cloud_release: "cloud{{ cloudsource | regex_search('\\d') }}"
 cloud_git_branch:
@@ -31,10 +27,9 @@ cloud_git_branch:
 clouddata_server: "provo-clouddata.cloud.suse.de"
 sles_media_server: "ibs-mirror.prv.suse.net"
 
-rhel_enabled: "{{ rhel_computes is defined and rhel_computes | int > 0 }}"
 ses_enabled: False
 ses_rgw_enabled: False
-ardana_ses_integration_version: 2
+ses_integration_version: 2
 cinder_lvm_enabled: '{{ not ses_enabled }}'
 
 ardana_nova_migrate_enabled: True
