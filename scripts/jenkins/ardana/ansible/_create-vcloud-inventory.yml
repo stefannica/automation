@@ -1,8 +1,110 @@
 ---
 
-- name: Create temp inventory with all non-admin virtual nodes
-  hosts: "{{ ardana_env }}"
+- name: Update inventory with the nodes in the cloud environment
+  hosts: localhost
   gather_facts: False
+  tasks:
+    - name: Get cloud node IP addresses from heat stack output
+      command: |
+         openstack --os-cloud "{{ os_cloud }}" stack output show {{ heat_stack_name }} {{ item }} -c output_value -f value
+      loop: "{{ cli_stack_queries }}"
+      register: "os_stack_output"
+      when:
+        - not is_physical_deploy
+        - heat_stack_output is not defined
+
+      # The following facts are set here with values loaded from the heat stack:
+      #
+      #  admin_floating_ip: the public IP address that can be used to access the admin node
+      #  admin_conf_ip: the private/admin IP address assigned to the admin node
+      #  controller_conf_ips: the list of private/admin IP addresses assigned to control plane nodes
+      #  compute_conf_ips: the list of private/admin IP addresses assigned to compute nodes
+      #
+    - name: Load cloud node IP addresses into facts
+      set_fact:
+        "{{ item.item | replace('-', '_') }}": "{{ (item.stdout == 'None') | ternary([], item.stdout | from_yaml) }}"
+      loop: "{{ (heat_stack_output is defined) | ternary(heat_stack_output_queries, os_stack_output.results) }}"
+      loop_control:
+        label: "{{ item.item | replace('-', '_') }}: {{ ('stdout' in item and item.stdout == 'None') | ternary([], item.stdout | default('') | from_yaml) }}"
+      when: not is_physical_deploy
+
+    - name: Create virtual hosts loop map
+      set_fact:
+        virtual_hosts:
+          - group: admin
+            ips: "{{ [admin_conf_ip] }}"
+          - group: controller
+            ips: "{{ controller_conf_ips }}"
+          - group: compute
+            ips: "{{ compute_conf_ips }}"
+
+    - name: Create cloud inventory host entries
+      set_fact:
+        "{{ item.0.group }}_hosts": >
+          {%- set _suffix = (item.0.ips|length > 1) | ternary(item.0.ips.index(item.1)+1, '') -%}
+          {%- set _name = item.0.group -%}
+          {%- set _name = { hostvars[item]['crowbar_node_name']: hostvars[item]['admin_network_databag_entry'] } -%}
+          {%- set _ = admin_network_databag['allocated_by_name'].update( _entry ) -%}
+          {%- set _entry = { hostvars[item]['ansible_host']: hostvars[item]['admin_network_databag_entry'] } -%}
+          {%- set _ = admin_network_databag['allocated'].update( _entry ) -%}
+          {{ _ret }}
+
+      add_host:
+        name: "{{ item.0.group }}{{ item.0.ips.index(item.1) + 1 }}"
+        ansible_host: "{{ item.1 }}"
+        ansible_password: "linux"
+        group: "{{ item.0.group }}, cloud_virt_hosts"
+      loop: "{{ virtual_hosts | subelements('ips') }}"
+      loop_control:
+        label: "{{ item.0.group }}{{ item.0.ips.index(item.1) + 1 }} - {{ item.1 }}"
+
+    - name: Load the current ansible inventory into fact
+      set_fact:
+        inventory: "{{ lookup('file', 'ansible-inventory.yml') | from_yaml }}"
+
+    - name: Load cloud node IP addresses into facts
+      set_fact:
+        virt_all:
+          children:
+            admin_virt:
+              hosts:
+                "{{ ardana_env }}":
+                  ansible_host: "{{ admin_floating_ip }}"
+        cloud_all:
+          children:
+            "{{ ardana_env }}-cloud":
+              hosts:
+                "{{ ardana_env }}-admin":
+                  ansible_host: "{{ admin_conf_ip }}"
+              children:
+                "{{ ardana_env }}-controller":
+                  hosts:
+                    "{{ ardana_env }}-controller{{ index }}":
+                      ansible_host: 10.84.89.151
+                    snica-crowbar-controller1:
+                      ansible_host: 10.84.43.33
+                "{{ ardana_env }}-compute":
+                  hosts:
+                    snica-ardana-compute1:
+                      ansible_host: 10.84.89.151
+                    snica-ardana-compute2:
+                      ansible_host: 10.84.43.33
+
+    - name: Update inventory
+      set_fact:
+        inventory: >
+          {%- set _ = inventory.all.children.virt_all.children.admin_virt.hosts.update( _entry ) -%}
+          {%- set _entry = { hostvars[item]['ansible_host']: hostvars[item]['admin_network_databag_entry'] } -%}
+          {%- set _ = admin_network_databag['allocated'].update( _entry ) -%}
+          {{ inventory }}
+
+
+      loop: "{{ (heat_stack_output is defined) | ternary(heat_stack_output_queries, os_stack_output.results) }}"
+      loop_control:
+        label: "{{ item.item | replace('-', '_') }}: {{ ('stdout' in item and item.stdout == 'None') | ternary([], item.stdout | default('') | from_yaml) }}"
+      when: not is_physical_deploy
+
+
   vars:
     virtual_hosts:
       - group: controller
@@ -10,7 +112,6 @@
       - group: compute
         ips: "{{ hostvars['localhost'].compute_conf_ips }}"
 
-  tasks:
     - name: Create temp inventory with all non-admin virtual nodes
       add_host:
         name: "{{ item.0.group }}{{ item.0.ips.index(item.1) + 1 }}"
@@ -21,3 +122,40 @@
       loop_control:
         label: "{{ item.0.group }}{{ item.0.ips.index(item.1) + 1 }} - {{ item.1 }}"
 
+
+
+
+        - name: Add admin node to ansible inventory file
+          blockinfile:
+            path: "inventory"
+            insertafter: "\\[admin_virt\\]"
+            marker: "# {mark} ANSIBLE MANAGED BLOCK - {{ ardana_env }}"
+            block: |
+              {{ ardana_env }}      ansible_host={{ admin_floating_ip }}
+          when: not is_physical_deploy
+
+        - name: Add cloud nodes to ansible inventory file
+          blockinfile:
+            path: "inventory"
+            insertafter: "\\[admin_virt\\]"
+            marker: "# {mark} ANSIBLE MANAGED BLOCK - {{ ardana_env }}"
+            block: |
+              {{ ardana_env }}      ansible_host={{ admin_floating_ip }}
+          loop: "{{ (heat_stack_output is defined) | ternary(heat_stack_output_queries, os_stack_output.results) }}"
+          when: not is_physical_deploy
+
+
+        - name: Ensure deployer on ansible inventory file when virtual deploy
+          blockinfile:
+            path: "inventory"
+            insertafter: "\\[admin_virt\\]"
+            marker: "# {mark} ANSIBLE MANAGED BLOCK - {{ ardana_env }}"
+            block: |
+              {{ ardana_env }}      ansible_host={{ admin_floating_ip }}
+          when: not is_physical_deploy
+
+        - name: Configure first time deployer access
+          add_host:
+            name: "{{ ardana_env }}"
+            ansible_host: "{{ is_physical_deploy | ternary(omit, admin_floating_ip) }}"
+            ansible_password: "linux"
