@@ -1,0 +1,290 @@
+{#
+
+   Generate the networks based on the component endpoints in the network groups
+   configured in the network scenario template:
+     - CLM, MANAGEMENT and INTERNAL-API - admin network
+     - EXTERNAL-API - public network
+     - NEUTRON-VLAN - nova-fixed network
+     - NEUTRON-VXLAN - os_sdn network
+     - NEUTRON-EXT - nova-floating network
+
+   Restrictions:
+     - CLM, MANAGEMENT and INTERNAL-API component endpoints must be on the same
+     network. These all map to the Crowbar admin network. Crowbar doesn't
+     support spreading these endpoints onto different networks.
+     - interface map must be the same on all nodes. Crowbar doesn't
+     support differentiating interface mapping based on assigned roles
+     - conduit mapping can be differentiated based on assigned roles, but
+     it makes it really difficult to generate the network.json file. The
+     simpler way is to use the network mode parameter to differentiate
+     between the three possible network configuration modes.
+
+
+#}
+
+{
+  "attributes": {
+    "network": {
+      "conduit_map": [
+        {
+          "conduit_list": {
+            "intf0": {
+              "if_list": [
+                "1g1",
+                "1g2"
+              ]
+            },
+            "intf1": {
+              "if_list": [
+                "1g1",
+                "1g2"
+              ]
+            },
+            "intf2": {
+              "if_list": [
+                "1g1",
+                "1g2"
+              ]
+            }
+          },
+          "pattern": "team/.*/.*"
+        },
+        {
+          "conduit_list": {
+            "intf0": {
+              "if_list": [
+                "?1g1"
+              ]
+            },
+            "intf1": {
+              "if_list": [
+                "?1g2"
+              ]
+            },
+            "intf2": {
+              "if_list": [
+                "?1g1"
+              ]
+            }
+          },
+          "pattern": "dual/.*/.*"
+        },
+        {
+          "conduit_list": {
+            "intf0": {
+              "if_list": [
+                "?1g1"
+              ]
+            },
+            "intf1": {
+              "if_list": [
+                "?1g1"
+              ]
+            },
+            "intf2": {
+              "if_list": [
+                "?1g1"
+              ]
+            }
+          },
+          "pattern": "single/.*/.*"
+        },
+        {
+          "conduit_list": {
+            "intf0": {
+              "if_list": [
+                "?1g1"
+              ]
+            },
+            "intf1": {
+              "if_list": [
+                "1g1"
+              ]
+            },
+            "intf2": {
+              "if_list": [
+                "1g1"
+              ]
+            }
+          },
+          "pattern": ".*/.*/.*"
+        }
+      ],
+      "enable_rx_offloading": true,
+      "enable_tx_offloading": true,
+      "interface_map": [
+        {
+          "bus_order": [
+            "0000:00/0000:00:03",
+            "0000:00/0000:00:04",
+            "0000:00/0000:00:05",
+            "0000:00/0000:00:06",
+            "0000:00/0000:00:07",
+            "0000:00/0000:00:08",
+            "0000:00/0000:00:09",
+            "0000:00/0000:00:0a"
+          ],
+          "pattern": "OpenStack Nova"
+        }
+      ],
+      "mode": "{{ network_mode }}",
+      "networks": {
+        "admin": {
+          "add_bridge": false,
+          "broadcast": "192.168.124.255",
+          "conduit": "intf0",
+          "mtu": 1500,
+          "netmask": "255.255.255.0",
+          "ranges": {
+            "admin": {
+              "end": "192.168.124.11",
+              "start": "192.168.124.10"
+            },
+            "dhcp": {
+              "end": "192.168.124.80",
+              "start": "192.168.124.21"
+            },
+            "host": {
+              "end": "192.168.124.160",
+              "start": "192.168.124.81"
+            },
+            "switch": {
+              "end": "192.168.124.250",
+              "start": "192.168.124.241"
+            }
+          },
+          "router": "192.168.124.1",
+          "router_pref": 10,
+          "subnet": "192.168.124.0",
+          "use_vlan": false,
+          "vlan": 100
+        },
+        "bmc": {
+          "add_bridge": false,
+          "broadcast": "192.168.124.255",
+          "conduit": "bmc",
+          "router": "192.168.124.1",
+          "netmask": "255.255.255.0",
+          "ranges": {
+            "host": {
+              "end": "192.168.124.240",
+              "start": "192.168.124.162"
+            }
+          },
+          "subnet": "192.168.124.0",
+          "use_vlan": false,
+          "vlan": 100
+        },
+        "bmc_vlan": {
+          "add_bridge": false,
+          "broadcast": "192.168.124.255",
+          "conduit": "intf2",
+          "netmask": "255.255.255.0",
+          "ranges": {
+            "host": {
+              "end": "192.168.124.161",
+              "start": "192.168.124.161"
+            }
+          },
+          "subnet": "192.168.124.0",
+          "use_vlan": true,
+          "vlan": 100
+        },
+        "nova_fixed": {
+          "add_bridge": false,
+          "add_ovs_bridge": false,
+          "bridge_name": "br-fixed",
+          "broadcast": "192.168.128.255",
+          "conduit": "intf1",
+          "netmask": "255.255.255.0",
+          "ranges": {
+            "dhcp": {
+              "end": "192.168.128.254",
+              "start": "192.168.128.1"
+            }
+          },
+          "router": "192.168.128.1",
+          "router_pref": 20,
+          "subnet": "192.168.128.0",
+          "use_vlan": true,
+          "vlan": 128,
+          "mtu": 1500
+        },
+        "nova_floating": {
+          "add_bridge": false,
+          "add_ovs_bridge": false,
+          "bridge_name": "br-public",
+          "broadcast": "192.168.125.255",
+          "conduit": "intf1",
+          "netmask": "255.255.255.128",
+          "ranges": {
+            "host": {
+              "end": "192.168.125.254",
+              "start": "192.168.125.129"
+            }
+          },
+          "subnet": "192.168.125.128",
+          "use_vlan": true,
+          "vlan": 125,
+          "mtu": 1500
+        },
+        "os_sdn": {
+          "add_bridge": false,
+          "broadcast": "192.168.126.255",
+          "conduit": "intf1",
+          "mtu": 1500,
+          "netmask": "255.255.255.0",
+          "ranges": {
+            "host": {
+              "end": "192.168.126.254",
+              "start": "192.168.126.10"
+            }
+          },
+          "subnet": "192.168.126.0",
+          "use_vlan": true,
+          "vlan": 126
+        },
+        "public": {
+          "add_bridge": false,
+          "broadcast": "192.168.125.255",
+          "conduit": "intf1",
+          "netmask": "255.255.255.0",
+          "ranges": {
+            "host": {
+              "end": "192.168.125.127",
+              "start": "192.168.125.2"
+            }
+          },
+          "router": "192.168.125.1",
+          "router_pref": 5,
+          "subnet": "192.168.125.0",
+          "use_vlan": true,
+          "vlan": 125,
+          "mtu": 1500
+        },
+        "storage": {
+          "add_bridge": false,
+          "broadcast": "192.168.129.255",
+          "conduit": "intf1",
+          "mtu": 1500,
+          "netmask": "255.255.255.0",
+          "ranges": {
+            "host": {
+              "end": "192.168.129.239",
+              "start": "192.168.129.10"
+            }
+          },
+          "subnet": "192.168.129.0",
+          "use_vlan": true,
+          "vlan": 127
+        }
+      },
+      "start_up_delay": 30,
+      "teaming": {
+        "miimon": 100,
+        "mode": 1,
+        "xmit_hash_policy": "layer2"
+      }
+    }
+  }
+}

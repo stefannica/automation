@@ -1,0 +1,79 @@
+---
+
+interface_models:
+  - name: ADMIN
+    service_groups:
+      - clm
+    network_interfaces:
+      - network_groups:
+          - ADMIN
+
+  - name: CONTROLLER
+    service_groups:
+      - controller
+    network_interfaces:
+      - network_groups:
+          - ADMIN
+      - network_groups:
+          - PUBLIC
+          - OS_SDN
+          - STORAGE
+          - NOVA_FLOATING
+          - NOVA_FIXED
+
+  - name: CORE
+    service_groups:
+      - core
+      - swpac
+    network_interfaces:
+      - network_groups:
+          - ADMIN
+          - PUBLIC
+          - STORAGE
+
+  - name: SWIFT
+    service_groups:
+      - swobj
+      - swift
+    network_interfaces:
+      - network_groups:
+          - ADMIN
+          - STORAGE
+
+  - name: LMM
+    service_groups:
+      - lmm
+    network_interfaces:
+      - network_groups:
+          - ADMIN
+          - PUBLIC
+
+  - name: DBMQ
+    service_groups:
+      - dbmq
+    network_interfaces:
+      - network_groups:
+          - ADMIN
+
+  - name: NEUTRON
+    service_groups:
+      - neutron
+    network_interfaces:
+      - network_groups:
+          - ADMIN
+          - PUBLIC
+          - OS_SDN
+          - NOVA_FLOATING
+          - NOVA_FIXED
+
+  - name: COMPUTE
+    service_groups:
+      - compute
+    network_interfaces:
+      - network_groups:
+          - ADMIN
+          - PUBLIC
+          - OS_SDN
+          - STORAGE
+          - NOVA_FLOATING
+          - NOVA_FIXED

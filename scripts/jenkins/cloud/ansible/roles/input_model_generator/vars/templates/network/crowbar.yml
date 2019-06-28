@@ -1,19 +1,19 @@
 ---
 
 network_groups:
-  - name: MANAGEMENT
+  - name: ADMIN
     hostname_suffix: mgmt
     tagged_vlan: false
     component_endpoints:
       - CLM
       - MANAGEMENT
       - INTERNAL-API
-      - EXTERNAL-API
 
   - name: PUBLIC
     hostname_suffix: public
     tagged_vlan: true
-    component_endpoints: []
+    component_endpoints:
+      - EXTERNAL-API
     routes:
       - default
 
@@ -26,3 +26,15 @@ network_groups:
     hostname_suffix: storage
     tagged_vlan: true
     component_endpoints: []
+
+  - name: NOVA_FLOATING
+    hostname_suffix: extvm
+    tagged_vlan: false
+    component_endpoints:
+      - NEUTRON-EXT
+
+  - name: NOVA_FIXED
+    hostname_suffix: tvlan
+    tagged_vlan: false
+    component_endpoints:
+      - NEUTRON-VLAN
