@@ -86,20 +86,6 @@ pipeline {
       }
     }
 
-    stage('Submit project') {
-      steps {
-        script{
-          cloud_lib.trigger_build("openstack-submit-project", [
-            string(name: 'project', value: "Devel:Cloud:${version}"),
-            string(name: 'starttime', value: "${starttime}"),
-            string(name: 'subproject', value: "Staging"),
-            string(name: 'package_whitelist', value: "ardana venv"),
-            string(name: 'package_blacklist', value: "crowbar")
-          ])
-        }
-      }
-    }
-
   }
   post {
     cleanup {
