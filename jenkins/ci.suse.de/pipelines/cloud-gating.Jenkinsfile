@@ -59,8 +59,8 @@ pipeline {
       steps {
         script {
           parallel cloud_lib.generate_parallel_stages(
-            ["cloud${version}"],
-            ["SOC${version}", "SOCC${version}"],
+            ["SOC" + version, "SOCC" + version],
+            [],
             "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/cloud-gating-config.yml") {
             job_title, job_def ->
 
