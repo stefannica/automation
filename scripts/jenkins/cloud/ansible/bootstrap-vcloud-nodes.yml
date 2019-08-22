@@ -97,6 +97,9 @@
         - include_role:
             name: setup_root_partition
 
+        - include_role:
+            name: ssh_keys
+
         - name: Create ardana group
           group:
             name: "ardana"
