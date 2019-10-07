@@ -9,7 +9,7 @@ set -o pipefail
 export OS_TEST_PATH="{{ ardana_qe_tests_dir }}/functionaltests"
 export OS_TOP_LEVEL="{{ ardana_qe_tests_dir }}"
 export VENV_FOLDER="{{ ardana_qe_test_venv }}"
-export STESTR="{{ ardana_qe_test_venv }}/bin/stestr"
+export STESTR=stestr
 export PYTHON="{{ ardana_qe_test_venv }}/bin/python"
 export TESTS_TO_SKIP_BIN="{{ ardana_qe_tests_dir }}/tests2skip.py"
 #export RUN_FILTER="{{ ardana_qe_tests_dir }}/run_filters/{{ test_name }}/${1:-{{ test_run_filter }}}.txt"

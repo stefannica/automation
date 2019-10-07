@@ -57,7 +57,7 @@
       loop_control:
         label: "{{ item.name }}"
 
-      # NOTE: Removing SLE-SDK repos and packages required for ardana-qe-tests
+      # NOTE: Removing packages required for ardana-qe-tests
       # as they were affecting maintenance updates
     - include_tasks: qe_test_requires.yml
       vars:

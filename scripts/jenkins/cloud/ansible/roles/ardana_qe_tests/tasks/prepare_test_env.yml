@@ -34,6 +34,7 @@
   pip:
     name: "{{ item }}"
     virtualenv: "{{ ardana_qe_test_venv }}"
+    virtualenv_site_packages: yes
   loop: "['shade'] + {{ ardana_qe_test_venv_requires }}"
   when: ardana_qe_test_venv_requires | length or os_resources_requires | length
 

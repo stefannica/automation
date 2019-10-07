@@ -10,8 +10,6 @@ ardana_qe_test_venv_requires:
   - 'python-subunit'
 
 ardana_qe_tests_requires:
-  - "gcc"
-  - "python-devel"
   - "java-1_8_0-openjdk-headless"
 
 ardana_read_group_vars: True

@@ -36,9 +36,7 @@ ardana_qe_test_venv: "{{ ardana_qe_base_dir }}/{{ test_name }}/venv"
 ardana_qe_test_venv_requires: []
 
 ardana_qe_tests_requires_state: "present"
-ardana_qe_tests_requires:
-  - "gcc"
-  - "python-devel"
+ardana_qe_tests_requires: []
 
 ardana_qe_test_run_filters: "{{ role_path }}/files/run_filters/{{ test_name }}"
 
