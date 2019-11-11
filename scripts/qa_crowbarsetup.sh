@@ -1209,6 +1209,34 @@ EOPYTHON
     /opt/dell/bin/json-edit -a attributes.network.networks -r -v "$networks_complete" $netfile
     fi
 
+    if [[ $want_octavia_proposal > 0 ]]; then
+        local networks_octavia=`python - <<EOPYTHON
+import json
+f=open('$netfile')
+j=json.load(f)
+networks=j['attributes']['network']['networks']
+octavia_network={
+    'conduit': 'intf1',
+    'vlan': ${vlan_octavia},
+    'use_vlan': True,
+    'add_bridge': False,
+    'subnet': '${net_octavia}${ip_sep}0',
+    'netmask': '255.255.255.0',
+    'broadcast': '${net_octavia}${ip_sep}255',
+    'ranges': {
+      'host': {
+        'start': '${net_octavia}${ip_sep}1',
+        'end': '${net_octavia}${ip_sep}254'
+      },
+    }
+}
+networks['octavia']=octavia_network
+print json.dumps(networks, indent=4)
+EOPYTHON
+        `
+    /opt/dell/bin/json-edit -a attributes.network.networks -r -v "$networks_octavia" $netfile
+    fi
+
     if [[ $cloud =~ ^p[0-9]$ ]] ; then
         local pcloudnum=${cloud#p}
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.netmask -v 255.255.192.0 $netfile
@@ -2821,6 +2849,7 @@ function custom_configuration
             proposal_set_value neutron default "['attributes']['neutron']['use_lbaas']" "true"
             if [[ $want_octavia_proposal > 0 ]]; then
                 proposal_set_value neutron default "['attributes']['neutron']['lbaasv2_driver']" "'octavia'"
+                proposal_set_value neutron default "['attributes']['neutron']['additional_external_networks']" "['octavia']"
             fi
 
             if [[ $want_l3_ha = 1 ]]; then
@@ -4145,9 +4174,8 @@ function oncontroller_octavia_network_setup
     . ~/.openrc
     if ! openstack network list --format value -c Name | grep -q "^${octavia_network_name}$"; then
         openstack network create --project service \
-            --provider-network-type vlan \
-            --provider-segment $vlan_octavia \
-            --provider-physical-network physnet1 \
+            --provider-network-type flat \
+            --provider-physical-network octavia \
             --external \
             $octavia_network_name
     fi

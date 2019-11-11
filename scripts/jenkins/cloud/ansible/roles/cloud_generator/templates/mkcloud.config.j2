@@ -116,6 +116,10 @@ export want_swift=1
 
 export want_ipv6={{ ipv6 | ternary (1, 0) }}
 
+{% if 'octavia' in deployments %}
+export want_octavia_proposal=1
+{% endif %}
+
 # FIXME: these need to be generated ouf of the scenario generator
 # for now, set them to match the crowbar scenario
 
@@ -132,8 +136,9 @@ export net_ceph={{ subnet_prefix }}{{ ipsep }}{{ gen_subnet_start+5 }}
 export vlan_public={{ gen_subnet_start+1 }}
 export vlan_sdn={{ gen_subnet_start+2 }}
 export vlan_storage={{ gen_subnet_start+3 }}
-export vlan_fixed={{ gen_subnet_start+4 }}
 export vlan_ceph={{ gen_subnet_start+5 }}
+# keep the VLAN for the fixed network above the other VLAN values, to avoid overlap
+export vlan_fixed={{ gen_subnet_start+6 }}
 
 {% if 'octavia' in deployments %}
 export net_octavia={{ neutron_subnet_prefix }}{{ ipsep }}30{{ ipsep }}1

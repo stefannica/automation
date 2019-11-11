@@ -23,6 +23,8 @@
       use_lbaas: true
 {% if 'octavia' in deployments %}
       lbaasv2_driver: octavia
+      additional_external_networks:
+        - octavia
 {% endif %}
 {% if neutron_use_l3_ha %}
       l3_ha:
