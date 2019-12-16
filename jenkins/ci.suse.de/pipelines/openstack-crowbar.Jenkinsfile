@@ -91,31 +91,49 @@ pipeline {
       }
     }
 
-    stage('Create heat stack') {
-      when {
-        expression { cloud_type == 'virtual' }
-      }
-      steps {
-        script {
+    stage('Prepare infra') {
+      // abort all stages if one of them fails
+      failFast true
+      parallel {
 
-          // Needed to pass the generated heat template file contents as a text parameter value
-          def heat_template = sh (
-            returnStdout: true,
-            script: 'cat "$WORKSPACE/heat-stack-${scenario_name}${model}.yml"'
-          )
-
-          cloud_lib.trigger_build("openstack-cloud-heat-$os_cloud", [
-            string(name: 'cloud_env', value: "$cloud_env"),
-            string(name: 'heat_action', value: "create"),
-            text(name: 'heat_template', value: heat_template),
-            string(name: 'git_automation_repo', value: "$git_automation_repo"),
-            string(name: 'git_automation_branch', value: "$git_automation_branch"),
-            string(name: 'os_project_name', value: "$os_project_name"),
-            text(name: 'extra_params', value: extra_params)
-          ], false)
+        stage('Start bare-metal admin VM') {
+          when {
+            expression { cloud_type == 'physical' }
+          }
+          steps {
+            script {
+              cloud_lib.ansible_playbook('start-deployer-vm')
+            }
+          }
         }
-      }
-    }
+
+        stage('Create heat stack') {
+          when {
+            expression { cloud_type == 'virtual' }
+          }
+          steps {
+            script {
+
+              // Needed to pass the generated heat template file contents as a text parameter value
+              def heat_template = sh (
+                returnStdout: true,
+                script: 'cat "$WORKSPACE/heat-stack-${scenario_name}${model}.yml"'
+              )
+
+              cloud_lib.trigger_build("openstack-cloud-heat-$os_cloud", [
+                string(name: 'cloud_env', value: "$cloud_env"),
+                string(name: 'heat_action', value: "create"),
+                text(name: 'heat_template', value: heat_template),
+                string(name: 'git_automation_repo', value: "$git_automation_repo"),
+                string(name: 'git_automation_branch', value: "$git_automation_branch"),
+                string(name: 'os_project_name', value: "$os_project_name"),
+                text(name: 'extra_params', value: extra_params)
+              ], false)
+            }
+          }
+        }
+      } // parallel
+    } // stage('Prepare infra')
 
     stage('Setup SSH access') {
       steps {
